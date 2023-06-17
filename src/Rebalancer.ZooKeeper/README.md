@@ -1,10 +1,10 @@
-# rebalanser-net-zookeeper
-ZooKeeper backend for .NET Rebalanser (in development). Protocol and implementation still under development.
+# rebalancer-net-zookeeper
+ZooKeeper backend for .NET Rebalancer (in development). Protocol and implementation still under development.
 
 To learn more about the project check out the [wiki](https://github.com/Rebalanser/wiki/wiki).
 
 ## Internals
-Rebalanser.ZooKeeper is .NET implementation of Rebalanser that uses ZooKeeper as the coordination service. 
+Rebalancer.ZooKeeper is .NET implementation of Rebalancer that uses ZooKeeper as the coordination service. 
 
 The design is split into two areas:
  - leader election
@@ -39,7 +39,7 @@ The clients and resources watches tell the leader when it needs to perform rebal
 
 Once a follower, a client sets a watch on the next lowest client znode. When a notification fires for that client it gets all children of the clients/ znode and if it has the smallest sequence number it is the coordinator, else it finds the next lowest znode, places a watch on it and continues to be a follower.
 
-![](https://github.com/Rebalanser/rebalanser-net-zookeeper/blob/master/images/ResourceBarrier_LeaderElection.png)
+![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/ResourceBarrier_LeaderElection.png)
 
 In addition to the coordinator detecting that another client was elected coordinator via an epoch notification, all writes to znodes are performed with a known version. If another client has also written those znodes as coordinator then the version number will have been incremented and the write will fail. This ensures that zombie coordinators are unable to negatively impact rebalancing and will also detect their zombie state and revert to being followers.
 
@@ -56,7 +56,7 @@ Total RPCs. No of clients=C. No of resources=R.
 - /resources: 1 GetChildren(), 1 SetData(), 2xR SetData()
 
 Overview of all RPCs to ZooKeeper.
-![](https://github.com/Rebalanser/rebalanser-net-zookeeper/blob/master/images/ResourceBarrier_RPCs.png)
+![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/ResourceBarrier_RPCs.png)
 
 Followers place a data watch on /resources to detect when a new resource-client assignment has been made. When a client comes or goes, or a resource is added/removed as a child znode to the /chroot/group/resources path, a rebalancing takes place.
 
@@ -74,7 +74,7 @@ The steps in a rebalancing are as follows:
 
 Note that the coordinator also performs steps 6, 8, 9 and 10 as the coordinator also has resources assigned.
 
-![](https://github.com/Rebalanser/rebalanser-net-zookeeper/blob/master/images/ResourceBarrier_Rebalancing.png)
+![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/ResourceBarrier_Rebalancing.png)
 
 This algorithm is asynchronous and the coordinator does not know when all followers have started consuming their resources. If any client (coordinator or follower) dies during the process then a new rebalancing will be started and the current one aborted. This was we avoid stuck rebalancings.
 
@@ -112,7 +112,7 @@ The steps in a rebalancing are as follows:
 13. Coordinator: Notifications received on /chroot/group/stopped.
 14. Coordinator: When no more child znodes exist, logs the completion of the rebalancing
 
-![](https://github.com/Rebalanser/rebalanser-net-zookeeper/blob/master/images/GlobalBarrier_Rebalancing.png)
+![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/GlobalBarrier_Rebalancing.png)
 
 The coordinator or a follower could fail at anytime during rebalancing. The loss of the coordinator will cause leader election to be triggered. New coordinators always start a new rebalancing. When a new rebalancing is triggered, it aborts any in progress rebalancing.
 
@@ -121,7 +121,7 @@ Likewise, if any follower is lost midway through a rebalancing, the coordinator 
 To avoid disruptive rebalancing events during cluster start up and shutdown, rebalancing events are timed to occur with a minimum interval between them. This limits the number of rebalancings started and aborted during deployments.
 
 ## Testing
-Rebalanser has two invariants:
+Rebalancer has two invariants:
 1. It will never ever assign a resource to more than one node 
 2. No resource will remain unassigned longer than X period of time. 
 
