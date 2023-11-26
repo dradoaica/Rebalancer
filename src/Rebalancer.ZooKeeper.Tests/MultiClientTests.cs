@@ -44,9 +44,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 6);
 
         // ACT
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
         await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
@@ -92,9 +92,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 6);
 
         // ACT - start up three clients
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
         await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
@@ -160,9 +160,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 6);
 
         // ACT - create three clients and start one
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
 
@@ -223,9 +223,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 1);
 
         // ACT - create three clients and start one
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
 
@@ -296,9 +296,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 2);
 
         // ACT - create three clients and start one
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
         await Task.Delay(TimeSpan.FromSeconds(10));
@@ -368,9 +368,9 @@ public class MultiClientTests : IDisposable
         await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", 2);
 
         // ACT - create three clients and start one
-        (var client1, var testEvents1) = this.CreateClient();
-        (var client2, var testEvents2) = this.CreateClient();
-        (var client3, var testEvents3) = this.CreateClient();
+        var (client1, testEvents1) = this.CreateClient();
+        var (client2, testEvents2) = this.CreateClient();
+        var (client3, testEvents3) = this.CreateClient();
 
         await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
         await Task.Delay(TimeSpan.FromSeconds(10));

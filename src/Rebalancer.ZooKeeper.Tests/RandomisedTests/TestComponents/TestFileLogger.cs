@@ -1,7 +1,5 @@
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
-
-
 //    public class TestFileLogger : ILogger
 //    {
 //        public TestFileLogger(string testFileDirectory, string testName)

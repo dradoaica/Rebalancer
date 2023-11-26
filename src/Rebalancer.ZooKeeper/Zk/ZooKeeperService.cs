@@ -639,7 +639,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NodeExistsException)
             {
-                (var exists, var owner) = await this.GetResourceBarrierOwnerAsync(resource);
+                var (exists, owner) = await this.GetResourceBarrierOwnerAsync(resource);
                 if (exists && owner.Equals(this.clientId))
                 {
                     succeeded = true;

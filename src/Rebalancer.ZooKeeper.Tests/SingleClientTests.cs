@@ -53,7 +53,7 @@ public class SingleClientTests : IDisposable
         };
 
         // ACT
-        (var client, var testEvents) = this.CreateClient();
+        var (client, testEvents) = this.CreateClient();
         await client.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
 
         await Task.Delay(TimeSpan.FromSeconds(10));

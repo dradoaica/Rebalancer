@@ -181,7 +181,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                                 "Couldn't read the current epoch.");
                         }
 
-                        (var electionResult, var lowerSiblingPath) = await this.DetermineLeadershipAsync();
+                        var (electionResult, lowerSiblingPath) = await this.DetermineLeadershipAsync();
                         switch (electionResult)
                         {
                             case ElectionResult.IsLeader:
@@ -441,7 +441,7 @@ public class ZooKeeperProvider : IRebalancerProvider
     private async Task<(ElectionResult, string)> DetermineLeadershipAsync()
     {
         this.logger.Info(this.clientId, "Looking for a next smaller sibling to watch");
-        (var success, var lowerSiblingPath) = await this.FindLowerSiblingAsync();
+        var (success, lowerSiblingPath) = await this.FindLowerSiblingAsync();
         if (success)
         {
             if (lowerSiblingPath == string.Empty)
