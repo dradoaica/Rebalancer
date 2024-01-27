@@ -2,7 +2,7 @@
 
 ZooKeeper backend for .NET Rebalancer (in development). Protocol and implementation still under development.
 
-To learn more about the project check out the [wiki](https://github.com/Rebalanser/wiki/wiki).
+To learn more about the project check out the [wiki](https://github.com/Rebalancer/wiki/wiki).
 
 ## Internals
 

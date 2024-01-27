@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
-namespace Rebalanser.RabbitMQTools;
+namespace Rebalancer.RabbitMQTools;
 
 public class MessageManager
 {

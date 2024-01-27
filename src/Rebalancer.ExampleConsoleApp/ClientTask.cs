@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Rebalanser.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
 
 public class ClientTask
 {

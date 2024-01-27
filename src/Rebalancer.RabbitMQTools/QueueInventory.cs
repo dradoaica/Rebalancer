@@ -1,4 +1,4 @@
-﻿namespace Rebalanser.RabbitMQTools;
+﻿namespace Rebalancer.RabbitMQTools;
 
 public class QueueInventory
 {

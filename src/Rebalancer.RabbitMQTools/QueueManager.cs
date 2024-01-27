@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json.Linq;
 
-namespace Rebalanser.RabbitMQTools;
+namespace Rebalancer.RabbitMQTools;
 
 public class QueueManager
 {

@@ -17,9 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{12A8C18F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{6585E27B-D1D6-4F50-9E3E-CCE0033C7E51}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebalanser.RabbitMQTools", "src\Rebalanser.RabbitMQTools\Rebalanser.RabbitMQTools.csproj", "{BC56C8F8-F8DE-4529-812B-EE975FFD9CF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebalancer.RabbitMQTools", "src\Rebalancer.RabbitMQTools\Rebalancer.RabbitMQTools.csproj", "{BC56C8F8-F8DE-4529-812B-EE975FFD9CF7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebalanser.RabbitMq.ExampleWithSqlServerBackend", "src\Rebalanser.ExampleConsoleApp\Rebalanser.RabbitMq.ExampleWithSqlServerBackend.csproj", "{6F1BF0B8-88F3-4413-B679-02A89BE84957}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebalancer.RabbitMq.ExampleWithSqlServerBackend", "src\Rebalancer.ExampleConsoleApp\Rebalancer.RabbitMq.ExampleWithSqlServerBackend.csproj", "{6F1BF0B8-88F3-4413-B679-02A89BE84957}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

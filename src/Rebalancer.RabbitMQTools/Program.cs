@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Configuration;
 
-namespace Rebalanser.RabbitMQTools;
+namespace Rebalancer.RabbitMQTools;
 
 internal class Program
 {

@@ -9,7 +9,7 @@ using RabbitMQ.Client.Events;
 using Rebalancer.Core;
 using Rebalancer.SqlServer;
 
-namespace Rebalanser.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
 
 internal class Program
 {
