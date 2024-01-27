@@ -1,8 +1,8 @@
-﻿namespace Rebalancer.Redis.Clients;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+namespace Rebalancer.Redis.Clients;
 
 public interface IClientService
 {

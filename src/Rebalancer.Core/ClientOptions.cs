@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core;
 
 /// <summary>
 ///     Options that control how the client behaves

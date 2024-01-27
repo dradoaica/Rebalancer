@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper;
-
 using System.Threading.Tasks;
+
+namespace Rebalancer.ZooKeeper;
 
 public interface ICoordinator
 {

@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core;
 
 /// <summary>
 ///     EventArgs that describe the cause of an aborted event
@@ -9,8 +9,8 @@ public sealed class OnAbortedArgs : EventArgs
 {
     public OnAbortedArgs(string abortReason, Exception exception)
     {
-        this.AbortReason = abortReason;
-        this.Exception = exception;
+        AbortReason = abortReason;
+        Exception = exception;
     }
 
     /// <summary>

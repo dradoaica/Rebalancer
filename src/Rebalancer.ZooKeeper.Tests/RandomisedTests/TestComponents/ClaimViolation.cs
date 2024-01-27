@@ -6,15 +6,18 @@ public class ClaimViolation
         string currentlyAssignedClientId,
         string claimerClientId)
     {
-        this.ResourceName = resourceName;
-        this.CurrentlyAssignedClientId = currentlyAssignedClientId;
-        this.ClaimerClientId = claimerClientId;
+        ResourceName = resourceName;
+        CurrentlyAssignedClientId = currentlyAssignedClientId;
+        ClaimerClientId = claimerClientId;
     }
 
     public string ResourceName { get; set; }
     public string CurrentlyAssignedClientId { get; set; }
     public string ClaimerClientId { get; set; }
 
-    public override string ToString() =>
-        $"Client {this.ClaimerClientId} tried to claim the resource {this.ResourceName} still assigned to {this.CurrentlyAssignedClientId}";
+    public override string ToString()
+    {
+        return
+            $"Client {ClaimerClientId} tried to claim the resource {ResourceName} still assigned to {CurrentlyAssignedClientId}";
+    }
 }

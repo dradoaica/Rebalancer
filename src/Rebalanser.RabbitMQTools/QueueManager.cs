@@ -1,6 +1,4 @@
-﻿namespace Rebalanser.RabbitMQTools;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -10,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json.Linq;
+
+namespace Rebalanser.RabbitMQTools;
 
 public class QueueManager
 {
@@ -117,8 +117,10 @@ public class QueueManager
         }
     }
 
-    public static async Task<List<string>> GetQueuesAsync(string queuePrefix) =>
-        await GetQueuesFromRabbitMQAsync(queuePrefix);
+    public static async Task<List<string>> GetQueuesAsync(string queuePrefix)
+    {
+        return await GetQueuesFromRabbitMQAsync(queuePrefix);
+    }
 
     private static async Task<string> GetMaxQueueAsync(string queuePrefix)
     {

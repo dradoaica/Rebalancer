@@ -1,14 +1,14 @@
-﻿namespace Rebalancer.Redis.Roles;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Clients;
-using Core;
-using Core.Logging;
-using Store;
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.Redis.Clients;
+using Rebalancer.Redis.Store;
+
+namespace Rebalancer.Redis.Roles;
 
 internal class Follower
 {
@@ -30,30 +30,30 @@ internal class Follower
         OnChangeActions onChangeActions,
         CancellationToken token)
     {
-        var self = await this.clientService.KeepAliveAsync(followerClientId);
-        this.logger.Debug(followerClientId.ToString(),
+        var self = await clientService.KeepAliveAsync(followerClientId);
+        logger.Debug(followerClientId.ToString(),
             $"FOLLOWER : Keep Alive sent. Coordinator: {self.CoordinatorStatus} Client: {self.ClientStatus}");
         if (self.CoordinatorStatus == CoordinatorStatus.StopActivity)
         {
             if (self.ClientStatus == ClientStatus.Active)
             {
-                this.logger.Info(followerClientId.ToString(), "-------------- Stopping activity ---------------");
-                this.logger.Debug(followerClientId.ToString(), "FOLLOWER : Invoking on stop actions");
+                logger.Info(followerClientId.ToString(), "-------------- Stopping activity ---------------");
+                logger.Debug(followerClientId.ToString(), "FOLLOWER : Invoking on stop actions");
                 foreach (var stopAction in onChangeActions.OnStopActions)
                 {
                     stopAction.Invoke();
                 }
 
-                this.store.SetResources(new SetResourcesRequest
+                store.SetResources(new SetResourcesRequest
                 {
                     AssignmentStatus = AssignmentStatus.AssignmentInProgress, Resources = new List<string>()
                 });
-                await this.clientService.SetClientStatusAsync(followerClientId, ClientStatus.Waiting);
-                this.logger.Info(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus} -> WAITING");
+                await clientService.SetClientStatusAsync(followerClientId, ClientStatus.Waiting);
+                logger.Info(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus} -> WAITING");
             }
             else
             {
-                this.logger.Debug(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus}");
+                logger.Debug(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus}");
             }
         }
         else if (self.CoordinatorStatus == CoordinatorStatus.ResourcesGranted)
@@ -62,14 +62,14 @@ internal class Follower
             {
                 if (self.AssignedResources.Any())
                 {
-                    this.store.SetResources(new SetResourcesRequest
+                    store.SetResources(new SetResourcesRequest
                     {
                         AssignmentStatus = AssignmentStatus.ResourcesAssigned, Resources = self.AssignedResources
                     });
                 }
                 else
                 {
-                    this.store.SetResources(new SetResourcesRequest
+                    store.SetResources(new SetResourcesRequest
                     {
                         AssignmentStatus = AssignmentStatus.NoResourcesAssigned, Resources = new List<string>()
                     });
@@ -80,16 +80,16 @@ internal class Follower
                     return;
                 }
 
-                await this.clientService.SetClientStatusAsync(followerClientId, ClientStatus.Active);
+                await clientService.SetClientStatusAsync(followerClientId, ClientStatus.Active);
 
                 if (self.AssignedResources.Any())
                 {
-                    this.logger.Info(followerClientId.ToString(),
+                    logger.Info(followerClientId.ToString(),
                         $"FOLLOWER : Granted resources={string.Join(",", self.AssignedResources)}");
                 }
                 else
                 {
-                    this.logger.Info(followerClientId.ToString(), "FOLLOWER : No resources available to be assigned.");
+                    logger.Info(followerClientId.ToString(), "FOLLOWER : No resources available to be assigned.");
                 }
 
                 foreach (var startAction in onChangeActions.OnStartActions)
@@ -97,12 +97,12 @@ internal class Follower
                     startAction.Invoke(self.AssignedResources.Any() ? self.AssignedResources : new List<string>());
                 }
 
-                this.logger.Info(followerClientId.ToString(), $"FOLLOWER : State={self.ClientStatus} -> ACTIVE");
-                this.logger.Info(followerClientId.ToString(), "-------------- Activity started ---------------");
+                logger.Info(followerClientId.ToString(), $"FOLLOWER : State={self.ClientStatus} -> ACTIVE");
+                logger.Info(followerClientId.ToString(), "-------------- Activity started ---------------");
             }
             else
             {
-                this.logger.Debug(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus}");
+                logger.Debug(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus}");
             }
         }
     }

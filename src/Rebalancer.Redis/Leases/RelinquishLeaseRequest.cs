@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis.Leases;
+﻿using System;
 
-using System;
+namespace Rebalancer.Redis.Leases;
 
 public class RelinquishLeaseRequest
 {

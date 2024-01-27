@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System.Collections.Generic;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 public class ClientsZnode
 {

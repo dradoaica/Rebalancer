@@ -1,7 +1,7 @@
-﻿namespace Rebalancer.Core;
-
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+
+namespace Rebalancer.Core;
 
 public interface IRebalancerProvider
 {

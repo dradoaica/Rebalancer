@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
-
 using System;
+
+namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class AssignmentEvent
 {

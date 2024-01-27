@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis;
+﻿using System;
 
-using System;
+namespace Rebalancer.Redis;
 
 public class ResourceGroup
 {

@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper;
-
 using System;
+
+namespace Rebalancer.ZooKeeper;
 
 public class TerminateClientException : Exception
 {

@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis.Roles;
+﻿using System;
 
-using System;
+namespace Rebalancer.Redis.Roles;
 
 public class ClientEvent
 {

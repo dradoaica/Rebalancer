@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core.Logging;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core.Logging;
 
 /// <summary>
 ///     Temporary hack
@@ -9,13 +9,19 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 {
     private LogLevel logLevel;
 
-    public ConsoleRebalancerLogger() => this.logLevel = LogLevel.DEBUG;
+    public ConsoleRebalancerLogger()
+    {
+        logLevel = LogLevel.DEBUG;
+    }
 
-    public ConsoleRebalancerLogger(LogLevel logLevel) => this.logLevel = logLevel;
+    public ConsoleRebalancerLogger(LogLevel logLevel)
+    {
+        this.logLevel = logLevel;
+    }
 
     public void Error(string clientId, string text)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text}");
         }
@@ -23,7 +29,7 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 
     public void Error(string clientId, Exception ex)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {ex}");
         }
@@ -31,7 +37,7 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 
     public void Error(string clientId, string text, Exception ex)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text} : {ex}");
         }
@@ -39,7 +45,7 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 
     public void Warn(string clientId, string text)
     {
-        if ((int)this.logLevel <= 2)
+        if ((int)logLevel <= 2)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN : {clientId} : {text}");
         }
@@ -47,7 +53,7 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 
     public void Info(string clientId, string text)
     {
-        if ((int)this.logLevel <= 1)
+        if ((int)logLevel <= 1)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {clientId} : {text}");
         }
@@ -55,11 +61,14 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
 
     public void Debug(string clientId, string text)
     {
-        if (this.logLevel == 0)
+        if (logLevel == 0)
         {
             Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: DEBUG : {clientId} : {text}");
         }
     }
 
-    public void SetMinimumLevel(LogLevel logLevel) => this.logLevel = logLevel;
+    public void SetMinimumLevel(LogLevel logLevel)
+    {
+        this.logLevel = logLevel;
+    }
 }

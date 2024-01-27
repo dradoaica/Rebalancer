@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis.Store;
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
+namespace Rebalancer.Redis.Store;
 
 internal class GetResourcesResponse
 {

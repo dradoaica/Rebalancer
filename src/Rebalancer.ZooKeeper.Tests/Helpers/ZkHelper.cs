@@ -1,10 +1,10 @@
-namespace Rebalancer.ZooKeeper.Tests.Helpers;
-
 using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using org.apache.zookeeper;
+
+namespace Rebalancer.ZooKeeper.Tests.Helpers;
 
 public class ZkHelper : Watcher
 {
@@ -13,7 +13,7 @@ public class ZkHelper : Watcher
     private Event.KeeperState keeperState;
     private TimeSpan sessionTimeout;
     private string zkRootPath;
-    private ZooKeeper zookeeper;
+    private org.apache.zookeeper.ZooKeeper zookeeper;
 
 
     public async Task InitializeAsync(string zkRootPath, TimeSpan sessionTimeout, TimeSpan connectTimeout)
@@ -21,47 +21,47 @@ public class ZkHelper : Watcher
         this.zkRootPath = zkRootPath;
         this.sessionTimeout = sessionTimeout;
         this.connectTimeout = connectTimeout;
-        await this.EstablishSession();
+        await EstablishSession();
     }
 
     private async Task EstablishSession()
     {
-        this.zookeeper = new ZooKeeper(
+        zookeeper = new org.apache.zookeeper.ZooKeeper(
             ZooKeeperHosts,
-            (int)this.sessionTimeout.TotalMilliseconds,
+            (int)sessionTimeout.TotalMilliseconds,
             this);
 
         Stopwatch sw = new();
         sw.Start();
-        while (this.keeperState != Event.KeeperState.SyncConnected && sw.Elapsed < this.connectTimeout)
+        while (keeperState != Event.KeeperState.SyncConnected && sw.Elapsed < connectTimeout)
         {
             await Task.Delay(50);
         }
 
-        if (this.keeperState != Event.KeeperState.SyncConnected)
+        if (keeperState != Event.KeeperState.SyncConnected)
         {
             throw new Exception("Could not establish test session");
         }
 
-        await this.EnsureZnodeAsync(this.zkRootPath);
+        await EnsureZnodeAsync(zkRootPath);
     }
 
     public async Task CloseAsync()
     {
-        if (this.zookeeper != null)
+        if (zookeeper != null)
         {
-            await this.zookeeper.closeAsync();
+            await zookeeper.closeAsync();
         }
     }
 
     public async Task PrepareResourceGroupAsync(string group, string resourcePrefix, int count)
     {
-        await this.CreateZnodeAsync($"{this.zkRootPath}/{group}");
-        await this.CreateZnodeAsync($"{this.zkRootPath}/{group}/resources");
+        await CreateZnodeAsync($"{zkRootPath}/{group}");
+        await CreateZnodeAsync($"{zkRootPath}/{group}/resources");
 
         for (var i = 0; i < count; i++)
         {
-            await this.CreateZnodeAsync($"{this.zkRootPath}/{group}/resources/{resourcePrefix}{i}");
+            await CreateZnodeAsync($"{zkRootPath}/{group}/resources/{resourcePrefix}{i}");
         }
     }
 
@@ -69,12 +69,14 @@ public class ZkHelper : Watcher
     {
         for (var i = 0; i < count; i++)
         {
-            await this.SafeDelete($"{this.zkRootPath}/{group}/resources/{resourcePrefix}{i}");
+            await SafeDelete($"{zkRootPath}/{group}/resources/{resourcePrefix}{i}");
         }
     }
 
-    public async Task AddResourceAsync(string group, string resourceName) =>
-        await this.CreateZnodeAsync($"{this.zkRootPath}/{group}/resources/{resourceName}");
+    public async Task AddResourceAsync(string group, string resourceName)
+    {
+        await CreateZnodeAsync($"{zkRootPath}/{group}/resources/{resourceName}");
+    }
 
     public async Task DeleteResourceAsync(string group, string resourceName)
     {
@@ -83,13 +85,13 @@ public class ZkHelper : Watcher
             try
             {
                 var childrenRes =
-                    await this.zookeeper.getChildrenAsync($"{this.zkRootPath}/{group}/resources/{resourceName}");
+                    await zookeeper.getChildrenAsync($"{zkRootPath}/{group}/resources/{resourceName}");
                 foreach (var child in childrenRes.Children)
                 {
-                    await this.SafeDelete($"{this.zkRootPath}/{group}/resources/{resourceName}/{child}");
+                    await SafeDelete($"{zkRootPath}/{group}/resources/{resourceName}/{child}");
                 }
 
-                await this.SafeDelete($"{this.zkRootPath}/{group}/resources/{resourceName}");
+                await SafeDelete($"{zkRootPath}/{group}/resources/{resourceName}");
                 return;
             }
             catch (KeeperException.NoNodeException)
@@ -101,7 +103,7 @@ public class ZkHelper : Watcher
             }
             catch (KeeperException.SessionExpiredException)
             {
-                await this.EstablishSession();
+                await EstablishSession();
             }
         }
     }
@@ -112,7 +114,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await this.zookeeper.deleteAsync(path);
+                await zookeeper.deleteAsync(path);
                 return;
             }
             catch (KeeperException.NoNodeException)
@@ -128,14 +130,14 @@ public class ZkHelper : Watcher
             }
             catch (KeeperException.SessionExpiredException)
             {
-                await this.EstablishSession();
+                await EstablishSession();
             }
         }
     }
 
     public override async Task process(WatchedEvent @event)
     {
-        this.keeperState = @event.getState();
+        keeperState = @event.getState();
         await Task.Yield();
     }
 
@@ -145,7 +147,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await this.zookeeper.createAsync(path,
+                await zookeeper.createAsync(path,
                     Encoding.UTF8.GetBytes("0"),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT);
@@ -160,7 +162,7 @@ public class ZkHelper : Watcher
             }
             catch (KeeperException.SessionExpiredException)
             {
-                await this.EstablishSession();
+                await EstablishSession();
             }
         }
     }
@@ -171,7 +173,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await this.zookeeper.createAsync(path,
+                await zookeeper.createAsync(path,
                     new byte[0],
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT);
@@ -187,7 +189,7 @@ public class ZkHelper : Watcher
             }
             catch (KeeperException.SessionExpiredException)
             {
-                await this.EstablishSession();
+                await EstablishSession();
             }
         }
     }

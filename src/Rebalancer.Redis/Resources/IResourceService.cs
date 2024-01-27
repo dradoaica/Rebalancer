@@ -1,7 +1,7 @@
-﻿namespace Rebalancer.Redis.Resources;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
+namespace Rebalancer.Redis.Resources;
 
 public interface IResourceService
 {

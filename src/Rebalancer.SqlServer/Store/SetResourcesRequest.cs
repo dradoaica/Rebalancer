@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer.Store;
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
+namespace Rebalancer.SqlServer.Store;
 
 internal class SetResourcesRequest
 {

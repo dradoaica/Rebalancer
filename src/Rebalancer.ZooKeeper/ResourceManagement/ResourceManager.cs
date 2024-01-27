@@ -1,13 +1,13 @@
-namespace Rebalancer.ZooKeeper.ResourceManagement;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Core;
-using Core.Logging;
-using Zk;
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.ZooKeeper.Zk;
+
+namespace Rebalancer.ZooKeeper.ResourceManagement;
 
 public class ResourceManager
 {
@@ -32,101 +32,101 @@ public class ResourceManager
     {
         this.zooKeeperService = zooKeeperService;
         this.logger = logger;
-        this.resources = new List<string>();
-        this.assignmentStatus = AssignmentStatus.NoAssignmentYet;
+        resources = new List<string>();
+        assignmentStatus = AssignmentStatus.NoAssignmentYet;
         this.onChangeActions = onChangeActions;
         this.rebalancingMode = rebalancingMode;
     }
 
     public AssignmentStatus GetAssignmentStatus()
     {
-        lock (this.resourcesLockObj)
+        lock (resourcesLockObj)
         {
-            return this.assignmentStatus;
+            return assignmentStatus;
         }
     }
 
     public GetResourcesResponse GetResources()
     {
-        lock (this.resourcesLockObj)
+        lock (resourcesLockObj)
         {
-            if (this.assignmentStatus == AssignmentStatus.ResourcesAssigned)
+            if (assignmentStatus == AssignmentStatus.ResourcesAssigned)
             {
                 return new GetResourcesResponse
                 {
-                    Resources = new List<string>(this.resources), AssignmentStatus = this.assignmentStatus
+                    Resources = new List<string>(resources), AssignmentStatus = assignmentStatus
                 };
             }
 
-            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = this.assignmentStatus};
+            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = assignmentStatus};
         }
     }
 
     private void SetResources(AssignmentStatus newAssignmentStatus, List<string> newResources)
     {
-        lock (this.resourcesLockObj)
+        lock (resourcesLockObj)
         {
-            this.assignmentStatus = newAssignmentStatus;
-            this.resources = new List<string>(newResources);
+            assignmentStatus = newAssignmentStatus;
+            resources = new List<string>(newResources);
         }
     }
 
     public bool IsInStartedState()
     {
-        lock (this.resourcesLockObj)
+        lock (resourcesLockObj)
         {
-            return this.assignmentStatus == AssignmentStatus.ResourcesAssigned ||
-                   this.assignmentStatus == AssignmentStatus.NoResourcesAssigned;
+            return assignmentStatus == AssignmentStatus.ResourcesAssigned ||
+                   assignmentStatus == AssignmentStatus.NoResourcesAssigned;
         }
     }
 
     public async Task InvokeOnStopActionsAsync(string clientId, string role)
     {
-        await this.actionsSemaphore.WaitAsync();
+        await actionsSemaphore.WaitAsync();
 
         try
         {
-            List<string> resourcesToRemove = new(this.GetResources().Resources);
+            List<string> resourcesToRemove = new(GetResources().Resources);
             if (resourcesToRemove.Any())
             {
-                this.logger.Info(clientId,
+                logger.Info(clientId,
                     $"{role} - Invoking on stop actions. Unassigned resources {string.Join(",", resourcesToRemove)}");
 
                 try
                 {
-                    foreach (var onStopAction in this.onChangeActions.OnStopActions)
+                    foreach (var onStopAction in onChangeActions.OnStopActions)
                     {
                         onStopAction.Invoke();
                     }
                 }
                 catch (Exception e)
                 {
-                    this.logger.Error(clientId, "{role} - End user on stop actions threw an exception. Terminating. ",
+                    logger.Error(clientId, "{role} - End user on stop actions threw an exception. Terminating. ",
                         e);
                     throw new TerminateClientException("End user on stop actions threw an exception.", e);
                 }
 
-                if (this.rebalancingMode == RebalancingMode.ResourceBarrier)
+                if (rebalancingMode == RebalancingMode.ResourceBarrier)
                 {
                     try
                     {
-                        this.logger.Info(clientId,
+                        logger.Info(clientId,
                             $"{role} - Removing barriers on resources {string.Join(",", resourcesToRemove)}");
                         var counter = 1;
                         foreach (var resource in resourcesToRemove)
                         {
-                            await this.zooKeeperService.RemoveResourceBarrierAsync(resource);
+                            await zooKeeperService.RemoveResourceBarrierAsync(resource);
 
                             if (counter % 10 == 0)
                             {
-                                this.logger.Info(clientId,
+                                logger.Info(clientId,
                                     $"{role} - Removed barriers on {counter} resources of {resourcesToRemove.Count}");
                             }
 
                             counter++;
                         }
 
-                        this.logger.Info(clientId,
+                        logger.Info(clientId,
                             $"{role} - Removed barriers on {resourcesToRemove.Count} resources of {resourcesToRemove.Count}");
                     }
                     catch (ZkOperationCancelledException)
@@ -144,17 +144,17 @@ public class ResourceManager
                     }
                 }
 
-                this.SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
-                this.logger.Info(clientId, $"{role} - On stop complete");
+                SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
+                logger.Info(clientId, $"{role} - On stop complete");
             }
             else
             {
-                this.SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
+                SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
             }
         }
         finally
         {
-            this.actionsSemaphore.Release();
+            actionsSemaphore.Release();
         }
     }
 
@@ -164,9 +164,9 @@ public class ResourceManager
         CancellationToken rebalancingToken,
         CancellationToken clientToken)
     {
-        await this.actionsSemaphore.WaitAsync();
+        await actionsSemaphore.WaitAsync();
 
-        if (this.IsInStartedState())
+        if (IsInStartedState())
         {
             throw new InconsistentStateException(
                 "An attempt to invoke on start actions occurred while already in the started state");
@@ -176,28 +176,28 @@ public class ResourceManager
         {
             if (newResources.Any())
             {
-                if (this.rebalancingMode == RebalancingMode.ResourceBarrier)
+                if (rebalancingMode == RebalancingMode.ResourceBarrier)
                 {
                     try
                     {
-                        this.logger.Info(clientId,
+                        logger.Info(clientId,
                             $"{role} - Putting barriers on resources {string.Join(",", newResources)}");
                         var counter = 1;
                         foreach (var resource in newResources)
                         {
-                            await this.zooKeeperService.TryPutResourceBarrierAsync(resource, rebalancingToken,
-                                this.logger);
+                            await zooKeeperService.TryPutResourceBarrierAsync(resource, rebalancingToken,
+                                logger);
 
                             if (counter % 10 == 0)
                             {
-                                this.logger.Info(clientId,
+                                logger.Info(clientId,
                                     $"{role} - Put barriers on {counter} resources of {newResources.Count}");
                             }
 
                             counter++;
                         }
 
-                        this.logger.Info(clientId,
+                        logger.Info(clientId,
                             $"{role} - Put barriers on {newResources.Count} resources of {newResources.Count}");
                     }
                     catch (ZkOperationCancelledException)
@@ -207,25 +207,25 @@ public class ResourceManager
                             throw;
                         }
 
-                        this.logger.Info(clientId,
+                        logger.Info(clientId,
                             $"{role} - Rebalancing cancelled, removing barriers on resources {string.Join(",", newResources)}");
                         try
                         {
                             var counter = 1;
                             foreach (var resource in newResources)
                             {
-                                await this.zooKeeperService.RemoveResourceBarrierAsync(resource);
+                                await zooKeeperService.RemoveResourceBarrierAsync(resource);
 
                                 if (counter % 10 == 0)
                                 {
-                                    this.logger.Info(clientId,
+                                    logger.Info(clientId,
                                         $"{role} - Removing barriers on {counter} resources of {newResources.Count}");
                                 }
 
                                 counter++;
                             }
 
-                            this.logger.Info(clientId,
+                            logger.Info(clientId,
                                 $"{role} - Removed barriers on {newResources.Count} resources of {newResources.Count}");
                         }
                         catch (ZkSessionExpiredException)
@@ -256,61 +256,61 @@ public class ResourceManager
                     }
                 }
 
-                this.SetResources(AssignmentStatus.ResourcesAssigned, newResources);
+                SetResources(AssignmentStatus.ResourcesAssigned, newResources);
 
                 try
                 {
-                    this.logger.Info(clientId,
-                        $"{role} - Invoking on start with resources {string.Join(",", this.resources)}");
-                    foreach (var onStartAction in this.onChangeActions.OnStartActions)
+                    logger.Info(clientId,
+                        $"{role} - Invoking on start with resources {string.Join(",", resources)}");
+                    foreach (var onStartAction in onChangeActions.OnStartActions)
                     {
-                        onStartAction.Invoke(this.resources);
+                        onStartAction.Invoke(resources);
                     }
                 }
                 catch (Exception e)
                 {
-                    this.logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ",
+                    logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ",
                         e);
                     throw new TerminateClientException("End user on start actions threw an exception.", e);
                 }
 
-                this.logger.Info(clientId, $"{role} - On start complete");
+                logger.Info(clientId, $"{role} - On start complete");
             }
             else
             {
-                this.SetResources(AssignmentStatus.NoResourcesAssigned, newResources);
+                SetResources(AssignmentStatus.NoResourcesAssigned, newResources);
             }
         }
         finally
         {
-            this.actionsSemaphore.Release();
+            actionsSemaphore.Release();
         }
     }
 
 
     public async Task InvokeOnAbortActionsAsync(string clientId, string message, Exception ex = null)
     {
-        await this.actionsSemaphore.WaitAsync();
+        await actionsSemaphore.WaitAsync();
         try
         {
-            this.logger.Info(clientId, "Invoking on abort actions.");
+            logger.Info(clientId, "Invoking on abort actions.");
 
             try
             {
-                foreach (var onAbortAction in this.onChangeActions.OnAbortActions)
+                foreach (var onAbortAction in onChangeActions.OnAbortActions)
                 {
                     onAbortAction.Invoke(message, ex);
                 }
             }
             catch (Exception e)
             {
-                this.logger.Error(clientId, "End user on error actions threw an exception. Terminating. ", e);
+                logger.Error(clientId, "End user on error actions threw an exception. Terminating. ", e);
                 throw new TerminateClientException("End user on error actions threw an exception.", e);
             }
         }
         finally
         {
-            this.actionsSemaphore.Release();
+            actionsSemaphore.Release();
         }
     }
 }

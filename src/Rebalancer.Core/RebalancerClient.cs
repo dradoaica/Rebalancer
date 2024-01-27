@@ -1,9 +1,9 @@
-namespace Rebalancer.Core;
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+namespace Rebalancer.Core;
 
 /// <summary>
 ///     Creates a Rebalancer client node that participates in a resource group
@@ -15,7 +15,10 @@ public class RebalancerClient : IDisposable
 
     private bool disposed;
 
-    public RebalancerClient() => this.rebalancerProvider = Providers.GetProvider();
+    public RebalancerClient()
+    {
+        rebalancerProvider = Providers.GetProvider();
+    }
 
     /// <summary>
     ///     If StopAsync has not previously been called it initiates a shutdown of the node,
@@ -24,12 +27,12 @@ public class RebalancerClient : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (!this.disposed)
+        if (!disposed)
         {
-            this.cts.Cancel(); // signals provider to stop
-            var completionTask = Task.Run(async () => await this.rebalancerProvider.WaitForCompletionAsync());
+            cts.Cancel(); // signals provider to stop
+            var completionTask = Task.Run(async () => await rebalancerProvider.WaitForCompletionAsync());
             completionTask.Wait(5000); // waits for completion up to 5 seconds
-            this.disposed = true;
+            disposed = true;
         }
     }
 
@@ -55,15 +58,18 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StartAsync(string resourceGroup, ClientOptions clientOptions)
     {
-        this.cts = new CancellationTokenSource();
+        cts = new CancellationTokenSource();
         OnChangeActions onChangeActions = new();
-        onChangeActions.AddOnStartAction(this.StartActivity);
-        onChangeActions.AddOnStopAction(this.StopActivity);
-        onChangeActions.AddOnAbortAction(this.Abort);
-        await this.rebalancerProvider.StartAsync(resourceGroup, onChangeActions, this.cts.Token, clientOptions);
+        onChangeActions.AddOnStartAction(StartActivity);
+        onChangeActions.AddOnStopAction(StopActivity);
+        onChangeActions.AddOnAbortAction(Abort);
+        await rebalancerProvider.StartAsync(resourceGroup, onChangeActions, cts.Token, clientOptions);
     }
 
-    public async Task RecreateClientAsync() => await this.rebalancerProvider.RecreateClientAsync();
+    public async Task RecreateClientAsync()
+    {
+        await rebalancerProvider.RecreateClientAsync();
+    }
 
     /// <summary>
     ///     Blocks until the cancellation token is cancelled or the client stops or aborts.
@@ -81,7 +87,7 @@ public class RebalancerClient : IDisposable
     {
         while (!token.IsCancellationRequested)
         {
-            switch (this.GetCurrentState())
+            switch (GetCurrentState())
             {
                 case ClientState.PendingAssignment:
                 case ClientState.Assigned:
@@ -92,7 +98,7 @@ public class RebalancerClient : IDisposable
             }
         }
 
-        await this.StopAsync(maxStopTime);
+        await StopAsync(maxStopTime);
     }
 
     /// <summary>
@@ -100,7 +106,10 @@ public class RebalancerClient : IDisposable
     ///     is pending assignment or not in an active state then the resources collection will be empty.
     /// </summary>
     /// <returns>The assigned resources and state of the client</returns>
-    public AssignedResources GetAssignedResources() => this.rebalancerProvider.GetAssignedResources();
+    public AssignedResources GetAssignedResources()
+    {
+        return rebalancerProvider.GetAssignedResources();
+    }
 
     /// <summary>
     ///     Get the current state of the client
@@ -108,12 +117,12 @@ public class RebalancerClient : IDisposable
     /// <returns>The state of the client</returns>
     public ClientState GetCurrentState()
     {
-        if (this.rebalancerProvider == null)
+        if (rebalancerProvider == null)
         {
             return ClientState.NoProvider;
         }
 
-        return this.rebalancerProvider.GetState();
+        return rebalancerProvider.GetState();
     }
 
     /// <summary>
@@ -123,11 +132,11 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync()
     {
-        if (!this.disposed)
+        if (!disposed)
         {
-            this.cts.Cancel(); // signals provider to stop
-            await this.rebalancerProvider.WaitForCompletionAsync();
-            this.disposed = true;
+            cts.Cancel(); // signals provider to stop
+            await rebalancerProvider.WaitForCompletionAsync();
+            disposed = true;
         }
     }
 
@@ -138,16 +147,16 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout)
     {
-        if (!this.disposed)
+        if (!disposed)
         {
-            this.cts.Cancel(); // signals provider to stop
-            var completionTask = this.rebalancerProvider.WaitForCompletionAsync();
+            cts.Cancel(); // signals provider to stop
+            var completionTask = rebalancerProvider.WaitForCompletionAsync();
             if (await Task.WhenAny(completionTask, Task.Delay(timeout)) == completionTask)
             {
                 await completionTask;
             }
 
-            this.disposed = true;
+            disposed = true;
         }
     }
 
@@ -159,28 +168,46 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout, CancellationToken token)
     {
-        if (!this.disposed)
+        if (!disposed)
         {
-            this.cts.Cancel(); // signals provider to stop
-            var completionTask = this.rebalancerProvider.WaitForCompletionAsync();
+            cts.Cancel(); // signals provider to stop
+            var completionTask = rebalancerProvider.WaitForCompletionAsync();
             if (await Task.WhenAny(completionTask, Task.Delay(timeout, token)) == completionTask)
             {
                 await completionTask;
             }
 
-            this.disposed = true;
+            disposed = true;
         }
     }
 
-    private void StopActivity() => this.RaiseOnUnassignment(EventArgs.Empty);
+    private void StopActivity()
+    {
+        RaiseOnUnassignment(EventArgs.Empty);
+    }
 
-    protected virtual void RaiseOnUnassignment(EventArgs e) => this.OnUnassignment?.Invoke(this, e);
+    protected virtual void RaiseOnUnassignment(EventArgs e)
+    {
+        OnUnassignment?.Invoke(this, e);
+    }
 
-    private void Abort(string message, Exception ex) => this.RaiseOnAbort(new OnAbortedArgs(message, ex));
+    private void Abort(string message, Exception ex)
+    {
+        RaiseOnAbort(new OnAbortedArgs(message, ex));
+    }
 
-    protected virtual void RaiseOnAbort(OnAbortedArgs e) => this.OnAborted?.Invoke(this, e);
+    protected virtual void RaiseOnAbort(OnAbortedArgs e)
+    {
+        OnAborted?.Invoke(this, e);
+    }
 
-    private void StartActivity(IList<string> resources) => this.RaiseOnAssignments(new OnAssignmentArgs(resources));
+    private void StartActivity(IList<string> resources)
+    {
+        RaiseOnAssignments(new OnAssignmentArgs(resources));
+    }
 
-    protected virtual void RaiseOnAssignments(OnAssignmentArgs e) => this.OnAssignment?.Invoke(this, e);
+    protected virtual void RaiseOnAssignments(OnAssignmentArgs e)
+    {
+        OnAssignment?.Invoke(this, e);
+    }
 }

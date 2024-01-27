@@ -1,15 +1,15 @@
-namespace Rebalancer.SqlServer.Roles;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Clients;
-using Core;
-using Core.Logging;
-using Resources;
-using Store;
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.SqlServer.Clients;
+using Rebalancer.SqlServer.Resources;
+using Rebalancer.SqlServer.Store;
+
+namespace Rebalancer.SqlServer.Roles;
 
 internal class Coordinator
 {
@@ -32,25 +32,31 @@ internal class Coordinator
         this.resourceService = resourceService;
         this.clientService = clientService;
         this.store = store;
-        this.resources = new List<string>();
-        this.clients = new List<Guid>();
+        resources = new List<string>();
+        clients = new List<Guid>();
     }
 
-    public int GetFencingToken() => this.currentFencingToken;
+    public int GetFencingToken()
+    {
+        return currentFencingToken;
+    }
 
-    public void SetStoppedDueToInternalErrorFlag() => this.stoppedDueToInternalErrorFlag = true;
+    public void SetStoppedDueToInternalErrorFlag()
+    {
+        stoppedDueToInternalErrorFlag = true;
+    }
 
     public async Task ExecuteCoordinatorRoleAsync(Guid coordinatorClientId,
         ClientEvent clientEvent,
         OnChangeActions onChangeActions,
         CancellationToken token)
     {
-        this.currentFencingToken = clientEvent.FencingToken;
-        var self = await this.clientService.KeepAliveAsync(coordinatorClientId);
-        var resourcesNow = (await this.resourceService.GetResourcesAsync(clientEvent.ResourceGroup))
+        currentFencingToken = clientEvent.FencingToken;
+        var self = await clientService.KeepAliveAsync(coordinatorClientId);
+        var resourcesNow = (await resourceService.GetResourcesAsync(clientEvent.ResourceGroup))
             .OrderBy(x => x)
             .ToList();
-        var clientsNow = await this.GetLiveClientsAsync(clientEvent, coordinatorClientId);
+        var clientsNow = await GetLiveClientsAsync(clientEvent, coordinatorClientId);
         var clientIds = clientsNow.Select(x => x.ClientId).ToList();
         clientIds.Add(coordinatorClientId);
 
@@ -60,39 +66,42 @@ internal class Coordinator
             return;
         }
 
-        if (self.ClientStatus == ClientStatus.Terminated || this.stoppedDueToInternalErrorFlag)
+        if (self.ClientStatus == ClientStatus.Terminated || stoppedDueToInternalErrorFlag)
         {
-            this.stoppedDueToInternalErrorFlag = false;
-            await this.clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Waiting);
-            this.logger.Debug(coordinatorClientId.ToString(),
+            stoppedDueToInternalErrorFlag = false;
+            await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Waiting);
+            logger.Debug(coordinatorClientId.ToString(),
                 "Status change: COORDINATOR was terminated due to an error");
-            await this.TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
                 onChangeActions,
                 token);
         }
-        else if (!this.resources.OrderBy(x => x).SequenceEqual(resourcesNow.OrderBy(x => x)))
+        else if (!resources.OrderBy(x => x).SequenceEqual(resourcesNow.OrderBy(x => x)))
         {
-            this.logger.Debug(coordinatorClientId.ToString(),
-                $"Resource change: Old: {string.Join(",", this.resources.OrderBy(x => x))} New: {string.Join(",", resourcesNow.OrderBy(x => x))}");
-            await this.TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            logger.Debug(coordinatorClientId.ToString(),
+                $"Resource change: Old: {string.Join(",", resources.OrderBy(x => x))} New: {string.Join(",", resourcesNow.OrderBy(x => x))}");
+            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
                 onChangeActions,
                 token);
         }
-        else if (!this.clients.OrderBy(x => x).SequenceEqual(clientIds.OrderBy(x => x)))
+        else if (!clients.OrderBy(x => x).SequenceEqual(clientIds.OrderBy(x => x)))
         {
-            this.logger.Debug(coordinatorClientId.ToString(),
-                $"Client change: Old: {string.Join(",", this.clients.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}");
-            await this.TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            logger.Debug(coordinatorClientId.ToString(),
+                $"Client change: Old: {string.Join(",", clients.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}");
+            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
                 onChangeActions,
                 token);
         }
     }
 
-    public int GetCurrentFencingToken() => this.currentFencingToken;
+    public int GetCurrentFencingToken()
+    {
+        return currentFencingToken;
+    }
 
     private async Task<List<Client>> GetLiveClientsAsync(ClientEvent clientEvent, Guid coordinatorClientId)
     {
-        var allClientsNow = (await this.clientService.GetActiveClientsAsync(clientEvent.ResourceGroup))
+        var allClientsNow = (await clientService.GetActiveClientsAsync(clientEvent.ResourceGroup))
             .Where(x => x.ClientId != coordinatorClientId)
             .ToList();
 
@@ -109,13 +118,13 @@ internal class Coordinator
         OnChangeActions onChangeActions,
         CancellationToken token)
     {
-        this.logger.Info(coordinatorClientId.ToString(), "---------- Rebalancing triggered -----------");
+        logger.Info(coordinatorClientId.ToString(), "---------- Rebalancing triggered -----------");
 
         // request stop of all clients
-        this.logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Requested stop");
+        logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Requested stop");
         if (clients.Any())
         {
-            var result = await this.clientService.StopActivityAsync(clientEvent.FencingToken, clients);
+            var result = await clientService.StopActivityAsync(clientEvent.FencingToken, clients);
             if (result == ModifyClientResult.FencingTokenViolation)
             {
                 clientEvent.CoordinatorToken.FencingTokenViolation = true;
@@ -124,7 +133,7 @@ internal class Coordinator
 
             if (result == ModifyClientResult.Error)
             {
-                this.logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
+                logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
                 return;
             }
         }
@@ -142,8 +151,8 @@ internal class Coordinator
         while (!allClientsWaiting && !token.IsCancellationRequested)
         {
             allClientsWaitingCheckCount++;
-            await this.WaitFor(TimeSpan.FromSeconds(5), token);
-            clientsNow = await this.GetLiveClientsAsync(clientEvent, coordinatorClientId);
+            await WaitFor(TimeSpan.FromSeconds(5), token);
+            clientsNow = await GetLiveClientsAsync(clientEvent, coordinatorClientId);
             if (!clientsNow.Any())
             {
                 allClientsWaiting = true;
@@ -155,14 +164,14 @@ internal class Coordinator
 
             if (allClientsWaitingCheckCount % 12 == 0)
             {
-                this.logger.Warn(coordinatorClientId.ToString(),
+                logger.Warn(coordinatorClientId.ToString(),
                     "COORDINATOR: May be stuck waiting for all live clients to confirm stopped, request stop of the remaining clients!!!");
                 var clientsRemaining =
                     clientsNow.Where(x => x.ClientStatus != ClientStatus.Waiting).ToList();
                 if (clientsRemaining.Any())
                 {
                     var result =
-                        await this.clientService.StopActivityAsync(clientEvent.FencingToken, clientsRemaining);
+                        await clientService.StopActivityAsync(clientEvent.FencingToken, clientsRemaining);
                     if (result == ModifyClientResult.FencingTokenViolation)
                     {
                         clientEvent.CoordinatorToken.FencingTokenViolation = true;
@@ -171,14 +180,14 @@ internal class Coordinator
 
                     if (result == ModifyClientResult.Error)
                     {
-                        this.logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
+                        logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
                         return;
                     }
                 }
             }
         }
 
-        this.logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Stop confirmed");
+        logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Stop confirmed");
 
         // assign resources first to coordinator then to other live clients
         if (token.IsCancellationRequested)
@@ -222,9 +231,9 @@ internal class Coordinator
                 return;
             }
 
-            this.logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Resources assigned");
+            logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Resources assigned");
             var startResult =
-                await this.clientService.StartActivityAsync(clientEvent.FencingToken, clientStartRequests);
+                await clientService.StartActivityAsync(clientEvent.FencingToken, clientStartRequests);
             if (startResult == ModifyClientResult.FencingTokenViolation)
             {
                 clientEvent.CoordinatorToken.FencingTokenViolation = true;
@@ -233,11 +242,11 @@ internal class Coordinator
 
             if (startResult == ModifyClientResult.Error)
             {
-                this.logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
+                logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
                 return;
             }
 
-            this.store.SetResources(new SetResourcesRequest
+            store.SetResources(new SetResourcesRequest
             {
                 AssignmentStatus = AssignmentStatus.ResourcesAssigned,
                 Resources = coordinatorRequest.AssignedResources
@@ -247,18 +256,18 @@ internal class Coordinator
                 onStartAction.Invoke(coordinatorRequest.AssignedResources);
             }
 
-            this.logger.Debug(coordinatorClientId.ToString(), "COORDINATOR: Local client started");
+            logger.Debug(coordinatorClientId.ToString(), "COORDINATOR: Local client started");
 
             var clientIds = clientsNow.Select(x => x.ClientId).ToList();
             clientIds.Add(coordinatorClientId);
             this.clients = clientIds;
             this.resources = resources;
-            this.logger.Info(coordinatorClientId.ToString(), "---------- Activity Started -----------");
+            logger.Info(coordinatorClientId.ToString(), "---------- Activity Started -----------");
         }
         else
         {
             // log it
-            this.logger.Info(coordinatorClientId.ToString(), "!!!");
+            logger.Info(coordinatorClientId.ToString(), "!!!");
         }
     }
 

@@ -1,6 +1,4 @@
-﻿namespace Rebalanser.RabbitMq.ExampleWithSqlServerBackend;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +9,16 @@ using RabbitMQ.Client.Events;
 using Rebalancer.Core;
 using Rebalancer.SqlServer;
 
+namespace Rebalanser.RabbitMq.ExampleWithSqlServerBackend;
+
 internal class Program
 {
     private static List<ClientTask> clientTasks;
 
-    private static void Main(string[] args) => RunAsync().Wait();
+    private static void Main(string[] args)
+    {
+        RunAsync().Wait();
+    }
 
     private static async Task RunAsync()
     {
@@ -104,9 +107,13 @@ internal class Program
         }
     }
 
-    private static void LogInfo(string text) =>
+    private static void LogInfo(string text)
+    {
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {text}");
+    }
 
-    private static void LogError(string text) =>
+    private static void LogError(string text)
+    {
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR  : {text}");
+    }
 }

@@ -1,11 +1,14 @@
-namespace Rebalancer.ZooKeeper.GlobalBarrier;
-
 using System.Collections.Generic;
-using Zk;
+using Rebalancer.ZooKeeper.Zk;
+
+namespace Rebalancer.ZooKeeper.GlobalBarrier;
 
 public class StopPhaseResult
 {
-    public StopPhaseResult(RebalancingResult phaseResult) => this.PhaseResult = phaseResult;
+    public StopPhaseResult(RebalancingResult phaseResult)
+    {
+        PhaseResult = phaseResult;
+    }
 
     public ClientsZnode ClientsZnode { get; set; }
     public ResourcesZnode ResourcesZnode { get; set; }

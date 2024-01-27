@@ -1,7 +1,7 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System;
 using System.Runtime.Serialization;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 [Serializable]
 [DataContract(Namespace = "Rebalancer", Name = "ResourceAssignment")]

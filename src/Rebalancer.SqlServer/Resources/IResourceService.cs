@@ -1,7 +1,7 @@
-﻿namespace Rebalancer.SqlServer.Resources;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
+namespace Rebalancer.SqlServer.Resources;
 
 public interface IResourceService
 {

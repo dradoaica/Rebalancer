@@ -1,15 +1,18 @@
-namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
-
 using System;
+
+namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class ErrorViolation
 {
-    public ErrorViolation(string message) => this.Message = message;
+    public ErrorViolation(string message)
+    {
+        Message = message;
+    }
 
     public ErrorViolation(string message, Exception ex)
     {
-        this.Message = message;
-        this.Exception = ex;
+        Message = message;
+        Exception = ex;
     }
 
     public string Message { get; set; }
@@ -17,11 +20,11 @@ public class ErrorViolation
 
     public override string ToString()
     {
-        if (this.Exception != null)
+        if (Exception != null)
         {
-            return this.Exception.ToString();
+            return Exception.ToString();
         }
 
-        return this.Message;
+        return Message;
     }
 }

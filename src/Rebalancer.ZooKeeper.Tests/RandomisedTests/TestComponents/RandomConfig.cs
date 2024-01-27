@@ -1,19 +1,19 @@
-namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
-
 using System;
+
+namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class RandomConfig
 {
     public RandomConfig()
     {
-        this.SessionTimeout = TimeSpan.FromSeconds(20);
-        this.ConnectTimeout = TimeSpan.FromSeconds(20);
-        this.MinimumRebalancingInterval = TimeSpan.FromSeconds(20);
-        this.StartUpClientInterval = TimeSpan.Zero;
-        this.OnStartEventHandlerTime = TimeSpan.Zero;
-        this.OnStopEventHandlerTime = TimeSpan.Zero;
-        this.RandomiseEventHandlerTimes = false;
-        this.OnAssignmentDelay = TimeSpan.Zero;
+        SessionTimeout = TimeSpan.FromSeconds(20);
+        ConnectTimeout = TimeSpan.FromSeconds(20);
+        MinimumRebalancingInterval = TimeSpan.FromSeconds(20);
+        StartUpClientInterval = TimeSpan.Zero;
+        OnStartEventHandlerTime = TimeSpan.Zero;
+        OnStopEventHandlerTime = TimeSpan.Zero;
+        RandomiseEventHandlerTimes = false;
+        OnAssignmentDelay = TimeSpan.Zero;
     }
 
     public TimeSpan SessionTimeout { get; set; }

@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core.Logging;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core.Logging;
 
 public enum LogLevel
 {

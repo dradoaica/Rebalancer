@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer.Leases;
+﻿using System.Threading.Tasks;
 
-using System.Threading.Tasks;
+namespace Rebalancer.SqlServer.Leases;
 
 public interface ILeaseService
 {

@@ -1,6 +1,6 @@
-namespace Rebalancer.Core;
-
 using System.Collections.Generic;
+
+namespace Rebalancer.Core;
 
 public class AssignedResources
 {

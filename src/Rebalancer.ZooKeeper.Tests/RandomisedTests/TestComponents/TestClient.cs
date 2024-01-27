@@ -1,11 +1,11 @@
-namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Core;
-using Core.Logging;
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+
+namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class TestClient
 {
@@ -23,15 +23,15 @@ public class TestClient
         TimeSpan onStopTime,
         bool randomiseTimes)
     {
-        this.ResourceGroup = resourceGroup;
-        this.ClientOptions = clientOptions;
-        this.Monitor = resourceMonitor;
-        this.Resources = new List<string>();
+        ResourceGroup = resourceGroup;
+        ClientOptions = clientOptions;
+        Monitor = resourceMonitor;
+        Resources = new List<string>();
 
         this.onStartTime = onStartTime;
         this.onStopTime = onStopTime;
         this.randomiseTimes = randomiseTimes;
-        this.rand = new Random(Guid.NewGuid().GetHashCode());
+        rand = new Random(Guid.NewGuid().GetHashCode());
     }
 
     public string Id { get; set; }
@@ -44,86 +44,86 @@ public class TestClient
 
     public async Task StartAsync(IRebalancerLogger logger)
     {
-        this.CreateNewClient(logger);
-        await this.Client.StartAsync(this.ResourceGroup, this.ClientOptions);
-        this.Started = true;
+        CreateNewClient(logger);
+        await Client.StartAsync(ResourceGroup, ClientOptions);
+        Started = true;
     }
 
     public async Task StopAsync()
     {
-        await this.Client.StopAsync(TimeSpan.FromSeconds(30));
-        this.Started = false;
+        await Client.StopAsync(TimeSpan.FromSeconds(30));
+        Started = false;
     }
 
     public async Task PerformActionAsync(IRebalancerLogger logger)
     {
-        if (this.Started)
+        if (Started)
         {
             logger.Info("TEST RUNNER", "Stopping client");
-            this.Monitor.RegisterRemoveClient(this.Id);
-            await this.StopAsync();
+            Monitor.RegisterRemoveClient(Id);
+            await StopAsync();
             logger.Info("TEST RUNNER", "Stopped client");
         }
         else
         {
             logger.Info("TEST RUNNER", "Starting client");
-            await this.StartAsync(logger);
+            await StartAsync(logger);
             logger.Info("TEST RUNNER", "Started client");
         }
     }
 
     private void CreateNewClient(IRebalancerLogger logger)
     {
-        this.Id = $"Client{ClientNumber}";
+        Id = $"Client{ClientNumber}";
         ClientNumber++;
-        this.Monitor.RegisterAddClient(this.Id);
-        this.Client = new RebalancerClient();
-        this.Client.OnAssignment += (sender, args) =>
+        Monitor.RegisterAddClient(Id);
+        Client = new RebalancerClient();
+        Client.OnAssignment += (sender, args) =>
         {
-            this.Resources = args.Resources;
+            Resources = args.Resources;
             foreach (var resource in args.Resources)
             {
-                this.Monitor.ClaimResource(resource, this.Id);
+                Monitor.ClaimResource(resource, Id);
             }
 
-            if (this.onStartTime > TimeSpan.Zero)
+            if (onStartTime > TimeSpan.Zero)
             {
-                if (this.randomiseTimes)
+                if (randomiseTimes)
                 {
-                    var waitTime = this.onStartTime.TotalMilliseconds * this.rand.NextDouble();
+                    var waitTime = onStartTime.TotalMilliseconds * rand.NextDouble();
                     Thread.Sleep((int)waitTime);
                 }
                 else
                 {
-                    Thread.Sleep(this.onStartTime);
+                    Thread.Sleep(onStartTime);
                 }
             }
         };
 
-        this.Client.OnUnassignment += (sender, args) =>
+        Client.OnUnassignment += (sender, args) =>
         {
-            foreach (var resource in this.Resources)
+            foreach (var resource in Resources)
             {
-                this.Monitor.ReleaseResource(resource, this.Id);
+                Monitor.ReleaseResource(resource, Id);
             }
 
-            this.Resources.Clear();
+            Resources.Clear();
 
-            if (this.onStopTime > TimeSpan.Zero)
+            if (onStopTime > TimeSpan.Zero)
             {
-                if (this.randomiseTimes)
+                if (randomiseTimes)
                 {
-                    var waitTime = this.onStopTime.TotalMilliseconds * this.rand.NextDouble();
+                    var waitTime = onStopTime.TotalMilliseconds * rand.NextDouble();
                     Thread.Sleep((int)waitTime);
                 }
                 else
                 {
-                    Thread.Sleep(this.onStopTime);
+                    Thread.Sleep(onStopTime);
                 }
             }
         };
 
-        this.Client.OnAborted += (sender, args) =>
+        Client.OnAborted += (sender, args) =>
         {
             logger.Info("CLIENT", $"CLIENT ABORTED: {args.AbortReason}");
         };

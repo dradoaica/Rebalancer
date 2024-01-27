@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer;
+﻿using System;
 
-using System;
+namespace Rebalancer.SqlServer;
 
 internal class ResourceGroup
 {

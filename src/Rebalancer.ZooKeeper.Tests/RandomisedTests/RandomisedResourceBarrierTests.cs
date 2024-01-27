@@ -1,27 +1,30 @@
-namespace Rebalancer.ZooKeeper.Tests.RandomisedTests;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Core;
-using Helpers;
-using TestComponents;
+using Rebalancer.Core;
+using Rebalancer.ZooKeeper.Tests.Helpers;
+using Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 using Xunit;
+
+namespace Rebalancer.ZooKeeper.Tests.RandomisedTests;
 
 public class RandomisedResourceBarrierTests : IDisposable
 {
     private readonly ZkHelper zkHelper;
     private RandomConfig currentConfig;
 
-    public RandomisedResourceBarrierTests() => this.zkHelper = new ZkHelper();
+    public RandomisedResourceBarrierTests()
+    {
+        zkHelper = new ZkHelper();
+    }
 
     public void Dispose()
     {
-        if (this.zkHelper != null)
+        if (zkHelper != null)
         {
-            Task.Run(async () => await this.zkHelper.CloseAsync()).Wait();
+            Task.Run(async () => await zkHelper.CloseAsync()).Wait();
         }
     }
 
@@ -38,10 +41,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -57,10 +60,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -76,10 +79,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -95,10 +98,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -114,10 +117,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -133,10 +136,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.FullCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -157,10 +160,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             SessionTimeout = TimeSpan.FromMinutes(1)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -180,10 +183,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             SessionTimeout = TimeSpan.FromMinutes(1)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -203,10 +206,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             SessionTimeout = TimeSpan.FromMinutes(1)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -226,10 +229,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             SessionTimeout = TimeSpan.FromMinutes(1)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -249,10 +252,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             SessionTimeout = TimeSpan.FromMinutes(1)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -279,10 +282,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -309,10 +312,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -332,10 +335,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             OnAssignmentDelay = TimeSpan.FromSeconds(30)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -355,10 +358,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             OnAssignmentDelay = TimeSpan.FromSeconds(30)
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetGlobalBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetGlobalBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -374,10 +377,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.DoubleAssignmentCheck
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     [Fact]
@@ -401,10 +404,10 @@ public class RandomisedResourceBarrierTests : IDisposable
             RandomiseEventHandlerTimes = true
         };
 
-        this.currentConfig = config;
-        Providers.Register(this.GetResourceBarrierProvider);
+        currentConfig = config;
+        Providers.Register(GetResourceBarrierProvider);
 
-        await this.RandomisedTest(config);
+        await RandomisedTest(config);
     }
 
     private async Task RandomisedTest(RandomConfig config)
@@ -412,8 +415,8 @@ public class RandomisedResourceBarrierTests : IDisposable
         // ARRANGE
         TestOutputLogger testLogger = new();
         var groupName = Guid.NewGuid().ToString();
-        await this.zkHelper.InitializeAsync("/rebalancer", TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
-        await this.zkHelper.PrepareResourceGroupAsync(groupName, "res", config.ResourceCount);
+        await zkHelper.InitializeAsync("/rebalancer", TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
+        await zkHelper.PrepareResourceGroupAsync(groupName, "res", config.ResourceCount);
 
         ResourceMonitor resourceMonitor = new();
         List<int> resSuffixes = new();
@@ -481,7 +484,7 @@ public class RandomisedResourceBarrierTests : IDisposable
                     resSuffixes.Add(resSuffix);
                     resourceMonitor.AddResource($"res{resSuffix}");
                     testLogger.Info("TEST RUNNER", "Adding a resource");
-                    await this.zkHelper.AddResourceAsync(groupName, $"res{resSuffix}");
+                    await zkHelper.AddResourceAsync(groupName, $"res{resSuffix}");
                     testLogger.Info("TEST RUNNER", "Added a resource");
                 }
                 else
@@ -491,7 +494,7 @@ public class RandomisedResourceBarrierTests : IDisposable
                     resSuffixes.RemoveAt(index);
                     resourceMonitor.RemoveResource($"res{resSuffix}");
                     testLogger.Info("TEST RUNNER", "Removing a resource");
-                    await this.zkHelper.DeleteResourceAsync(groupName, $"res{resSuffix}");
+                    await zkHelper.DeleteResourceAsync(groupName, $"res{resSuffix}");
                     testLogger.Info("TEST RUNNER", "Removed a resource");
                 }
             }
@@ -558,17 +561,21 @@ public class RandomisedResourceBarrierTests : IDisposable
         }
     }
 
-    private IRebalancerProvider GetResourceBarrierProvider() =>
-        new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
-            "/rebalancer", this.currentConfig.SessionTimeout, this.currentConfig.ConnectTimeout,
-            this.currentConfig.MinimumRebalancingInterval,
+    private IRebalancerProvider GetResourceBarrierProvider()
+    {
+        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+            "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
+            currentConfig.MinimumRebalancingInterval,
             RebalancingMode.ResourceBarrier,
             new TestOutputLogger());
+    }
 
-    private IRebalancerProvider GetGlobalBarrierProvider() =>
-        new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
-            "/rebalancer", this.currentConfig.SessionTimeout, this.currentConfig.ConnectTimeout,
-            this.currentConfig.MinimumRebalancingInterval,
+    private IRebalancerProvider GetGlobalBarrierProvider()
+    {
+        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+            "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
+            currentConfig.MinimumRebalancingInterval,
             RebalancingMode.GlobalBarrier,
             new TestOutputLogger());
+    }
 }

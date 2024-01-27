@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis.Leases;
+﻿using System;
 
-using System;
+namespace Rebalancer.Redis.Leases;
 
 public class LeaseResponse
 {
@@ -9,7 +9,9 @@ public class LeaseResponse
     public string Message { get; set; }
     public Exception Exception { get; set; }
 
-    public bool IsErrorResponse() =>
-        this.Result == LeaseResult.TransientError
-        || this.Result == LeaseResult.Error;
+    public bool IsErrorResponse()
+    {
+        return Result == LeaseResult.TransientError
+               || Result == LeaseResult.Error;
+    }
 }

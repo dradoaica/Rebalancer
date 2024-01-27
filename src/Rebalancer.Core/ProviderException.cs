@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core;
 
 /// <summary>
 ///     An exception that indicates a problem instantiating a provider

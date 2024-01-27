@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer.Leases;
+﻿using System;
 
-using System;
+namespace Rebalancer.SqlServer.Leases;
 
 public class AcquireLeaseRequest
 {

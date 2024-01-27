@@ -1,7 +1,7 @@
-namespace Rebalancer.ZooKeeper.Tests.Helpers;
-
 using System;
-using Core.Logging;
+using Rebalancer.Core.Logging;
+
+namespace Rebalancer.ZooKeeper.Tests.Helpers;
 
 public class TestOutputLogger : IRebalancerLogger
 {

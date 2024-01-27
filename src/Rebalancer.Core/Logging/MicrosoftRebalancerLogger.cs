@@ -1,7 +1,7 @@
-﻿namespace Rebalancer.Core.Logging;
-
-using System;
+﻿using System;
 using Microsoft.Extensions.Logging;
+
+namespace Rebalancer.Core.Logging;
 
 /// <summary>
 ///     Temporary hack
@@ -14,7 +14,7 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
     public MicrosoftRebalancerLogger(ILogger logger)
     {
         this.logger = logger;
-        this.logLevel = LogLevel.DEBUG;
+        logLevel = LogLevel.DEBUG;
     }
 
     public MicrosoftRebalancerLogger(ILogger logger, LogLevel logLevel)
@@ -25,51 +25,54 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Error(string clientId, string text)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
-            this.logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text}");
+            logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text}");
         }
     }
 
     public void Error(string clientId, Exception ex)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
-            this.logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {ex}");
+            logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {ex}");
         }
     }
 
     public void Error(string clientId, string text, Exception ex)
     {
-        if ((int)this.logLevel <= 3)
+        if ((int)logLevel <= 3)
         {
-            this.logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text} : {ex}");
+            logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text} : {ex}");
         }
     }
 
     public void Warn(string clientId, string text)
     {
-        if ((int)this.logLevel <= 2)
+        if ((int)logLevel <= 2)
         {
-            this.logger?.LogWarning($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN : {clientId} : {text}");
+            logger?.LogWarning($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN : {clientId} : {text}");
         }
     }
 
     public void Info(string clientId, string text)
     {
-        if ((int)this.logLevel <= 1)
+        if ((int)logLevel <= 1)
         {
-            this.logger?.LogInformation($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {clientId} : {text}");
+            logger?.LogInformation($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {clientId} : {text}");
         }
     }
 
     public void Debug(string clientId, string text)
     {
-        if (this.logLevel == 0)
+        if (logLevel == 0)
         {
-            this.logger?.LogDebug($"{DateTime.Now.ToString("hh:mm:ss,fff")}: DEBUG : {clientId} : {text}");
+            logger?.LogDebug($"{DateTime.Now.ToString("hh:mm:ss,fff")}: DEBUG : {clientId} : {text}");
         }
     }
 
-    public void SetMinimumLevel(LogLevel logLevel) => this.logLevel = logLevel;
+    public void SetMinimumLevel(LogLevel logLevel)
+    {
+        this.logLevel = logLevel;
+    }
 }

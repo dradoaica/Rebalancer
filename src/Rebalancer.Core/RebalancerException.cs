@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Core;
+﻿using System;
 
-using System;
+namespace Rebalancer.Core;
 
 public class RebalancerException : Exception
 {

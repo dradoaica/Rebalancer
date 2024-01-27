@@ -6,15 +6,18 @@ public class ReleaseViolation
         string currentlyAssignedClientId,
         string releaserClientId)
     {
-        this.ResourceName = resourceName;
-        this.CurrentlyAssignedClientId = currentlyAssignedClientId;
-        this.ReleaserClientId = releaserClientId;
+        ResourceName = resourceName;
+        CurrentlyAssignedClientId = currentlyAssignedClientId;
+        ReleaserClientId = releaserClientId;
     }
 
     public string ResourceName { get; set; }
     public string CurrentlyAssignedClientId { get; set; }
     public string ReleaserClientId { get; set; }
 
-    public override string ToString() =>
-        $"Client {this.ReleaserClientId} tried to release the resource {this.ResourceName} assigned to {this.CurrentlyAssignedClientId}";
+    public override string ToString()
+    {
+        return
+            $"Client {ReleaserClientId} tried to release the resource {ResourceName} assigned to {CurrentlyAssignedClientId}";
+    }
 }

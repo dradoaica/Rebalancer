@@ -1,8 +1,8 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 public static class JSONSerializer<TType> where TType : class
 {

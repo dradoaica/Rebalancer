@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper.ResourceManagement;
-
 using System.Collections.Generic;
+
+namespace Rebalancer.ZooKeeper.ResourceManagement;
 
 public class GetResourcesResponse
 {

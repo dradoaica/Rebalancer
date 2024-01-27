@@ -1,7 +1,7 @@
-﻿namespace Rebalancer.Redis.Leases;
-
-using System;
+﻿using System;
 using StackExchange.Redis;
+
+namespace Rebalancer.Redis.Leases;
 
 internal static class TransientErrorDetector
 {

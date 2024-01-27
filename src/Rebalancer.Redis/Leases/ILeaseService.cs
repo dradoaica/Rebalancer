@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.Redis.Leases;
+﻿using System.Threading.Tasks;
 
-using System.Threading.Tasks;
+namespace Rebalancer.Redis.Leases;
 
 public interface ILeaseService
 {

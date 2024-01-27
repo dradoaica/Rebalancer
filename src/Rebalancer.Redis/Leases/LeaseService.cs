@@ -1,17 +1,20 @@
-﻿namespace Rebalancer.Redis.Leases;
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
 using StackExchange.Redis.DataTypes.Collections;
-using Utils;
+
+namespace Rebalancer.Redis.Leases;
 
 internal class LeaseService : ILeaseService
 {
     private readonly IDatabase cache;
 
-    public LeaseService(IDatabase cache) => this.cache = cache;
+    public LeaseService(IDatabase cache)
+    {
+        this.cache = cache;
+    }
 
     public Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest acquireLeaseRequest)
     {
@@ -20,7 +23,7 @@ internal class LeaseService : ILeaseService
         try
         {
             var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-            redisDictionary = new RedisDictionary<string, ResourceGroup>(this.cache, cacheKey);
+            redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
             if (!redisDictionary.ContainsKey(acquireLeaseRequest.ResourceGroup))
             {
                 return Task.FromResult(new LeaseResponse
@@ -106,7 +109,7 @@ internal class LeaseService : ILeaseService
         try
         {
             var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-            redisDictionary = new RedisDictionary<string, ResourceGroup>(this.cache, cacheKey);
+            redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
             if (!redisDictionary.ContainsKey(renewLeaseRequest.ResourceGroup))
             {
                 return Task.FromResult(new LeaseResponse {Result = LeaseResult.NoLease});
@@ -173,7 +176,7 @@ internal class LeaseService : ILeaseService
     public Task RelinquishLeaseAsync(RelinquishLeaseRequest relinquishLeaseRequest)
     {
         var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-        RedisDictionary<string, ResourceGroup> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<string, ResourceGroup> redisDictionary = new(cache, cacheKey);
         var resourceGroup = redisDictionary.Values.FirstOrDefault(x =>
             x.Name == relinquishLeaseRequest.ResourceGroup && x.CoordinatorId == relinquishLeaseRequest.ClientId &&
             x.FencingToken == relinquishLeaseRequest.FencingToken);

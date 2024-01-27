@@ -1,8 +1,8 @@
-﻿namespace Rebalancer.SqlServer.Connections;
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+
+namespace Rebalancer.SqlServer.Connections;
 
 public static class ConnectionHelper
 {

@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper.Tests;
-
 using System.Collections.Generic;
+
+namespace Rebalancer.ZooKeeper.Tests;
 
 public enum EventType
 {

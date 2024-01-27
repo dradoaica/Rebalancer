@@ -1,6 +1,6 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 public class ZkStaleVersionException : Exception
 {

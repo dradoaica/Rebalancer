@@ -1,20 +1,20 @@
-﻿namespace Rebalancer.Redis;
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Clients;
-using Core;
-using Core.Logging;
-using Leases;
-using Resources;
-using Roles;
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.Redis.Clients;
+using Rebalancer.Redis.Leases;
+using Rebalancer.Redis.Resources;
+using Rebalancer.Redis.Roles;
+using Rebalancer.Redis.Store;
 using StackExchange.Redis;
-using Store;
+
+namespace Rebalancer.Redis;
 
 public class RedisProvider : IRebalancerProvider
 {
@@ -40,9 +40,9 @@ public class RedisProvider : IRebalancerProvider
         IResourceService resourceService = null,
         IClientService clientService = null)
     {
-        this.connection = ConnectionMultiplexer.Connect(connectionString);
-        this.cache = this.connection.GetDatabase();
-        this.store = new ResourceGroupStore();
+        connection = ConnectionMultiplexer.Connect(connectionString);
+        cache = connection.GetDatabase();
+        store = new ResourceGroupStore();
 
         if (logger == null)
         {
@@ -64,7 +64,7 @@ public class RedisProvider : IRebalancerProvider
 
         if (leaseService == null)
         {
-            this.leaseService = new LeaseService(this.cache);
+            this.leaseService = new LeaseService(cache);
         }
         else
         {
@@ -73,7 +73,7 @@ public class RedisProvider : IRebalancerProvider
 
         if (resourceService == null)
         {
-            this.resourceService = new ResourceService(this.cache);
+            this.resourceService = new ResourceService(cache);
         }
         else
         {
@@ -82,16 +82,16 @@ public class RedisProvider : IRebalancerProvider
 
         if (clientService == null)
         {
-            this.clientService = new ClientService(this.cache);
+            this.clientService = new ClientService(cache);
         }
         else
         {
             this.clientService = clientService;
         }
 
-        this.clientId = Guid.NewGuid();
-        this.coordinator = new Coordinator(this.logger, this.resourceService, this.clientService, this.store);
-        this.follower = new Follower(this.logger, this.clientService, this.store);
+        clientId = Guid.NewGuid();
+        coordinator = new Coordinator(this.logger, this.resourceService, this.clientService, store);
+        follower = new Follower(this.logger, this.clientService, store);
     }
 
     public async Task StartAsync(string resourceGroup,
@@ -102,19 +102,19 @@ public class RedisProvider : IRebalancerProvider
         // just in case someone does some concurrency
         lock (startLockObj)
         {
-            if (this.started)
+            if (started)
             {
                 throw new RebalancerException("Context already started");
             }
 
-            this.started = true;
+            started = true;
         }
 
         this.resourceGroup = resourceGroup;
-        await this.clientService.CreateClientAsync(this.resourceGroup, this.clientId);
+        await clientService.CreateClientAsync(this.resourceGroup, clientId);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-        this.mainTask = Task.Run(async () =>
+        mainTask = Task.Run(async () =>
         {
             while (!parentToken.IsCancellationRequested)
             {
@@ -123,8 +123,8 @@ public class RedisProvider : IRebalancerProvider
                 {
                     BlockingCollection<ClientEvent> clientEvents = new();
 
-                    var leaderElectionTask = this.StartLeadershipTask(childTaskCts.Token, clientEvents);
-                    var roleTask = this.StartRoleTask(clientOptions.OnAssignmentDelay, childTaskCts.Token,
+                    var leaderElectionTask = StartLeadershipTask(childTaskCts.Token, clientEvents);
+                    var roleTask = StartRoleTask(clientOptions.OnAssignmentDelay, childTaskCts.Token,
                         onChangeActions,
                         clientEvents);
 
@@ -141,32 +141,32 @@ public class RedisProvider : IRebalancerProvider
 
                     if (parentToken.IsCancellationRequested)
                     {
-                        this.logger.Info(this.clientId.ToString(), "Context shutting down due to cancellation");
+                        logger.Info(clientId.ToString(), "Context shutting down due to cancellation");
                     }
                     else
                     {
                         if (leaderElectionTask.IsFaulted)
                         {
-                            await this.NotifyOfErrorAsync(leaderElectionTask,
+                            await NotifyOfErrorAsync(leaderElectionTask,
                                 $"Shutdown due to leader election task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
                                 onChangeActions);
                         }
                         else if (roleTask.IsFaulted)
                         {
-                            await this.NotifyOfErrorAsync(roleTask,
+                            await NotifyOfErrorAsync(roleTask,
                                 $"Shutdown due to coordinator/follower task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
                                 onChangeActions);
                         }
                         else
                         {
-                            this.NotifyOfError(onChangeActions,
+                            NotifyOfError(onChangeActions,
                                 $"Unknown shutdown reason. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
                                 null);
                         }
 
                         if (clientOptions.AutoRecoveryOnError)
                         {
-                            await this.WaitFor(clientOptions.RestartDelay, parentToken);
+                            await WaitFor(clientOptions.RestartDelay, parentToken);
                         }
                         else
                         {
@@ -194,27 +194,27 @@ public class RedisProvider : IRebalancerProvider
                         var exMsg = roleTask.Exception?.GetBaseException().Message;
                     }
 
-                    await this.clientService.SetClientStatusAsync(this.clientId, ClientStatus.Terminated);
+                    await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
 
-                    if (this.isCoordinator)
+                    if (isCoordinator)
                     {
-                        await this.leaseService.RelinquishLeaseAsync(new RelinquishLeaseRequest
+                        await leaseService.RelinquishLeaseAsync(new RelinquishLeaseRequest
                         {
-                            ClientId = this.clientId,
-                            FencingToken = this.coordinator.GetCurrentFencingToken(),
+                            ClientId = clientId,
+                            FencingToken = coordinator.GetCurrentFencingToken(),
                             ResourceGroup = this.resourceGroup
                         });
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.NotifyOfError(onChangeActions,
+                    NotifyOfError(onChangeActions,
                         $"An unexpected error has caused shutdown. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
                         ex);
 
                     if (clientOptions.AutoRecoveryOnError)
                     {
-                        await this.WaitFor(clientOptions.RestartDelay, parentToken);
+                        await WaitFor(clientOptions.RestartDelay, parentToken);
                     }
                     else
                     {
@@ -228,23 +228,23 @@ public class RedisProvider : IRebalancerProvider
 
     public async Task RecreateClientAsync()
     {
-        if (!this.started)
+        if (!started)
         {
             throw new RebalancerException("Context not started");
         }
 
-        await this.clientService.CreateClientAsync(this.resourceGroup, this.clientId);
+        await clientService.CreateClientAsync(resourceGroup, clientId);
     }
 
     public async Task WaitForCompletionAsync()
     {
         try
         {
-            await this.mainTask;
+            await mainTask;
         }
         catch (Exception ex)
         {
-            this.logger.Error(this.clientId.ToString(), ex);
+            logger.Error(clientId.ToString(), ex);
         }
     }
 
@@ -252,13 +252,13 @@ public class RedisProvider : IRebalancerProvider
     {
         while (true)
         {
-            var response = this.store.GetResources();
+            var response = store.GetResources();
             if (response.AssignmentStatus == AssignmentStatus.ResourcesAssigned ||
                 response.AssignmentStatus == AssignmentStatus.NoResourcesAssigned)
             {
                 return new AssignedResources
                 {
-                    Resources = response.Resources, ClientState = this.GetState(response.AssignmentStatus)
+                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus)
                 };
             }
 
@@ -268,10 +268,10 @@ public class RedisProvider : IRebalancerProvider
 
     public ClientState GetState()
     {
-        if (this.started)
+        if (started)
         {
-            var response = this.store.GetResources();
-            return this.GetState(response.AssignmentStatus);
+            var response = store.GetResources();
+            return GetState(response.AssignmentStatus);
         }
 
         return ClientState.NotStarted;
@@ -279,14 +279,14 @@ public class RedisProvider : IRebalancerProvider
 
     private async Task NotifyOfErrorAsync(Task faultedTask, string message, OnChangeActions onChangeActions)
     {
-        await this.InvokeOnErrorAsync(faultedTask, message, onChangeActions);
-        this.InvokeOnStop(onChangeActions);
+        await InvokeOnErrorAsync(faultedTask, message, onChangeActions);
+        InvokeOnStop(onChangeActions);
     }
 
     private void NotifyOfError(OnChangeActions onChangeActions, string message, Exception exception)
     {
-        this.InvokeOnError(onChangeActions, message, exception);
-        this.InvokeOnStop(onChangeActions);
+        InvokeOnError(onChangeActions, message, exception);
+        InvokeOnStop(onChangeActions);
     }
 
     private async Task InvokeOnErrorAsync(Task faultedTask, string message, OnChangeActions onChangeActions)
@@ -297,7 +297,7 @@ public class RedisProvider : IRebalancerProvider
         }
         catch (Exception ex)
         {
-            this.InvokeOnError(onChangeActions, message, ex);
+            InvokeOnError(onChangeActions, message, ex);
         }
     }
 
@@ -312,13 +312,13 @@ public class RedisProvider : IRebalancerProvider
         }
         catch (Exception ex)
         {
-            this.logger.Error(this.clientId.ToString(), ex.ToString());
+            logger.Error(clientId.ToString(), ex.ToString());
         }
     }
 
     private void InvokeOnStop(OnChangeActions onChangeActions)
     {
-        this.coordinator.SetStoppedDueToInternalErrorFlag();
+        coordinator.SetStoppedDueToInternalErrorFlag();
         try
         {
             foreach (var onErrorAction in onChangeActions.OnStopActions)
@@ -328,32 +328,33 @@ public class RedisProvider : IRebalancerProvider
         }
         catch (Exception ex)
         {
-            this.logger.Error(this.clientId.ToString(), ex.ToString());
+            logger.Error(clientId.ToString(), ex.ToString());
         }
     }
 
     private Task StartLeadershipTask(CancellationToken token,
-        BlockingCollection<ClientEvent> clientEvents) =>
-        Task.Run(async () =>
+        BlockingCollection<ClientEvent> clientEvents)
+    {
+        return Task.Run(async () =>
         {
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    AcquireLeaseRequest request = new() {ClientId = this.clientId, ResourceGroup = this.resourceGroup};
-                    var response = await this.TryAcquireLeaseAsync(request, token);
+                    AcquireLeaseRequest request = new() {ClientId = clientId, ResourceGroup = resourceGroup};
+                    var response = await TryAcquireLeaseAsync(request, token);
                     if (response.Result == LeaseResult.Granted) // is now the Coordinator
                     {
-                        await this.ExecuteLeaseRenewals(token, clientEvents, response.Lease);
+                        await ExecuteLeaseRenewals(token, clientEvents, response.Lease);
                     }
                     else if (response.Result == LeaseResult.Denied) // is a Follower
                     {
-                        this.PostFollowerEvent(response.Lease.ExpiryPeriod, clientEvents);
-                        await this.WaitFor(this.GetInterval(response.Lease.HeartbeatPeriod), token);
+                        PostFollowerEvent(response.Lease.ExpiryPeriod, clientEvents);
+                        await WaitFor(GetInterval(response.Lease.HeartbeatPeriod), token);
                     }
                     else if (response.Result == LeaseResult.NoLease)
                     {
-                        throw new RebalancerException($"The resource group {this.resourceGroup} does not exist.");
+                        throw new RebalancerException($"The resource group {resourceGroup} does not exist.");
                     }
                     else if (response.IsErrorResponse())
                     {
@@ -371,37 +372,38 @@ public class RedisProvider : IRebalancerProvider
                 clientEvents.CompleteAdding();
             }
         });
+    }
 
     private async Task ExecuteLeaseRenewals(CancellationToken token,
         BlockingCollection<ClientEvent> clientEvents,
         Lease lease)
     {
         CoordinatorToken coordinatorToken = new();
-        this.PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
-        await this.WaitFor(this.GetInterval(lease.HeartbeatPeriod), token, coordinatorToken);
+        PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
+        await WaitFor(GetInterval(lease.HeartbeatPeriod), token, coordinatorToken);
 
         // lease renewal loop
         while (!token.IsCancellationRequested && !coordinatorToken.FencingTokenViolation)
         {
-            var response = await this.TryRenewLeaseAsync(
+            var response = await TryRenewLeaseAsync(
                 new RenewLeaseRequest
                 {
-                    ClientId = this.clientId, ResourceGroup = this.resourceGroup, FencingToken = lease.FencingToken
+                    ClientId = clientId, ResourceGroup = resourceGroup, FencingToken = lease.FencingToken
                 }, token);
             if (response.Result == LeaseResult.Granted)
             {
-                this.PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
-                await this.WaitFor(this.GetInterval(lease.HeartbeatPeriod), token, coordinatorToken);
+                PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
+                await WaitFor(GetInterval(lease.HeartbeatPeriod), token, coordinatorToken);
             }
             else if (response.Result == LeaseResult.Denied)
             {
-                this.PostFollowerEvent(lease.ExpiryPeriod, clientEvents);
-                await this.WaitFor(this.GetInterval(lease.HeartbeatPeriod), token);
+                PostFollowerEvent(lease.ExpiryPeriod, clientEvents);
+                await WaitFor(GetInterval(lease.HeartbeatPeriod), token);
                 break;
             }
             else if (response.Result == LeaseResult.NoLease)
             {
-                throw new RebalancerException($"The resource group {this.resourceGroup} does not exist.");
+                throw new RebalancerException($"The resource group {resourceGroup} does not exist.");
             }
             else if (response.IsErrorResponse())
             {
@@ -423,7 +425,7 @@ public class RedisProvider : IRebalancerProvider
         while (triesLeft > 0)
         {
             triesLeft--;
-            var response = await this.leaseService.TryAcquireLeaseAsync(request);
+            var response = await leaseService.TryAcquireLeaseAsync(request);
             if (response.Result != LeaseResult.TransientError)
             {
                 return response;
@@ -431,7 +433,7 @@ public class RedisProvider : IRebalancerProvider
 
             if (triesLeft > 0)
             {
-                await this.WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
+                await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
             }
             else
             {
@@ -452,7 +454,7 @@ public class RedisProvider : IRebalancerProvider
         while (triesLeft > 0)
         {
             triesLeft--;
-            var response = await this.leaseService.TryRenewLeaseAsync(request);
+            var response = await leaseService.TryRenewLeaseAsync(request);
             if (response.Result != LeaseResult.TransientError)
             {
                 return response;
@@ -460,7 +462,7 @@ public class RedisProvider : IRebalancerProvider
 
             if (triesLeft > 0)
             {
-                await this.WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
+                await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
             }
             else
             {
@@ -474,19 +476,21 @@ public class RedisProvider : IRebalancerProvider
         return new LeaseResponse {Result = LeaseResult.Error};
     }
 
-    private TimeSpan GetInterval(TimeSpan leaseExpiry) =>
-        TimeSpan.FromMilliseconds(leaseExpiry.TotalMilliseconds / 2.5);
+    private TimeSpan GetInterval(TimeSpan leaseExpiry)
+    {
+        return TimeSpan.FromMilliseconds(leaseExpiry.TotalMilliseconds / 2.5);
+    }
 
     private void PostLeaderEvent(int fencingToken,
         TimeSpan keepAliveExpiryPeriod,
         CoordinatorToken coordinatorToken,
         BlockingCollection<ClientEvent> clientEvents)
     {
-        this.logger.Debug(this.clientId.ToString(), $"{this.clientId} is leader");
-        this.isCoordinator = true;
+        logger.Debug(clientId.ToString(), $"{clientId} is leader");
+        isCoordinator = true;
         ClientEvent clientEvent = new()
         {
-            ResourceGroup = this.resourceGroup,
+            ResourceGroup = resourceGroup,
             EventType = EventType.Coordinator,
             FencingToken = fencingToken,
             CoordinatorToken = coordinatorToken,
@@ -498,12 +502,12 @@ public class RedisProvider : IRebalancerProvider
     private void PostFollowerEvent(TimeSpan keepAliveExpiryPeriod,
         BlockingCollection<ClientEvent> clientEvents)
     {
-        this.logger.Debug(this.clientId.ToString(), $"{this.clientId} is follower");
-        this.isCoordinator = false;
+        logger.Debug(clientId.ToString(), $"{clientId} is follower");
+        isCoordinator = false;
         ClientEvent clientEvent = new()
         {
             EventType = EventType.Follower,
-            ResourceGroup = this.resourceGroup,
+            ResourceGroup = resourceGroup,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod
         };
         clientEvents.Add(clientEvent);
@@ -512,8 +516,9 @@ public class RedisProvider : IRebalancerProvider
     private Task StartRoleTask(TimeSpan onStartDelay,
         CancellationToken token,
         OnChangeActions onChangeActions,
-        BlockingCollection<ClientEvent> clientEvents) =>
-        Task.Run(async () =>
+        BlockingCollection<ClientEvent> clientEvents)
+    {
+        return Task.Run(async () =>
         {
             while (!token.IsCancellationRequested && !clientEvents.IsAddingCompleted)
             {
@@ -535,9 +540,9 @@ public class RedisProvider : IRebalancerProvider
                     {
                         if (onStartDelay.Ticks > 0)
                         {
-                            this.logger.Debug(this.clientId.ToString(),
+                            logger.Debug(clientId.ToString(),
                                 $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
-                            await this.WaitFor(onStartDelay, token);
+                            await WaitFor(onStartDelay, token);
                         }
 
                         if (token.IsCancellationRequested)
@@ -545,7 +550,7 @@ public class RedisProvider : IRebalancerProvider
                             return;
                         }
 
-                        await this.coordinator.ExecuteCoordinatorRoleAsync(this.clientId,
+                        await coordinator.ExecuteCoordinatorRoleAsync(clientId,
                             clientEvent,
                             onChangeActions,
                             token);
@@ -554,9 +559,9 @@ public class RedisProvider : IRebalancerProvider
                     {
                         if (onStartDelay.Ticks > 0)
                         {
-                            this.logger.Debug(this.clientId.ToString(),
+                            logger.Debug(clientId.ToString(),
                                 $"Follower - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
-                            await this.WaitFor(onStartDelay, token);
+                            await WaitFor(onStartDelay, token);
                         }
 
                         if (token.IsCancellationRequested)
@@ -564,7 +569,7 @@ public class RedisProvider : IRebalancerProvider
                             return;
                         }
 
-                        await this.follower.ExecuteFollowerRoleAsync(this.clientId,
+                        await follower.ExecuteFollowerRoleAsync(clientId,
                             clientEvent,
                             onChangeActions,
                             token);
@@ -572,10 +577,11 @@ public class RedisProvider : IRebalancerProvider
                 }
                 else
                 {
-                    await this.WaitFor(TimeSpan.FromSeconds(1), token);
+                    await WaitFor(TimeSpan.FromSeconds(1), token);
                 }
             }
         });
+    }
 
     private async Task WaitFor(TimeSpan delayPeriod, CancellationToken token, CoordinatorToken coordinatorToken)
     {
@@ -609,13 +615,13 @@ public class RedisProvider : IRebalancerProvider
     {
         while (!token.IsCancellationRequested)
         {
-            var response = this.store.GetResources();
+            var response = store.GetResources();
             if (response.AssignmentStatus == AssignmentStatus.ResourcesAssigned ||
                 response.AssignmentStatus == AssignmentStatus.NoResourcesAssigned)
             {
                 return new AssignedResources
                 {
-                    Resources = response.Resources, ClientState = this.GetState(response.AssignmentStatus)
+                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus)
                 };
             }
 

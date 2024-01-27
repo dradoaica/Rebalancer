@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer.Store;
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
+namespace Rebalancer.SqlServer.Store;
 
 internal class ResourceGroupStore
 {
@@ -9,34 +9,34 @@ internal class ResourceGroupStore
 
     public ResourceGroupStore()
     {
-        this.resources = new List<string>();
-        this.AssignmentStatus = AssignmentStatus.AssignmentInProgress;
+        resources = new List<string>();
+        AssignmentStatus = AssignmentStatus.AssignmentInProgress;
     }
 
     public AssignmentStatus AssignmentStatus { get; set; }
 
     public GetResourcesResponse GetResources()
     {
-        lock (this.ResourceLockObj)
+        lock (ResourceLockObj)
         {
-            if (this.AssignmentStatus == AssignmentStatus.ResourcesAssigned)
+            if (AssignmentStatus == AssignmentStatus.ResourcesAssigned)
             {
                 return new GetResourcesResponse
                 {
-                    Resources = new List<string>(this.resources), AssignmentStatus = this.AssignmentStatus
+                    Resources = new List<string>(resources), AssignmentStatus = AssignmentStatus
                 };
             }
 
-            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = this.AssignmentStatus};
+            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = AssignmentStatus};
         }
     }
 
     public void SetResources(SetResourcesRequest request)
     {
-        lock (this.ResourceLockObj)
+        lock (ResourceLockObj)
         {
-            this.resources = new List<string>(request.Resources);
-            this.AssignmentStatus = request.AssignmentStatus;
+            resources = new List<string>(request.Resources);
+            AssignmentStatus = request.AssignmentStatus;
         }
     }
 }

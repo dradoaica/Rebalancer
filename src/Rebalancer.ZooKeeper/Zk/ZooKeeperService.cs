@@ -1,5 +1,3 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Logging;
 using org.apache.zookeeper;
+using Rebalancer.Core.Logging;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 public class ZooKeeperService : Watcher, IZooKeeperService
 {
@@ -22,16 +22,19 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     private string statusPath;
     private string stoppedPath;
     private CancellationToken token;
-    private ZooKeeper zookeeper;
+    private org.apache.zookeeper.ZooKeeper zookeeper;
 
     public ZooKeeperService(string zookeeperHosts)
     {
         this.zookeeperHosts = zookeeperHosts;
-        this.clientId = "-";
-        this.sessionExpired = false;
+        clientId = "-";
+        sessionExpired = false;
     }
 
-    public void SessionExpired() => this.sessionExpired = true;
+    public void SessionExpired()
+    {
+        sessionExpired = true;
+    }
 
     public async Task InitializeGlobalBarrierAsync(string clientsPath,
         string statusPath,
@@ -45,11 +48,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         this.resourcesPath = resourcesPath;
         this.epochPath = epochPath;
 
-        await this.EnsurePathAsync(this.clientsPath);
-        await this.EnsurePathAsync(this.epochPath);
-        await this.EnsurePathAsync(this.statusPath, BitConverter.GetBytes(0));
-        await this.EnsurePathAsync(this.stoppedPath);
-        await this.EnsurePathAsync(this.resourcesPath,
+        await EnsurePathAsync(this.clientsPath);
+        await EnsurePathAsync(this.epochPath);
+        await EnsurePathAsync(this.statusPath, BitConverter.GetBytes(0));
+        await EnsurePathAsync(this.stoppedPath);
+        await EnsurePathAsync(this.resourcesPath,
             Encoding.UTF8.GetBytes(JSONSerializer<ResourcesZnodeData>.Serialize(new ResourcesZnodeData())));
     }
 
@@ -61,13 +64,16 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         this.resourcesPath = resourcesPath;
         this.epochPath = epochPath;
 
-        await this.EnsurePathAsync(this.clientsPath);
-        await this.EnsurePathAsync(this.epochPath);
-        await this.EnsurePathAsync(this.resourcesPath,
+        await EnsurePathAsync(this.clientsPath);
+        await EnsurePathAsync(this.epochPath);
+        await EnsurePathAsync(this.resourcesPath,
             Encoding.UTF8.GetBytes(JSONSerializer<ResourcesZnodeData>.Serialize(new ResourcesZnodeData())));
     }
 
-    public Event.KeeperState GetKeeperState() => this.keeperState;
+    public Event.KeeperState GetKeeperState()
+    {
+        return keeperState;
+    }
 
     public async Task<bool> StartSessionAsync(TimeSpan sessionTimeout, TimeSpan connectTimeout,
         CancellationToken token)
@@ -76,34 +82,34 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         Stopwatch sw = new();
         sw.Start();
 
-        if (this.zookeeper != null)
+        if (zookeeper != null)
         {
-            await this.zookeeper.closeAsync();
+            await zookeeper.closeAsync();
         }
 
-        this.zookeeper = new ZooKeeper(this.zookeeperHosts,
+        zookeeper = new org.apache.zookeeper.ZooKeeper(zookeeperHosts,
             (int)sessionTimeout.TotalMilliseconds,
             this);
 
-        while (this.keeperState != Event.KeeperState.SyncConnected && sw.Elapsed <= connectTimeout)
+        while (keeperState != Event.KeeperState.SyncConnected && sw.Elapsed <= connectTimeout)
         {
             await Task.Delay(50);
         }
 
-        var connected = this.keeperState == Event.KeeperState.SyncConnected;
-        this.sessionExpired = !connected;
+        var connected = keeperState == Event.KeeperState.SyncConnected;
+        sessionExpired = !connected;
 
         return connected;
     }
 
     public async Task CloseSessionAsync()
     {
-        if (this.zookeeper != null)
+        if (zookeeper != null)
         {
-            await this.zookeeper.closeAsync();
+            await zookeeper.closeAsync();
         }
 
-        this.zookeeper = null;
+        zookeeper = null;
     }
 
     public async Task<string> CreateClientAsync()
@@ -111,17 +117,17 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "create client znode";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var clientPath = await this.zookeeper.createAsync(
-                    $"{this.clientsPath}/c_",
+                var clientPath = await zookeeper.createAsync(
+                    $"{clientsPath}/c_",
                     Encoding.UTF8.GetBytes("0"),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.EPHEMERAL_SEQUENTIAL);
 
-                this.clientId = clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
+                clientId = clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
 
                 return clientPath;
             }
@@ -151,11 +157,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.deleteAsync(clientPath);
+                await zookeeper.deleteAsync(clientPath);
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException e)
@@ -184,11 +190,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var znodeStat = await this.zookeeper.existsAsync(znodePath);
+                var znodeStat = await zookeeper.existsAsync(znodePath);
                 if (znodeStat == null)
                 {
                     if (bytesToSet == null)
@@ -196,7 +202,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                         bytesToSet = Encoding.UTF8.GetBytes("0");
                     }
 
-                    await this.zookeeper.createAsync(znodePath,
+                    await zookeeper.createAsync(znodePath,
                         bytesToSet,
                         ZooDefs.Ids.OPEN_ACL_UNSAFE,
                         CreateMode.PERSISTENT);
@@ -228,14 +234,14 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "increment epoch";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
                 var data = Encoding.UTF8.GetBytes("0");
-                var stat = await this.zookeeper.setDataAsync(this.epochPath, data, currentEpoch);
+                var stat = await zookeeper.setDataAsync(epochPath, data, currentEpoch);
 
-                var dataRes = await this.zookeeper.getDataAsync(this.epochPath, watcher);
+                var dataRes = await zookeeper.getDataAsync(epochPath, watcher);
                 if (dataRes.Stat.getVersion() == stat.getVersion())
                 {
                     return dataRes.Stat.getVersion();
@@ -274,11 +280,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get the current epoch";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var dataResult = await this.zookeeper.getDataAsync(this.epochPath);
+                var dataResult = await zookeeper.getDataAsync(epochPath);
                 return dataResult.Stat.getVersion();
             }
             catch (KeeperException.NoNodeException e)
@@ -306,12 +312,12 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get the list of active clients";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var childrenResult = await this.zookeeper.getChildrenAsync(this.clientsPath);
-                var childrenPaths = childrenResult.Children.Select(x => $"{this.clientsPath}/{x}").ToList();
+                var childrenResult = await zookeeper.getChildrenAsync(clientsPath);
+                var childrenPaths = childrenResult.Children.Select(x => $"{clientsPath}/{x}").ToList();
                 return new ClientsZnode {Version = childrenResult.Stat.getVersion(), ClientPaths = childrenPaths};
             }
             catch (KeeperException.NoNodeException e)
@@ -339,11 +345,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get the status znode";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var dataResult = await this.zookeeper.getDataAsync(this.statusPath);
+                var dataResult = await zookeeper.getDataAsync(statusPath);
                 var status = RebalancingStatus.NotSet;
                 if (dataResult.Stat.getDataLength() > 0)
                 {
@@ -377,12 +383,12 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "set the status znode";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
                 var data = BitConverter.GetBytes((int)statusZnode.RebalancingStatus);
-                var stat = await this.zookeeper.setDataAsync(this.statusPath, data, statusZnode.Version);
+                var stat = await zookeeper.setDataAsync(statusPath, data, statusZnode.Version);
                 return stat.getVersion();
             }
             catch (KeeperException.BadVersionException e)
@@ -415,12 +421,12 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.createAsync(
-                    $"{this.stoppedPath}/{clientId}",
+                await zookeeper.createAsync(
+                    $"{stoppedPath}/{clientId}",
                     Encoding.UTF8.GetBytes("0"),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.EPHEMERAL);
@@ -457,11 +463,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.deleteAsync($"{this.stoppedPath}/{clientId}");
+                await zookeeper.deleteAsync($"{stoppedPath}/{clientId}");
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException)
@@ -488,28 +494,28 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get the list of resources";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
                 DataResult dataResult = null;
                 if (dataWatcher != null)
                 {
-                    dataResult = await this.zookeeper.getDataAsync(this.resourcesPath, dataWatcher);
+                    dataResult = await zookeeper.getDataAsync(resourcesPath, dataWatcher);
                 }
                 else
                 {
-                    dataResult = await this.zookeeper.getDataAsync(this.resourcesPath);
+                    dataResult = await zookeeper.getDataAsync(resourcesPath);
                 }
 
                 ChildrenResult childrenResult = null;
                 if (childWatcher != null)
                 {
-                    childrenResult = await this.zookeeper.getChildrenAsync(this.resourcesPath, childWatcher);
+                    childrenResult = await zookeeper.getChildrenAsync(resourcesPath, childWatcher);
                 }
                 else
                 {
-                    childrenResult = await this.zookeeper.getChildrenAsync(this.resourcesPath);
+                    childrenResult = await zookeeper.getChildrenAsync(resourcesPath);
                 }
 
                 var resourcesZnodeData = JSONSerializer<ResourcesZnodeData>.DeSerialize(
@@ -552,13 +558,13 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "set resource assignments";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
                 var data = Encoding.UTF8.GetBytes(
                     JSONSerializer<ResourcesZnodeData>.Serialize(resourcesZnode.ResourceAssignments));
-                var stat = await this.zookeeper.setDataAsync(this.resourcesPath, data, resourcesZnode.Version);
+                var stat = await zookeeper.setDataAsync(resourcesPath, data, resourcesZnode.Version);
                 return stat.getVersion();
             }
             catch (KeeperException.BadVersionException e)
@@ -591,11 +597,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.deleteAsync($"{this.resourcesPath}/{resource}/barrier");
+                await zookeeper.deleteAsync($"{resourcesPath}/{resource}/barrier");
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException)
@@ -626,31 +632,31 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.createAsync(
-                    $"{this.resourcesPath}/{resource}/barrier",
-                    Encoding.UTF8.GetBytes(this.clientId),
+                await zookeeper.createAsync(
+                    $"{resourcesPath}/{resource}/barrier",
+                    Encoding.UTF8.GetBytes(clientId),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.EPHEMERAL);
                 succeeded = true;
             }
             catch (KeeperException.NodeExistsException)
             {
-                var (exists, owner) = await this.GetResourceBarrierOwnerAsync(resource);
-                if (exists && owner.Equals(this.clientId))
+                var (exists, owner) = await GetResourceBarrierOwnerAsync(resource);
+                if (exists && owner.Equals(clientId))
                 {
                     succeeded = true;
                 }
                 else
                 {
-                    logger.Info(this.clientId, $"Waiting for {owner} to release its barrier on {resource}");
+                    logger.Info(clientId, $"Waiting for {owner} to release its barrier on {resource}");
                     // wait for two seconds, will retry in next iteration
                     for (var i = 0; i < 20; i++)
                     {
-                        await this.WaitFor(TimeSpan.FromMilliseconds(100));
+                        await WaitFor(TimeSpan.FromMilliseconds(100));
                         if (waitToken.IsCancellationRequested)
                         {
                             throw new ZkOperationCancelledException(
@@ -684,11 +690,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get the list of stopped clients";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var childrenResult = await this.zookeeper.getChildrenAsync(this.stoppedPath);
+                var childrenResult = await zookeeper.getChildrenAsync(stoppedPath);
                 return childrenResult.Children;
             }
             catch (KeeperException.NoNodeException e)
@@ -716,11 +722,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "set a watch on epoch";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var stat = await this.zookeeper.existsAsync(this.epochPath, watcher);
+                var stat = await zookeeper.existsAsync(epochPath, watcher);
                 return stat.getVersion();
             }
             catch (KeeperException.NoNodeException e)
@@ -749,11 +755,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "set a watch on status";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var dataResult = await this.zookeeper.getDataAsync(this.statusPath, watcher);
+                var dataResult = await zookeeper.getDataAsync(statusPath, watcher);
                 return new StatusZnode
                 {
                     RebalancingStatus = (RebalancingStatus)BitConverter.ToInt32(dataResult.Data, 0),
@@ -787,11 +793,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.getChildrenAsync(this.resourcesPath, watcher);
+                await zookeeper.getChildrenAsync(resourcesPath, watcher);
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException e)
@@ -819,11 +825,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "set a watch on resource data";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var data = await this.zookeeper.getDataAsync(this.resourcesPath, watcher);
+                var data = await zookeeper.getDataAsync(resourcesPath, watcher);
                 return data.Stat.getVersion();
             }
             catch (KeeperException.NoNodeException e)
@@ -852,11 +858,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.getChildrenAsync(this.clientsPath, watcher);
+                await zookeeper.getChildrenAsync(clientsPath, watcher);
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException e)
@@ -885,11 +891,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var succeeded = false;
         while (!succeeded)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                await this.zookeeper.getDataAsync(siblingPath, watcher);
+                await zookeeper.getDataAsync(siblingPath, watcher);
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException e)
@@ -914,7 +920,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
     public override async Task process(WatchedEvent @event)
     {
-        this.keeperState = @event.getState();
+        keeperState = @event.getState();
         await Task.Yield();
     }
 
@@ -923,11 +929,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         var actionToPerform = "get resource barrier owner";
         while (true)
         {
-            await this.BlockUntilConnected(actionToPerform);
+            await BlockUntilConnected(actionToPerform);
 
             try
             {
-                var dataResult = await this.zookeeper.getDataAsync($"{this.resourcesPath}/{resource}/barrier");
+                var dataResult = await zookeeper.getDataAsync($"{resourcesPath}/{resource}/barrier");
                 return (true, Encoding.UTF8.GetString(dataResult.Data));
             }
             catch (KeeperException.NoNodeException)
@@ -951,23 +957,23 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
     private async Task BlockUntilConnected(string logAction)
     {
-        while (!this.sessionExpired && !this.token.IsCancellationRequested &&
-               this.keeperState != Event.KeeperState.SyncConnected)
+        while (!sessionExpired && !token.IsCancellationRequested &&
+               keeperState != Event.KeeperState.SyncConnected)
         {
-            if (this.keeperState == Event.KeeperState.Expired)
+            if (keeperState == Event.KeeperState.Expired)
             {
                 throw new ZkSessionExpiredException($"Could not {logAction} because the session has expired");
             }
 
-            await this.WaitFor(TimeSpan.FromMilliseconds(100));
+            await WaitFor(TimeSpan.FromMilliseconds(100));
         }
 
-        if (this.token.IsCancellationRequested)
+        if (token.IsCancellationRequested)
         {
             throw new ZkOperationCancelledException($"Could not {logAction} because the operation was cancelled");
         }
 
-        if (this.sessionExpired || this.keeperState == Event.KeeperState.Expired)
+        if (sessionExpired || keeperState == Event.KeeperState.Expired)
         {
             throw new ZkSessionExpiredException($"Could not {logAction} because the session has expired");
         }
@@ -977,7 +983,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     {
         try
         {
-            await Task.Delay(waitPeriod, this.token);
+            await Task.Delay(waitPeriod, token);
         }
         catch (TaskCanceledException)
         {

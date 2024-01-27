@@ -1,6 +1,6 @@
-﻿namespace Rebalancer.SqlServer.Roles;
+﻿using System;
 
-using System;
+namespace Rebalancer.SqlServer.Roles;
 
 public class ClientEvent
 {

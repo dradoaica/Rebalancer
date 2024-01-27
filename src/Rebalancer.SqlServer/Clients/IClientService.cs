@@ -1,8 +1,8 @@
-﻿namespace Rebalancer.SqlServer.Clients;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+namespace Rebalancer.SqlServer.Clients;
 
 public interface IClientService
 {

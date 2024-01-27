@@ -1,11 +1,11 @@
-namespace Rebalancer.ZooKeeper.Zk;
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Logging;
 using org.apache.zookeeper;
+using Rebalancer.Core.Logging;
+
+namespace Rebalancer.ZooKeeper.Zk;
 
 public interface IZooKeeperService
 {

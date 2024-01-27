@@ -1,11 +1,11 @@
-﻿namespace Rebalancer.SqlServer.Leases;
-
-using System;
+﻿using System;
 using System.Data;
 using System.Threading.Tasks;
-using Connections;
-using Core.Logging;
 using Microsoft.Data.SqlClient;
+using Rebalancer.Core.Logging;
+using Rebalancer.SqlServer.Connections;
+
+namespace Rebalancer.SqlServer.Leases;
 
 internal class LeaseService : ILeaseService
 {
@@ -20,7 +20,7 @@ internal class LeaseService : ILeaseService
 
     public async Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest acquireLeaseRequest)
     {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(this.connectionString))
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
             var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
             var command = conn.CreateCommand();
@@ -60,11 +60,11 @@ WHERE ResourceGroup = @ResourceGroup";
                         rg = new ResourceGroup
                         {
                             Name = acquireLeaseRequest.ResourceGroup,
-                            CoordinatorId = this.GetGuidFromNullableGuid(reader, "CoordinatorId"),
-                            CoordinatorServer = this.GetStringFromNullableGuid(reader, "CoordinatorServer"),
-                            LastCoordinatorRenewal = this.GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
+                            CoordinatorId = GetGuidFromNullableGuid(reader, "CoordinatorId"),
+                            CoordinatorServer = GetStringFromNullableGuid(reader, "CoordinatorServer"),
+                            LastCoordinatorRenewal = GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
                             TimeNow = (DateTime)reader["TimeNow"],
-                            LockedByClientId = this.GetGuidFromNullableGuid(reader, "LockedByClient"),
+                            LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
                             FencingToken = (int)reader["FencingToken"],
                             LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
                             HeartbeatSeconds = (int)reader["HeartbeatSeconds"]
@@ -125,12 +125,12 @@ WHERE ResourceGroup = @ResourceGroup";
             {
                 try
                 {
-                    this.logger.Error("Rolling back lease acquisition: ", ex);
+                    logger.Error("Rolling back lease acquisition: ", ex);
                     transaction.Rollback();
                 }
                 catch (Exception rex)
                 {
-                    this.logger.Error("Rollback of lease acquisition failed: ", rex);
+                    logger.Error("Rollback of lease acquisition failed: ", rex);
                 }
 
                 return new LeaseResponse
@@ -146,7 +146,7 @@ WHERE ResourceGroup = @ResourceGroup";
 
     public async Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest renewLeaseRequest)
     {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(this.connectionString))
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
             var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
             var command = conn.CreateCommand();
@@ -186,11 +186,11 @@ WHERE ResourceGroup = @ResourceGroup";
                         rg = new ResourceGroup
                         {
                             Name = renewLeaseRequest.ResourceGroup,
-                            CoordinatorId = this.GetGuidFromNullableGuid(reader, "CoordinatorId"),
-                            CoordinatorServer = this.GetStringFromNullableGuid(reader, "CoordinatorServer"),
-                            LastCoordinatorRenewal = this.GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
+                            CoordinatorId = GetGuidFromNullableGuid(reader, "CoordinatorId"),
+                            CoordinatorServer = GetStringFromNullableGuid(reader, "CoordinatorServer"),
+                            LastCoordinatorRenewal = GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
                             TimeNow = (DateTime)reader["TimeNow"],
-                            LockedByClientId = this.GetGuidFromNullableGuid(reader, "LockedByClient"),
+                            LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
                             FencingToken = (int)reader["FencingToken"],
                             LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
                             HeartbeatSeconds = (int)reader["HeartbeatSeconds"]
@@ -241,12 +241,12 @@ WHERE ResourceGroup = @ResourceGroup";
             {
                 try
                 {
-                    this.logger.Error("Rolling back lease renewal: ", ex);
+                    logger.Error("Rolling back lease renewal: ", ex);
                     transaction.Rollback();
                 }
                 catch (Exception rex)
                 {
-                    this.logger.Error("Rollback of lease renewal failed: ", rex);
+                    logger.Error("Rollback of lease renewal failed: ", rex);
                 }
 
                 return new LeaseResponse
@@ -262,7 +262,7 @@ WHERE ResourceGroup = @ResourceGroup";
 
     public async Task RelinquishLeaseAsync(RelinquishLeaseRequest relinquishLeaseRequest)
     {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(this.connectionString))
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
             var command = conn.CreateCommand();
             command.CommandText = @"UPDATE [RBR].[ResourceGroups]

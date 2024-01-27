@@ -1,7 +1,7 @@
-﻿namespace Rebalanser.RabbitMQTools;
-
-using System;
+﻿using System;
 using Microsoft.Extensions.Configuration;
+
+namespace Rebalanser.RabbitMQTools;
 
 internal class Program
 {

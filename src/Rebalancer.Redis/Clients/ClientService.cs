@@ -1,24 +1,27 @@
-﻿namespace Rebalancer.Redis.Clients;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Core;
+using Rebalancer.Core;
+using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
 using StackExchange.Redis.DataTypes.Collections;
-using Utils;
+
+namespace Rebalancer.Redis.Clients;
 
 internal class ClientService : IClientService
 {
     private readonly IDatabase cache;
 
-    public ClientService(IDatabase cache) => this.cache = cache;
+    public ClientService(IDatabase cache)
+    {
+        this.cache = cache;
+    }
 
     public Task CreateClientAsync(string resourceGroup, Guid clientId)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        _ = new RedisDictionary<Guid, Client>(this.cache, cacheKey)
+        _ = new RedisDictionary<Guid, Client>(cache, cacheKey)
         {
             {
                 clientId,
@@ -39,7 +42,7 @@ internal class ClientService : IClientService
     public Task<List<Client>> GetActiveClientsAsync(string resourceGroup)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         var clients = redisDictionary.Values.Where(x =>
             x.ResourceGroup == resourceGroup &&
             (x.ClientStatus == ClientStatus.Waiting || x.ClientStatus == ClientStatus.Active)).ToList();
@@ -50,7 +53,7 @@ internal class ClientService : IClientService
     public Task<Client> KeepAliveAsync(Guid clientId)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         Client client;
         if (!redisDictionary.ContainsKey(clientId))
         {
@@ -67,7 +70,7 @@ internal class ClientService : IClientService
     public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         if (redisDictionary.ContainsKey(clientId))
         {
             var client = redisDictionary[clientId];
@@ -82,7 +85,7 @@ internal class ClientService : IClientService
         List<ClientStartRequest> clientStartRequests)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         foreach (var request in clientStartRequests)
         {
             var client =
@@ -107,7 +110,7 @@ internal class ClientService : IClientService
     public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(this.cache, cacheKey);
+        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         foreach (var targetedClient in clients)
         {
             Client client;
