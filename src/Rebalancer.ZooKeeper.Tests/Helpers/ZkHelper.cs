@@ -8,7 +8,7 @@ namespace Rebalancer.ZooKeeper.Tests.Helpers;
 
 public class ZkHelper : Watcher
 {
-    public static string ZooKeeperHosts = "localhost:2181,localhost:2182,localhost:2183";
+    public static string zooKeeperHosts = "localhost:2181,localhost:2182,localhost:2183";
     private TimeSpan connectTimeout;
     private Event.KeeperState keeperState;
     private TimeSpan sessionTimeout;
@@ -27,7 +27,7 @@ public class ZkHelper : Watcher
     private async Task EstablishSession()
     {
         zookeeper = new org.apache.zookeeper.ZooKeeper(
-            ZooKeeperHosts,
+            zooKeeperHosts,
             (int)sessionTimeout.TotalMilliseconds,
             this);
 

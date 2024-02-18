@@ -9,12 +9,7 @@ namespace Rebalancer.ZooKeeper.Tests;
 
 public class MultiClientTests : IDisposable
 {
-    private readonly ZkHelper zkHelper;
-
-    public MultiClientTests()
-    {
-        zkHelper = new ZkHelper();
-    }
+    private readonly ZkHelper zkHelper = new();
 
     public void Dispose()
     {
@@ -474,7 +469,7 @@ public class MultiClientTests : IDisposable
 
     private IRebalancerProvider GetResourceBarrierProvider()
     {
-        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
             "/rebalancer",
             TimeSpan.FromSeconds(20),
             TimeSpan.FromSeconds(20),
@@ -485,7 +480,7 @@ public class MultiClientTests : IDisposable
 
     private IRebalancerProvider GetGlobalBarrierProvider()
     {
-        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
             "/rebalancer",
             TimeSpan.FromSeconds(20),
             TimeSpan.FromSeconds(20),

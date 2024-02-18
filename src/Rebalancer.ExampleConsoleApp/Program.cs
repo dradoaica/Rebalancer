@@ -11,20 +11,21 @@ using Rebalancer.SqlServer;
 
 namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
 
-internal class Program
+internal static class Program
 {
     private static List<ClientTask> clientTasks;
 
-    private static void Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        RunAsync().Wait();
+        await RunAsync().ConfigureAwait(false);
+        return 0;
     }
 
     private static async Task RunAsync()
     {
         Providers.Register(() =>
             new SqlServerProvider("Server=(local);Database=RabbitMqScaling;Trusted_Connection=true;"));
-        clientTasks = new List<ClientTask>();
+        clientTasks = [];
         using RebalancerClient context = new();
         context.OnAssignment += (sender, args) =>
         {
@@ -45,7 +46,7 @@ internal class Program
         };
         await context.StartAsync("NotificationsGroup",
             new ClientOptions {AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(30)});
-        Console.WriteLine("Press enter to shutdown");
+        LogInfo("Press enter to shutdown");
         while (!Console.KeyAvailable)
         {
             Thread.Sleep(100);

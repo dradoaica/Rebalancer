@@ -4,32 +4,20 @@ namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class RandomConfig
 {
-    public RandomConfig()
-    {
-        SessionTimeout = TimeSpan.FromSeconds(20);
-        ConnectTimeout = TimeSpan.FromSeconds(20);
-        MinimumRebalancingInterval = TimeSpan.FromSeconds(20);
-        StartUpClientInterval = TimeSpan.Zero;
-        OnStartEventHandlerTime = TimeSpan.Zero;
-        OnStopEventHandlerTime = TimeSpan.Zero;
-        RandomiseEventHandlerTimes = false;
-        OnAssignmentDelay = TimeSpan.Zero;
-    }
-
-    public TimeSpan SessionTimeout { get; set; }
-    public TimeSpan ConnectTimeout { get; set; }
-    public TimeSpan MinimumRebalancingInterval { get; set; }
-    public TimeSpan StartUpClientInterval { get; set; }
-    public int ClientCount { get; set; }
-    public int ResourceCount { get; set; }
-    public TimeSpan TestDuration { get; set; }
-    public CheckType CheckType { get; set; }
-    public bool RandomiseInterval { get; set; }
-    public TimeSpan MaxInterval { get; set; }
-    public int ConditionalCheckInterval { get; set; }
-    public TimeSpan ConditionalCheckWaitPeriod { get; set; }
-    public TimeSpan OnStartEventHandlerTime { get; set; }
-    public TimeSpan OnStopEventHandlerTime { get; set; }
-    public TimeSpan OnAssignmentDelay { get; set; }
-    public bool RandomiseEventHandlerTimes { get; set; }
+    public TimeSpan SessionTimeout { get; init; } = TimeSpan.FromSeconds(20);
+    public TimeSpan ConnectTimeout { get; init; } = TimeSpan.FromSeconds(20);
+    public TimeSpan MinimumRebalancingInterval { get; init; } = TimeSpan.FromSeconds(20);
+    public TimeSpan StartUpClientInterval { get; init; } = TimeSpan.Zero;
+    public int ClientCount { get; init; }
+    public int ResourceCount { get; init; }
+    public TimeSpan TestDuration { get; init; }
+    public CheckType CheckType { get; init; }
+    public bool RandomiseInterval { get; init; }
+    public TimeSpan MaxInterval { get; init; }
+    public int ConditionalCheckInterval { get; init; }
+    public TimeSpan ConditionalCheckWaitPeriod { get; init; }
+    public TimeSpan OnStartEventHandlerTime { get; init; } = TimeSpan.Zero;
+    public TimeSpan OnStopEventHandlerTime { get; init; } = TimeSpan.Zero;
+    public TimeSpan OnAssignmentDelay { get; init; } = TimeSpan.Zero;
+    public bool RandomiseEventHandlerTimes { get; init; } = false;
 }

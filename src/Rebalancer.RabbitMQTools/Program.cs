@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace Rebalancer.RabbitMQTools;
 
-internal class Program
+internal static class Program
 {
-    private static void Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         if (args.Length == 0)
         {
-            Console.WriteLine("Invalid command");
+            LogError("Invalid command");
             Environment.ExitCode = 1;
         }
 
@@ -39,37 +40,39 @@ internal class Program
         {
             if (backend.Equals("mssql", StringComparison.OrdinalIgnoreCase))
             {
-                DeployQueuesWithSqlBackend(connection, rabbitConn, queueInventory);
+                await DeployQueuesWithSqlBackend(connection, rabbitConn, queueInventory).ConfigureAwait(false);
             }
             else
             {
-                Console.WriteLine("Only mssql backend is supported");
+                LogWarn("Only mssql backend is supported");
             }
         }
         else
         {
-            Console.WriteLine("Only create command is supported");
+            LogWarn("Only create command is supported");
         }
+
+        return 0;
     }
 
-    public static void DeployQueuesWithSqlBackend(string connection, RabbitConnection rabbitConn,
+    private static async Task DeployQueuesWithSqlBackend(string connection, RabbitConnection rabbitConn,
         QueueInventory queueInventory)
     {
         try
         {
             QueueManager.Initialize(connection, rabbitConn);
             QueueManager.EnsureResourceGroup(queueInventory.ConsumerGroup, queueInventory.LeaseExpirySeconds);
-            Console.WriteLine("Phase 1 - Reconcile Backend with existing RabbitMQ queues ---------");
+            LogInfo("Phase 1 - Reconcile Backend with existing RabbitMQ queues ---------");
             QueueManager.ReconcileQueuesSqlAsync(queueInventory.ConsumerGroup, queueInventory.QueuePrefix).Wait();
-            Console.WriteLine("Phase 2 - Ensure supplied queue count is deployed ---------");
+            LogInfo("Phase 2 - Ensure supplied queue count is deployed ---------");
             var existingQueues = QueueManager.GetQueuesAsync(queueInventory.QueuePrefix).Result;
             if (existingQueues.Count > queueInventory.QueueCount)
             {
                 var queuesToRemove = existingQueues.Count - queueInventory.QueueCount;
                 for (var i = 0; i < queuesToRemove; i++)
                 {
-                    QueueManager.RemoveQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory.QueuePrefix)
-                        .Wait();
+                    await QueueManager.RemoveQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory.QueuePrefix)
+                        .ConfigureAwait(false);
                 }
             }
             else if (existingQueues.Count < queueInventory.QueueCount)
@@ -77,22 +80,22 @@ internal class Program
                 var queuesToAdd = queueInventory.QueueCount - existingQueues.Count;
                 for (var i = 0; i < queuesToAdd; i++)
                 {
-                    QueueManager.AddQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory.ExchangeName,
-                        queueInventory.QueuePrefix).Wait();
+                    await QueueManager.AddQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory.ExchangeName,
+                        queueInventory.QueuePrefix).ConfigureAwait(false);
                 }
             }
 
-            Console.WriteLine("Complete");
+            LogInfo("Complete");
             Environment.ExitCode = 0;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            LogError(ex.Message);
             Environment.ExitCode = 1;
         }
     }
 
-    public static string GetMandatoryArg(IConfiguration configuration, string argName)
+    private static string GetMandatoryArg(IConfiguration configuration, string argName)
     {
         var value = configuration[argName];
         if (string.IsNullOrEmpty(value))
@@ -103,7 +106,7 @@ internal class Program
         return value;
     }
 
-    public static string GetOptionalArg(IConfiguration configuration, string argName, string defaultValue)
+    private static string GetOptionalArg(IConfiguration configuration, string argName, string defaultValue)
     {
         var value = configuration[argName];
         if (string.IsNullOrEmpty(value))
@@ -112,5 +115,20 @@ internal class Program
         }
 
         return value;
+    }
+
+    private static void LogInfo(string text)
+    {
+        Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {text}");
+    }
+
+    private static void LogWarn(string text)
+    {
+        Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN  : {text}");
+    }
+
+    private static void LogError(string text)
+    {
+        Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR  : {text}");
     }
 }

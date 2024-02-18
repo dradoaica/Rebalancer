@@ -2,21 +2,10 @@ using System;
 
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
-public class ErrorViolation
+public class ErrorViolation(string message, Exception ex = null)
 {
-    public ErrorViolation(string message)
-    {
-        Message = message;
-    }
-
-    public ErrorViolation(string message, Exception ex)
-    {
-        Message = message;
-        Exception = ex;
-    }
-
-    public string Message { get; set; }
-    public Exception Exception { get; set; }
+    public string Message { get; } = message;
+    public Exception Exception { get; } = ex;
 
     public override string ToString()
     {

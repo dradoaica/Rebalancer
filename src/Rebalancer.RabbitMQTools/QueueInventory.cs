@@ -2,9 +2,9 @@
 
 public class QueueInventory
 {
-    public string ConsumerGroup { get; set; }
-    public string ExchangeName { get; set; }
-    public string QueuePrefix { get; set; }
-    public int QueueCount { get; set; }
-    public int LeaseExpirySeconds { get; set; }
+    public string ConsumerGroup { get; init; }
+    public string ExchangeName { get; init; }
+    public string QueuePrefix { get; init; }
+    public int QueueCount { get; init; }
+    public int LeaseExpirySeconds { get; init; }
 }

@@ -1,19 +1,13 @@
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
-public class ReleaseViolation
+public class ReleaseViolation(
+    string resourceName,
+    string currentlyAssignedClientId,
+    string releaserClientId)
 {
-    public ReleaseViolation(string resourceName,
-        string currentlyAssignedClientId,
-        string releaserClientId)
-    {
-        ResourceName = resourceName;
-        CurrentlyAssignedClientId = currentlyAssignedClientId;
-        ReleaserClientId = releaserClientId;
-    }
-
-    public string ResourceName { get; set; }
-    public string CurrentlyAssignedClientId { get; set; }
-    public string ReleaserClientId { get; set; }
+    public string ResourceName { get; } = resourceName;
+    public string CurrentlyAssignedClientId { get; } = currentlyAssignedClientId;
+    public string ReleaserClientId { get; } = releaserClientId;
 
     public override string ToString()
     {

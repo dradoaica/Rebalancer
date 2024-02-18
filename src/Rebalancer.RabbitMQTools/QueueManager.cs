@@ -11,27 +11,27 @@ using Newtonsoft.Json.Linq;
 
 namespace Rebalancer.RabbitMQTools;
 
-public class QueueManager
+public static class QueueManager
 {
-    private static string ConnStr;
-    private static HttpClient Client;
+    private static string connStr;
+    private static HttpClient client;
 
     public static void Initialize(string connectionString, RabbitConnection rabbitConnection)
     {
-        ConnStr = connectionString;
-        Client = new HttpClient
+        connStr = connectionString;
+        client = new HttpClient
         {
             BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/")
         };
         var byteArray = Encoding.ASCII.GetBytes($"{rabbitConnection.Username}:{rabbitConnection.Password}");
-        Client.DefaultRequestHeaders.Authorization
+        client.DefaultRequestHeaders.Authorization
             = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
     }
 
     public static void EnsureResourceGroup(string resourceGroup, int leaseExpirySeconds)
     {
         var rgExists = false;
-        using SqlConnection conn = new(ConnStr);
+        using SqlConnection conn = new(connStr);
         conn.Open();
         var command = conn.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM RBR.ResourceGroups WHERE ResourceGroup = @ResourceGroup";
@@ -62,13 +62,13 @@ public class QueueManager
 
     public static async Task ReconcileQueuesSqlAsync(string resourceGroup, string queuePrefix)
     {
-        var rabbitQueues = await GetQueuesFromRabbitMQAsync(queuePrefix);
+        var rabbitQueues = await GetQueuesFromRabbitMqAsync(queuePrefix);
         Console.WriteLine($"{rabbitQueues.Count} matching queues in RabbitMQ");
         var sqlQueues = GetQueuesFromSqlServer(resourceGroup);
         Console.WriteLine($"{sqlQueues.Count} matching registered queues in SQL Server backend");
         foreach (var queue in rabbitQueues)
         {
-            if (!sqlQueues.Any(x => x == queue))
+            if (sqlQueues.All(x => x != queue))
             {
                 InsertQueueSql(resourceGroup, queue);
                 Console.WriteLine("Added queue to backend");
@@ -77,7 +77,7 @@ public class QueueManager
 
         foreach (var queue in sqlQueues)
         {
-            if (!rabbitQueues.Any(x => x == queue))
+            if (rabbitQueues.All(x => x != queue))
             {
                 DeleteQueueSql(resourceGroup, queue);
                 Console.WriteLine("Removed queue from backend");
@@ -91,16 +91,16 @@ public class QueueManager
         if (lastQueue == null)
         {
             var queueName = queuePrefix + "_0001";
-            await PutQueueRabbitMQAsync(exchangeName, queueName);
+            await PutQueueRabbitMqAsync(exchangeName, queueName);
             InsertQueueSql(resourceGroup, queueName);
             Console.WriteLine($"Queue {queueName} added to consumer group {resourceGroup}");
         }
         else
         {
-            var qNumber = lastQueue.Substring(lastQueue.IndexOf("_") + 1);
+            var qNumber = lastQueue[(lastQueue.IndexOf("_") + 1)..];
             var nextNumber = int.Parse(qNumber) + 1;
             var queueName = queuePrefix + "_" + nextNumber.ToString().PadLeft(4, '0');
-            await PutQueueRabbitMQAsync(exchangeName, queueName);
+            await PutQueueRabbitMqAsync(exchangeName, queueName);
             InsertQueueSql(resourceGroup, queueName);
             Console.WriteLine($"Queue {queueName} added to consumer group {resourceGroup}");
         }
@@ -111,7 +111,7 @@ public class QueueManager
         var lastQueue = await GetMaxQueueAsync(queuePrefix);
         if (lastQueue != null)
         {
-            await DeleteQueueRabbitMQAsync(lastQueue);
+            await DeleteQueueRabbitMqAsync(lastQueue);
             DeleteQueueSql(resourceGroup, lastQueue);
             Console.WriteLine($"Queue {lastQueue} removed from consumer group {resourceGroup}");
         }
@@ -119,19 +119,19 @@ public class QueueManager
 
     public static async Task<List<string>> GetQueuesAsync(string queuePrefix)
     {
-        return await GetQueuesFromRabbitMQAsync(queuePrefix);
+        return await GetQueuesFromRabbitMqAsync(queuePrefix);
     }
 
     private static async Task<string> GetMaxQueueAsync(string queuePrefix)
     {
-        var queuesRabbit = await GetQueuesFromRabbitMQAsync(queuePrefix);
+        var queuesRabbit = await GetQueuesFromRabbitMqAsync(queuePrefix);
 
-        return queuesRabbit.OrderBy(x => x).LastOrDefault();
+        return queuesRabbit.MaxBy(x => x);
     }
 
-    private static async Task<List<string>> GetQueuesFromRabbitMQAsync(string queuePrefix)
+    private static async Task<List<string>> GetQueuesFromRabbitMqAsync(string queuePrefix)
     {
-        var response = await Client.GetAsync("queues");
+        var response = await client.GetAsync("queues");
         var json = await response.Content.ReadAsStringAsync();
         var queues = JArray.Parse(json);
         var queueNames = queues.Select(x => x["name"].Value<string>())
@@ -142,8 +142,8 @@ public class QueueManager
 
     private static List<string> GetQueuesFromSqlServer(string resourceGroup)
     {
-        List<string> queues = new();
-        using SqlConnection conn = new(ConnStr);
+        List<string> queues = [];
+        using SqlConnection conn = new(connStr);
         conn.Open();
         var command = conn.CreateCommand();
         command.CommandText = "SELECT ResourceName FROM RBR.Resources WHERE ResourceGroup = @ResourceGroup";
@@ -157,7 +157,7 @@ public class QueueManager
         return queues;
     }
 
-    private static async Task PutQueueRabbitMQAsync(string exchange, string queueName, string vhost = "%2f")
+    private static async Task PutQueueRabbitMqAsync(string exchange, string queueName, string vhost = "%2f")
     {
         if (vhost == "/")
         {
@@ -169,7 +169,7 @@ public class QueueManager
                 "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}",
                 Encoding.UTF8, "application/json");
         var createExchangeResponse =
-            await Client.PutAsync($"exchanges/{vhost}/{exchange}", createExchangeContent);
+            await client.PutAsync($"exchanges/{vhost}/{exchange}", createExchangeContent);
         if (!createExchangeResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create exchange");
@@ -177,7 +177,7 @@ public class QueueManager
 
         StringContent createQueueContent = new("{ \"durable\":true}", Encoding.UTF8, "application/json");
         var createQueueResponse =
-            await Client.PutAsync($"queues/{vhost}/{queueName}", createQueueContent);
+            await client.PutAsync($"queues/{vhost}/{queueName}", createQueueContent);
         if (!createQueueResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create queue");
@@ -186,7 +186,7 @@ public class QueueManager
         StringContent createBindingsContent =
             new("{\"routing_key\":\"10\",\"arguments\":{}}", Encoding.UTF8, "application/json");
         var createBindingsResponse =
-            await Client.PostAsync($"bindings/{vhost}/e/{exchange}/q/{queueName}", createBindingsContent);
+            await client.PostAsync($"bindings/{vhost}/e/{exchange}/q/{queueName}", createBindingsContent);
         if (!createBindingsResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create exchange to queue bindings");
@@ -195,7 +195,7 @@ public class QueueManager
 
     private static void InsertQueueSql(string resourceGroup, string queueName)
     {
-        using SqlConnection conn = new(ConnStr);
+        using SqlConnection conn = new(connStr);
         conn.Open();
         var command = conn.CreateCommand();
         command.CommandText =
@@ -205,19 +205,19 @@ public class QueueManager
         command.ExecuteNonQuery();
     }
 
-    private static async Task DeleteQueueRabbitMQAsync(string queueName, string vhost = "%2f")
+    private static async Task DeleteQueueRabbitMqAsync(string queueName, string vhost = "%2f")
     {
         if (vhost == "/")
         {
             vhost = "%2f";
         }
 
-        var response = await Client.DeleteAsync($"queues/{vhost}/{queueName}");
+        var response = await client.DeleteAsync($"queues/{vhost}/{queueName}");
     }
 
     private static void DeleteQueueSql(string resourceGroup, string queueName)
     {
-        using SqlConnection conn = new(ConnStr);
+        using SqlConnection conn = new(connStr);
         conn.Open();
         var command = conn.CreateCommand();
         command.CommandText =

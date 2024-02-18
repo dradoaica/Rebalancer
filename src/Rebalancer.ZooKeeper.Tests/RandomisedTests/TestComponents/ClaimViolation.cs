@@ -1,19 +1,13 @@
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
-public class ClaimViolation
+public class ClaimViolation(
+    string resourceName,
+    string currentlyAssignedClientId,
+    string claimerClientId)
 {
-    public ClaimViolation(string resourceName,
-        string currentlyAssignedClientId,
-        string claimerClientId)
-    {
-        ResourceName = resourceName;
-        CurrentlyAssignedClientId = currentlyAssignedClientId;
-        ClaimerClientId = claimerClientId;
-    }
-
-    public string ResourceName { get; set; }
-    public string CurrentlyAssignedClientId { get; set; }
-    public string ClaimerClientId { get; set; }
+    public string ResourceName { get; } = resourceName;
+    public string CurrentlyAssignedClientId { get; } = currentlyAssignedClientId;
+    public string ClaimerClientId { get; } = claimerClientId;
 
     public override string ToString()
     {

@@ -12,13 +12,8 @@ namespace Rebalancer.ZooKeeper.Tests.RandomisedTests;
 
 public class RandomisedResourceBarrierTests : IDisposable
 {
-    private readonly ZkHelper zkHelper;
+    private readonly ZkHelper zkHelper = new();
     private RandomConfig currentConfig;
-
-    public RandomisedResourceBarrierTests()
-    {
-        zkHelper = new ZkHelper();
-    }
 
     public void Dispose()
     {
@@ -563,7 +558,7 @@ public class RandomisedResourceBarrierTests : IDisposable
 
     private IRebalancerProvider GetResourceBarrierProvider()
     {
-        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
             "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
             currentConfig.MinimumRebalancingInterval,
             RebalancingMode.ResourceBarrier,
@@ -572,7 +567,7 @@ public class RandomisedResourceBarrierTests : IDisposable
 
     private IRebalancerProvider GetGlobalBarrierProvider()
     {
-        return new ZooKeeperProvider(ZkHelper.ZooKeeperHosts,
+        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
             "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
             currentConfig.MinimumRebalancingInterval,
             RebalancingMode.GlobalBarrier,

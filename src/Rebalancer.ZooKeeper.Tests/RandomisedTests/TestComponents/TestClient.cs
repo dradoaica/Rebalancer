@@ -7,40 +7,25 @@ using Rebalancer.Core.Logging;
 
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
-public class TestClient
+public class TestClient(
+    ResourceMonitor resourceMonitor,
+    string resourceGroup,
+    ClientOptions clientOptions,
+    TimeSpan onStartTime,
+    TimeSpan onStopTime,
+    bool randomiseTimes)
 {
-    public static int ClientNumber;
+    private static int clientNumber;
 
-    private readonly TimeSpan onStartTime;
-    private readonly TimeSpan onStopTime;
-    private readonly Random rand;
-    private readonly bool randomiseTimes;
-
-    public TestClient(ResourceMonitor resourceMonitor,
-        string resourceGroup,
-        ClientOptions clientOptions,
-        TimeSpan onStartTime,
-        TimeSpan onStopTime,
-        bool randomiseTimes)
-    {
-        ResourceGroup = resourceGroup;
-        ClientOptions = clientOptions;
-        Monitor = resourceMonitor;
-        Resources = new List<string>();
-
-        this.onStartTime = onStartTime;
-        this.onStopTime = onStopTime;
-        this.randomiseTimes = randomiseTimes;
-        rand = new Random(Guid.NewGuid().GetHashCode());
-    }
+    private readonly Random rand = new(Guid.NewGuid().GetHashCode());
 
     public string Id { get; set; }
     public RebalancerClient Client { get; set; }
-    public IList<string> Resources { get; set; }
+    public IList<string> Resources { get; set; } = new List<string>();
     public bool Started { get; set; }
-    public string ResourceGroup { get; set; }
-    public ClientOptions ClientOptions { get; set; }
-    public ResourceMonitor Monitor { get; set; }
+    public string ResourceGroup { get; } = resourceGroup;
+    public ClientOptions ClientOptions { get; } = clientOptions;
+    public ResourceMonitor Monitor { get; } = resourceMonitor;
 
     public async Task StartAsync(IRebalancerLogger logger)
     {
@@ -74,8 +59,8 @@ public class TestClient
 
     private void CreateNewClient(IRebalancerLogger logger)
     {
-        Id = $"Client{ClientNumber}";
-        ClientNumber++;
+        Id = $"Client{clientNumber}";
+        clientNumber++;
         Monitor.RegisterAddClient(Id);
         Client = new RebalancerClient();
         Client.OnAssignment += (sender, args) =>

@@ -9,17 +9,17 @@ namespace Rebalancer.RabbitMQTools;
 
 public class MessageManager
 {
-    private static HttpClient Client;
-    private static RabbitConnection RabbitConn;
+    private static HttpClient client;
+    private static RabbitConnection rabbitConn;
 
     public static void Initialize(RabbitConnection rabbitConnection)
     {
-        Client.BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/");
-        Client = new HttpClient();
+        client.BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/");
+        client = new HttpClient();
         var byteArray = Encoding.ASCII.GetBytes($"{rabbitConnection.Username}:{rabbitConnection.Password}");
-        Client.DefaultRequestHeaders.Authorization
+        client.DefaultRequestHeaders.Authorization
             = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-        RabbitConn = rabbitConnection;
+        rabbitConn = rabbitConnection;
     }
 
     public static async Task SendMessagesViaHttpAsync(string exchange, string routingKeyPrefix, int count,
@@ -37,7 +37,7 @@ public class MessageManager
                 new(
                     "{\"properties\":{},\"routing_key\":\"" + routingKey + "\",\"payload\":\"" + routingKey +
                     "\",\"payload_encoding\":\"string\"}", Encoding.UTF8, "application/json");
-            var response = await Client.PostAsync($"exchanges/{vhost}/{exchange}/publish", content);
+            var response = await client.PostAsync($"exchanges/{vhost}/{exchange}/publish", content);
         }
     }
 
@@ -45,11 +45,11 @@ public class MessageManager
     {
         ConnectionFactory factory = new()
         {
-            HostName = RabbitConn.Host,
-            Port = RabbitConn.Port,
-            VirtualHost = RabbitConn.VirtualHost,
-            UserName = RabbitConn.Username,
-            Password = RabbitConn.Password
+            HostName = rabbitConn.Host,
+            Port = rabbitConn.Port,
+            VirtualHost = rabbitConn.VirtualHost,
+            UserName = rabbitConn.Username,
+            Password = rabbitConn.Password
         };
         using var connection = factory.CreateConnection();
         using var channel = connection.CreateModel();

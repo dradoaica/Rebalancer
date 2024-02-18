@@ -8,18 +8,10 @@ namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 
 public class ResourceMonitor
 {
-    private readonly ConcurrentQueue<AssignmentEvent> assignmentEvents;
-    private readonly HashSet<string> removedResources;
-    private readonly Dictionary<string, string> resources;
-    private readonly List<object> violations;
-
-    public ResourceMonitor()
-    {
-        resources = new Dictionary<string, string>();
-        violations = new List<object>();
-        assignmentEvents = new ConcurrentQueue<AssignmentEvent>();
-        removedResources = new HashSet<string>();
-    }
+    private readonly ConcurrentQueue<AssignmentEvent> assignmentEvents = new();
+    private readonly HashSet<string> removedResources = new();
+    private readonly Dictionary<string, string> resources = new();
+    private readonly List<object> violations = new();
 
     public void CreateResource(string resourceName)
     {
