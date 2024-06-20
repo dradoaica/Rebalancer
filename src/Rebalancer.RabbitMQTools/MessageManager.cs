@@ -17,12 +17,15 @@ public class MessageManager
         client.BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/");
         client = new HttpClient();
         var byteArray = Encoding.ASCII.GetBytes($"{rabbitConnection.Username}:{rabbitConnection.Password}");
-        client.DefaultRequestHeaders.Authorization
-            = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
         rabbitConn = rabbitConnection;
     }
 
-    public static async Task SendMessagesViaHttpAsync(string exchange, string routingKeyPrefix, int count,
+    public static async Task SendMessagesViaHttpAsync(
+        string exchange,
+        string routingKeyPrefix,
+        int count,
         string vhost = "%2f")
     {
         if (vhost == "/")
@@ -33,10 +36,14 @@ public class MessageManager
         for (var i = 0; i < count; i++)
         {
             var routingKey = routingKeyPrefix + i;
-            StringContent content =
-                new(
-                    "{\"properties\":{},\"routing_key\":\"" + routingKey + "\",\"payload\":\"" + routingKey +
-                    "\",\"payload_encoding\":\"string\"}", Encoding.UTF8, "application/json");
+            StringContent content = new(
+                "{\"properties\":{},\"routing_key\":\"" +
+                routingKey +
+                "\",\"payload\":\"" +
+                routingKey +
+                "\",\"payload_encoding\":\"string\"}",
+                Encoding.UTF8,
+                "application/json");
             var response = await client.PostAsync($"exchanges/{vhost}/{exchange}/publish", content);
         }
     }
@@ -49,7 +56,7 @@ public class MessageManager
             Port = rabbitConn.Port,
             VirtualHost = rabbitConn.VirtualHost,
             UserName = rabbitConn.Username,
-            Password = rabbitConn.Password
+            Password = rabbitConn.Password,
         };
         using var connection = factory.CreateConnection();
         using var channel = connection.CreateModel();
@@ -58,10 +65,7 @@ public class MessageManager
             var routingKey = routingKeyPrefix + i;
             var message = routingKeyPrefix + i;
             var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(exchange,
-                routingKey,
-                null,
-                body);
+            channel.BasicPublish(exchange, routingKey, null, body);
         }
     }
 }

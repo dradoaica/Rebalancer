@@ -26,14 +26,15 @@ internal class LeaseService : ILeaseService
             redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
             if (!redisDictionary.ContainsKey(acquireLeaseRequest.ResourceGroup))
             {
-                return Task.FromResult(new LeaseResponse
-                {
-                    Result = LeaseResult.NoLease,
-                    Lease = new Lease
+                return Task.FromResult(
+                    new LeaseResponse
                     {
-                        ExpiryPeriod = TimeSpan.FromMinutes(1), HeartbeatPeriod = TimeSpan.FromSeconds(25)
-                    }
-                });
+                        Result = LeaseResult.NoLease,
+                        Lease = new Lease
+                        {
+                            ExpiryPeriod = TimeSpan.FromMinutes(1), HeartbeatPeriod = TimeSpan.FromSeconds(25),
+                        },
+                    });
             }
 
             resourceGroup = redisDictionary[acquireLeaseRequest.ResourceGroup];
@@ -41,15 +42,16 @@ internal class LeaseService : ILeaseService
                 (DateTime.UtcNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
                 resourceGroup.LeaseExpirySeconds)
             {
-                return Task.FromResult(new LeaseResponse
-                {
-                    Result = LeaseResult.Denied,
-                    Lease = new Lease
+                return Task.FromResult(
+                    new LeaseResponse
                     {
-                        ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds),
-                        HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds)
-                    }
-                });
+                        Result = LeaseResult.Denied,
+                        Lease = new Lease
+                        {
+                            ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds),
+                            HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds),
+                        },
+                    });
             }
 
             // obtain lock on the record blocking other nodes until the transaction is committed
@@ -58,7 +60,7 @@ internal class LeaseService : ILeaseService
             redisDictionary[resourceGroup.Name] = resourceGroup;
 
             // determine the response, if the CoordinatorId is empty or expired then grant, else deny
-            LeaseResponse response = new() {Lease = new Lease()};
+            LeaseResponse response = new() { Lease = new Lease() };
             if (resourceGroup.CoordinatorId == Guid.Empty ||
                 (resourceGroup.TimeNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds >
                 resourceGroup.LeaseExpirySeconds)
@@ -92,13 +94,14 @@ internal class LeaseService : ILeaseService
                 redisDictionary[resourceGroup.Name] = resourceGroup;
             }
 
-            return Task.FromResult(new LeaseResponse
-            {
-                Result =
-                    TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
-                Message = "Lease acquisition failure",
-                Exception = ex
-            });
+            return Task.FromResult(
+                new LeaseResponse
+                {
+                    Result =
+                        TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
+                    Message = "Lease acquisition failure",
+                    Exception = ex,
+                });
         }
     }
 
@@ -112,7 +115,7 @@ internal class LeaseService : ILeaseService
             redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
             if (!redisDictionary.ContainsKey(renewLeaseRequest.ResourceGroup))
             {
-                return Task.FromResult(new LeaseResponse {Result = LeaseResult.NoLease});
+                return Task.FromResult(new LeaseResponse { Result = LeaseResult.NoLease });
             }
 
             resourceGroup = redisDictionary[renewLeaseRequest.ResourceGroup];
@@ -120,7 +123,7 @@ internal class LeaseService : ILeaseService
                 (DateTime.UtcNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
                 resourceGroup.LeaseExpirySeconds)
             {
-                return Task.FromResult(new LeaseResponse {Result = LeaseResult.Denied});
+                return Task.FromResult(new LeaseResponse { Result = LeaseResult.Denied });
             }
 
             // obtain lock on the record blocking other nodes until the transaction is committed
@@ -129,11 +132,11 @@ internal class LeaseService : ILeaseService
             redisDictionary[resourceGroup.Name] = resourceGroup;
 
             // determine the response, if the CoordinatorId matches the current client id and the fencing token is the same then grant, else deny
-            LeaseResponse response = new() {Lease = new Lease()};
+            LeaseResponse response = new() { Lease = new Lease() };
             if (!resourceGroup.CoordinatorId.Equals(renewLeaseRequest.ClientId) ||
                 resourceGroup.FencingToken > renewLeaseRequest.FencingToken)
             {
-                return Task.FromResult(new LeaseResponse {Result = LeaseResult.Denied});
+                return Task.FromResult(new LeaseResponse { Result = LeaseResult.Denied });
             }
 
             if ((resourceGroup.TimeNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
@@ -163,13 +166,14 @@ internal class LeaseService : ILeaseService
                 redisDictionary[resourceGroup.Name] = resourceGroup;
             }
 
-            return Task.FromResult(new LeaseResponse
-            {
-                Result =
-                    TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
-                Message = "Lease acquisition failure",
-                Exception = ex
-            });
+            return Task.FromResult(
+                new LeaseResponse
+                {
+                    Result =
+                        TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
+                    Message = "Lease acquisition failure",
+                    Exception = ex,
+                });
         }
     }
 
@@ -177,9 +181,10 @@ internal class LeaseService : ILeaseService
     {
         var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
         RedisDictionary<string, ResourceGroup> redisDictionary = new(cache, cacheKey);
-        var resourceGroup = redisDictionary.Values.FirstOrDefault(x =>
-            x.Name == relinquishLeaseRequest.ResourceGroup && x.CoordinatorId == relinquishLeaseRequest.ClientId &&
-            x.FencingToken == relinquishLeaseRequest.FencingToken);
+        var resourceGroup = redisDictionary.Values.FirstOrDefault(
+            x => x.Name == relinquishLeaseRequest.ResourceGroup &&
+                 x.CoordinatorId == relinquishLeaseRequest.ClientId &&
+                 x.FencingToken == relinquishLeaseRequest.FencingToken);
         if (resourceGroup != null)
         {
             resourceGroup.CoordinatorId = Guid.Empty;

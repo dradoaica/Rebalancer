@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 
 namespace Rebalancer.Core;
 
-/// <summary>
-///     Creates a Rebalancer client node that participates in a resource group
-/// </summary>
+/// <summary>Creates a Rebalancer client node that participates in a resource group</summary>
 public class RebalancerClient : IDisposable
 {
     private readonly IRebalancerProvider rebalancerProvider;
@@ -21,9 +19,9 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     If StopAsync has not previously been called it initiates a shutdown of the node,
-    ///     but leaves only 5 seconds for shutdown, which includes invoking your OnCancelAssignment event handlers
-    ///     For more control use the StopAsync method where you can specify a longer and safer shutdown timeout
+    ///     If StopAsync has not previously been called it initiates a shutdown of the node, but leaves only 5 seconds for
+    ///     shutdown, which includes invoking your OnCancelAssignment event handlers For more control use the StopAsync method
+    ///     where you can specify a longer and safer shutdown timeout
     /// </summary>
     public void Dispose()
     {
@@ -36,24 +34,16 @@ public class RebalancerClient : IDisposable
         }
     }
 
-    /// <summary>
-    ///     Called when a rebalancing is triggered
-    /// </summary>
+    /// <summary>Called when a rebalancing is triggered</summary>
     public event EventHandler OnUnassignment;
 
-    /// <summary>
-    ///     Called once the node has been assigned new resources
-    /// </summary>
+    /// <summary>Called once the node has been assigned new resources</summary>
     public event EventHandler<OnAssignmentArgs> OnAssignment;
 
-    /// <summary>
-    ///     Called when a non recoverable error occurs and the client is no longer participating in the resource group.
-    /// </summary>
+    /// <summary>Called when a non recoverable error occurs and the client is no longer participating in the resource group.</summary>
     public event EventHandler<OnAbortedArgs> OnAborted;
 
-    /// <summary>
-    ///     Starts the node
-    /// </summary>
+    /// <summary>Starts the node</summary>
     /// <param name="resourceGroup">The id of the resource group</param>
     /// <returns></returns>
     public async Task StartAsync(string resourceGroup, ClientOptions clientOptions)
@@ -66,14 +56,9 @@ public class RebalancerClient : IDisposable
         await rebalancerProvider.StartAsync(resourceGroup, onChangeActions, cts.Token, clientOptions);
     }
 
-    public async Task RecreateClientAsync()
-    {
-        await rebalancerProvider.RecreateClientAsync();
-    }
+    public async Task RecreateClientAsync() => await rebalancerProvider.RecreateClientAsync();
 
-    /// <summary>
-    ///     Blocks until the cancellation token is cancelled or the client stops or aborts.
-    /// </summary>
+    /// <summary>Blocks until the cancellation token is cancelled or the client stops or aborts.</summary>
     /// <param name="token">
     ///     A CancellationToken that once cancelled will cause the client to stop participating in the resource
     ///     group and terminate.
@@ -102,18 +87,13 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Returns the current state of the client and any assigned resources. If the client
-    ///     is pending assignment or not in an active state then the resources collection will be empty.
+    ///     Returns the current state of the client and any assigned resources. If the client is pending assignment or not
+    ///     in an active state then the resources collection will be empty.
     /// </summary>
     /// <returns>The assigned resources and state of the client</returns>
-    public AssignedResources GetAssignedResources()
-    {
-        return rebalancerProvider.GetAssignedResources();
-    }
+    public AssignedResources GetAssignedResources() => rebalancerProvider.GetAssignedResources();
 
-    /// <summary>
-    ///     Get the current state of the client
-    /// </summary>
+    /// <summary>Get the current state of the client</summary>
     /// <returns>The state of the client</returns>
     public ClientState GetCurrentState()
     {
@@ -126,8 +106,8 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers
-    ///     It will block until all handlers have finished executing
+    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
+    ///     handlers have finished executing
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync()
@@ -141,8 +121,8 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers
-    ///     It will block until all handlers have finished executing or the timeout has been reached
+    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
+    ///     handlers have finished executing or the timeout has been reached
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout)
@@ -161,9 +141,8 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers
-    ///     It will block until all handlers have finished executing, or the timeout has been reached or the cancellation token
-    ///     has been cancelled
+    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
+    ///     handlers have finished executing, or the timeout has been reached or the cancellation token has been cancelled
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout, CancellationToken token)
@@ -181,33 +160,15 @@ public class RebalancerClient : IDisposable
         }
     }
 
-    private void StopActivity()
-    {
-        RaiseOnUnassignment(EventArgs.Empty);
-    }
+    private void StopActivity() => RaiseOnUnassignment(EventArgs.Empty);
 
-    protected virtual void RaiseOnUnassignment(EventArgs e)
-    {
-        OnUnassignment?.Invoke(this, e);
-    }
+    protected virtual void RaiseOnUnassignment(EventArgs e) => OnUnassignment?.Invoke(this, e);
 
-    private void Abort(string message, Exception ex)
-    {
-        RaiseOnAbort(new OnAbortedArgs(message, ex));
-    }
+    private void Abort(string message, Exception ex) => RaiseOnAbort(new OnAbortedArgs(message, ex));
 
-    protected virtual void RaiseOnAbort(OnAbortedArgs e)
-    {
-        OnAborted?.Invoke(this, e);
-    }
+    protected virtual void RaiseOnAbort(OnAbortedArgs e) => OnAborted?.Invoke(this, e);
 
-    private void StartActivity(IList<string> resources)
-    {
-        RaiseOnAssignments(new OnAssignmentArgs(resources));
-    }
+    private void StartActivity(IList<string> resources) => RaiseOnAssignments(new OnAssignmentArgs(resources));
 
-    protected virtual void RaiseOnAssignments(OnAssignmentArgs e)
-    {
-        OnAssignment?.Invoke(this, e);
-    }
+    protected virtual void RaiseOnAssignments(OnAssignmentArgs e) => OnAssignment?.Invoke(this, e);
 }

@@ -6,5 +6,5 @@ public enum CoordinatorEvent
     NoLongerCoordinator,
     RebalancingTriggered,
     PotentialInconsistentState,
-    FatalError
+    FatalError,
 }

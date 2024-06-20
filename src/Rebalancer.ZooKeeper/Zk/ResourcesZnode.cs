@@ -21,8 +21,7 @@ public class ResourcesZnode
             return true;
         }
 
-        return !ResourceAssignments.Assignments
-            .Select(x => x.Resource)
+        return !ResourceAssignments.Assignments.Select(x => x.Resource)
             .OrderBy(x => x)
             .SequenceEqual(Resources.OrderBy(x => x));
     }

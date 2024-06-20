@@ -4,5 +4,5 @@ public enum CheckType
 {
     FullCheck,
     DoubleAssignmentCheck,
-    ConditionalCheck
+    ConditionalCheck,
 }

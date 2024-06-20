@@ -5,7 +5,10 @@ namespace Rebalancer.Core;
 
 public interface IRebalancerProvider
 {
-    Task StartAsync(string group, OnChangeActions onChangeActions, CancellationToken token,
+    Task StartAsync(
+        string group,
+        OnChangeActions onChangeActions,
+        CancellationToken token,
         ClientOptions clientOptions);
 
     Task RecreateClientAsync();

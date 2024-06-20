@@ -6,5 +6,5 @@ public enum FollowerEvent
     IsNewLeader,
     RebalancingTriggered,
     PotentialInconsistentState,
-    FatalError
+    FatalError,
 }

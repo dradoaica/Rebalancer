@@ -13,20 +13,11 @@ public class ResourceMonitor
     private readonly Dictionary<string, string> resources = new();
     private readonly List<object> violations = new();
 
-    public void CreateResource(string resourceName)
-    {
-        resources.Add(resourceName, "");
-    }
+    public void CreateResource(string resourceName) => resources.Add(resourceName, "");
 
-    public List<object> GetDoubleAssignments()
-    {
-        return violations;
-    }
+    public List<object> GetDoubleAssignments() => violations;
 
-    public bool DoubleAssignmentsExist()
-    {
-        return violations.Any();
-    }
+    public bool DoubleAssignmentsExist() => violations.Any();
 
     public bool AllResourcesAssigned()
     {
@@ -41,17 +32,12 @@ public class ResourceMonitor
         return true;
     }
 
-    public void Clear()
-    {
-        resources.Clear();
-    }
+    public void Clear() => resources.Clear();
 
     public void ClaimResource(string resourceName, string clientId)
     {
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = clientId, Action = $"Assign {resourceName}"
-        });
+        assignmentEvents.Enqueue(
+            new AssignmentEvent { EventTime = DateTime.Now, ClientId = clientId, Action = $"Assign {resourceName}" });
         if (resources.ContainsKey(resourceName))
         {
             var currValue = resources[resourceName];
@@ -62,10 +48,11 @@ public class ResourceMonitor
             else
             {
                 ClaimViolation violation = new(resourceName, currValue, clientId);
-                assignmentEvents.Enqueue(new AssignmentEvent
-                {
-                    ClientId = clientId, Action = violation.ToString(), EventTime = DateTime.Now
-                });
+                assignmentEvents.Enqueue(
+                    new AssignmentEvent
+                    {
+                        ClientId = clientId, Action = violation.ToString(), EventTime = DateTime.Now,
+                    });
                 violations.Add(violation);
             }
         }
@@ -73,10 +60,8 @@ public class ResourceMonitor
 
     public void ReleaseResource(string resourceName, string clientId)
     {
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = clientId, Action = $"Release {resourceName}"
-        });
+        assignmentEvents.Enqueue(
+            new AssignmentEvent { EventTime = DateTime.Now, ClientId = clientId, Action = $"Release {resourceName}" });
 
         if (resources.ContainsKey(resourceName))
         {
@@ -92,10 +77,11 @@ public class ResourceMonitor
             else
             {
                 ReleaseViolation violation = new(resourceName, currValue, clientId);
-                assignmentEvents.Enqueue(new AssignmentEvent
-                {
-                    ClientId = clientId, Action = violation.ToString(), EventTime = DateTime.Now
-                });
+                assignmentEvents.Enqueue(
+                    new AssignmentEvent
+                    {
+                        ClientId = clientId, Action = violation.ToString(), EventTime = DateTime.Now,
+                    });
                 violations.Add(violation);
             }
         }
@@ -104,37 +90,29 @@ public class ResourceMonitor
     public void AddResource(string resourceName)
     {
         resources.Add(resourceName, string.Empty);
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = "-", Action = $"Add Resource - {resourceName}"
-        });
+        assignmentEvents.Enqueue(
+            new AssignmentEvent
+            {
+                EventTime = DateTime.Now, ClientId = "-", Action = $"Add Resource - {resourceName}",
+            });
     }
 
     public void RemoveResource(string resourceName)
     {
         resources.Remove(resourceName);
         removedResources.Add(resourceName);
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = "-", Action = $"Remove Resource - {resourceName}"
-        });
+        assignmentEvents.Enqueue(
+            new AssignmentEvent
+            {
+                EventTime = DateTime.Now, ClientId = "-", Action = $"Remove Resource - {resourceName}",
+            });
     }
 
-    public void RegisterAddClient(string clientId)
-    {
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = "-", Action = $"Add Client - {clientId}"
-        });
-    }
+    public void RegisterAddClient(string clientId) => assignmentEvents.Enqueue(
+        new AssignmentEvent { EventTime = DateTime.Now, ClientId = "-", Action = $"Add Client - {clientId}" });
 
-    public void RegisterRemoveClient(string clientId)
-    {
-        assignmentEvents.Enqueue(new AssignmentEvent
-        {
-            EventTime = DateTime.Now, ClientId = "-", Action = $"Remove Client - {clientId}"
-        });
-    }
+    public void RegisterRemoveClient(string clientId) => assignmentEvents.Enqueue(
+        new AssignmentEvent { EventTime = DateTime.Now, ClientId = "-", Action = $"Remove Client - {clientId}" });
 
     public void PrintEvents(string path)
     {

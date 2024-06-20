@@ -4,5 +4,5 @@ public enum ElectionResult
 {
     IsLeader,
     IsFollower,
-    Error
+    Error,
 }

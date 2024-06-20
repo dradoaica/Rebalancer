@@ -6,5 +6,5 @@ public enum CoordinatorExitReason
     Cancelled,
     SessionExpired,
     PotentialInconsistentState,
-    FatalError
+    FatalError,
 }

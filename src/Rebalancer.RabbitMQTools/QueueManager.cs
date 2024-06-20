@@ -21,11 +21,11 @@ public static class QueueManager
         connStr = connectionString;
         client = new HttpClient
         {
-            BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/")
+            BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/"),
         };
         var byteArray = Encoding.ASCII.GetBytes($"{rabbitConnection.Username}:{rabbitConnection.Password}");
-        client.DefaultRequestHeaders.Authorization
-            = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
     }
 
     public static void EnsureResourceGroup(string resourceGroup, int leaseExpirySeconds)
@@ -117,10 +117,8 @@ public static class QueueManager
         }
     }
 
-    public static async Task<List<string>> GetQueuesAsync(string queuePrefix)
-    {
-        return await GetQueuesFromRabbitMqAsync(queuePrefix);
-    }
+    public static async Task<List<string>> GetQueuesAsync(string queuePrefix) =>
+        await GetQueuesFromRabbitMqAsync(queuePrefix);
 
     private static async Task<string> GetMaxQueueAsync(string queuePrefix)
     {
@@ -134,9 +132,7 @@ public static class QueueManager
         var response = await client.GetAsync("queues");
         var json = await response.Content.ReadAsStringAsync();
         var queues = JArray.Parse(json);
-        var queueNames = queues.Select(x => x["name"].Value<string>())
-            .Where(x => x.StartsWith(queuePrefix))
-            .ToList();
+        var queueNames = queues.Select(x => x["name"].Value<string>()).Where(x => x.StartsWith(queuePrefix)).ToList();
         return queueNames;
     }
 
@@ -164,29 +160,30 @@ public static class QueueManager
             vhost = "%2f";
         }
 
-        StringContent createExchangeContent =
-            new(
-                "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}",
-                Encoding.UTF8, "application/json");
-        var createExchangeResponse =
-            await client.PutAsync($"exchanges/{vhost}/{exchange}", createExchangeContent);
+        StringContent createExchangeContent = new(
+            "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}",
+            Encoding.UTF8,
+            "application/json");
+        var createExchangeResponse = await client.PutAsync($"exchanges/{vhost}/{exchange}", createExchangeContent);
         if (!createExchangeResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create exchange");
         }
 
         StringContent createQueueContent = new("{ \"durable\":true}", Encoding.UTF8, "application/json");
-        var createQueueResponse =
-            await client.PutAsync($"queues/{vhost}/{queueName}", createQueueContent);
+        var createQueueResponse = await client.PutAsync($"queues/{vhost}/{queueName}", createQueueContent);
         if (!createQueueResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create queue");
         }
 
-        StringContent createBindingsContent =
-            new("{\"routing_key\":\"10\",\"arguments\":{}}", Encoding.UTF8, "application/json");
-        var createBindingsResponse =
-            await client.PostAsync($"bindings/{vhost}/e/{exchange}/q/{queueName}", createBindingsContent);
+        StringContent createBindingsContent = new(
+            "{\"routing_key\":\"10\",\"arguments\":{}}",
+            Encoding.UTF8,
+            "application/json");
+        var createBindingsResponse = await client.PostAsync(
+            $"bindings/{vhost}/e/{exchange}/q/{queueName}",
+            createBindingsContent);
         if (!createBindingsResponse.IsSuccessStatusCode)
         {
             throw new Exception("Failed to create exchange to queue bindings");

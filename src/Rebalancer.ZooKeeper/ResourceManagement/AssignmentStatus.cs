@@ -4,5 +4,5 @@ public enum AssignmentStatus
 {
     NoAssignmentYet,
     ResourcesAssigned,
-    NoResourcesAssigned
+    NoResourcesAssigned,
 }

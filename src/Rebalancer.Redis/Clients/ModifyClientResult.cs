@@ -4,5 +4,5 @@ public enum ModifyClientResult
 {
     Ok,
     FencingTokenViolation,
-    Error
+    Error,
 }

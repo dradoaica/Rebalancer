@@ -34,7 +34,8 @@ public class RedisProvider : IRebalancerProvider
     private string resourceGroup;
     private bool started;
 
-    public RedisProvider(string connectionString,
+    public RedisProvider(
+        string connectionString,
         IRebalancerLogger logger = null,
         ILeaseService leaseService = null,
         IResourceService resourceService = null,
@@ -94,7 +95,8 @@ public class RedisProvider : IRebalancerProvider
         follower = new Follower(this.logger, this.clientService, store);
     }
 
-    public async Task StartAsync(string resourceGroup,
+    public async Task StartAsync(
+        string resourceGroup,
         OnChangeActions onChangeActions,
         CancellationToken parentToken,
         ClientOptions clientOptions)
@@ -114,55 +116,111 @@ public class RedisProvider : IRebalancerProvider
         await clientService.CreateClientAsync(this.resourceGroup, clientId);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-        mainTask = Task.Run(async () =>
-        {
-            while (!parentToken.IsCancellationRequested)
+        mainTask = Task.Run(
+            async () =>
             {
-                CancellationTokenSource childTaskCts = new();
-                try
+                while (!parentToken.IsCancellationRequested)
                 {
-                    BlockingCollection<ClientEvent> clientEvents = new();
-
-                    var leaderElectionTask = StartLeadershipTask(childTaskCts.Token, clientEvents);
-                    var roleTask = StartRoleTask(clientOptions.OnAssignmentDelay, childTaskCts.Token,
-                        onChangeActions,
-                        clientEvents);
-
-                    while (!parentToken.IsCancellationRequested
-                           && !leaderElectionTask.IsCompleted
-                           && !roleTask.IsCompleted
-                           && !clientEvents.IsCompleted)
+                    CancellationTokenSource childTaskCts = new();
+                    try
                     {
-                        await Task.Delay(100);
-                    }
+                        BlockingCollection<ClientEvent> clientEvents = new();
 
-                    // cancel child tasks
-                    childTaskCts.Cancel();
+                        var leaderElectionTask = StartLeadershipTask(childTaskCts.Token, clientEvents);
+                        var roleTask = StartRoleTask(
+                            clientOptions.OnAssignmentDelay,
+                            childTaskCts.Token,
+                            onChangeActions,
+                            clientEvents);
 
-                    if (parentToken.IsCancellationRequested)
-                    {
-                        logger.Info(clientId.ToString(), "Context shutting down due to cancellation");
-                    }
-                    else
-                    {
-                        if (leaderElectionTask.IsFaulted)
+                        while (!parentToken.IsCancellationRequested &&
+                               !leaderElectionTask.IsCompleted &&
+                               !roleTask.IsCompleted &&
+                               !clientEvents.IsCompleted)
                         {
-                            await NotifyOfErrorAsync(leaderElectionTask,
-                                $"Shutdown due to leader election task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
-                                onChangeActions);
+                            await Task.Delay(100);
                         }
-                        else if (roleTask.IsFaulted)
+
+                        // cancel child tasks
+                        childTaskCts.Cancel();
+
+                        if (parentToken.IsCancellationRequested)
                         {
-                            await NotifyOfErrorAsync(roleTask,
-                                $"Shutdown due to coordinator/follower task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
-                                onChangeActions);
+                            logger.Info(clientId.ToString(), "Context shutting down due to cancellation");
                         }
                         else
                         {
-                            NotifyOfError(onChangeActions,
-                                $"Unknown shutdown reason. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
-                                null);
+                            if (leaderElectionTask.IsFaulted)
+                            {
+                                await NotifyOfErrorAsync(
+                                    leaderElectionTask,
+                                    $"Shutdown due to leader election task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
+                                    onChangeActions);
+                            }
+                            else if (roleTask.IsFaulted)
+                            {
+                                await NotifyOfErrorAsync(
+                                    roleTask,
+                                    $"Shutdown due to coordinator/follower task fault. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
+                                    onChangeActions);
+                            }
+                            else
+                            {
+                                NotifyOfError(
+                                    onChangeActions,
+                                    $"Unknown shutdown reason. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
+                                    null);
+                            }
+
+                            if (clientOptions.AutoRecoveryOnError)
+                            {
+                                await WaitFor(clientOptions.RestartDelay, parentToken);
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
+
+                        if (!leaderElectionTask.IsFaulted)
+                        {
+                            await leaderElectionTask;
+                        }
+                        else
+                        {
+                            // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
+                            var exMsg = leaderElectionTask.Exception?.GetBaseException().Message;
+                        }
+
+                        if (!roleTask.IsFaulted)
+                        {
+                            await roleTask;
+                        }
+                        else
+                        {
+                            // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
+                            var exMsg = roleTask.Exception?.GetBaseException().Message;
+                        }
+
+                        await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
+
+                        if (isCoordinator)
+                        {
+                            await leaseService.RelinquishLeaseAsync(
+                                new RelinquishLeaseRequest
+                                {
+                                    ClientId = clientId,
+                                    FencingToken = coordinator.GetCurrentFencingToken(),
+                                    ResourceGroup = this.resourceGroup,
+                                });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        NotifyOfError(
+                            onChangeActions,
+                            $"An unexpected error has caused shutdown. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
+                            ex);
 
                         if (clientOptions.AutoRecoveryOnError)
                         {
@@ -173,56 +231,8 @@ public class RedisProvider : IRebalancerProvider
                             break;
                         }
                     }
-
-                    if (!leaderElectionTask.IsFaulted)
-                    {
-                        await leaderElectionTask;
-                    }
-                    else
-                    {
-                        // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
-                        var exMsg = leaderElectionTask.Exception?.GetBaseException().Message;
-                    }
-
-                    if (!roleTask.IsFaulted)
-                    {
-                        await roleTask;
-                    }
-                    else
-                    {
-                        // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
-                        var exMsg = roleTask.Exception?.GetBaseException().Message;
-                    }
-
-                    await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
-
-                    if (isCoordinator)
-                    {
-                        await leaseService.RelinquishLeaseAsync(new RelinquishLeaseRequest
-                        {
-                            ClientId = clientId,
-                            FencingToken = coordinator.GetCurrentFencingToken(),
-                            ResourceGroup = this.resourceGroup
-                        });
-                    }
                 }
-                catch (Exception ex)
-                {
-                    NotifyOfError(onChangeActions,
-                        $"An unexpected error has caused shutdown. Automatic restart is set to {clientOptions.AutoRecoveryOnError}",
-                        ex);
-
-                    if (clientOptions.AutoRecoveryOnError)
-                    {
-                        await WaitFor(clientOptions.RestartDelay, parentToken);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-        });
+            });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
     }
 
@@ -258,7 +268,7 @@ public class RedisProvider : IRebalancerProvider
             {
                 return new AssignedResources
                 {
-                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus)
+                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus),
                 };
             }
 
@@ -332,16 +342,14 @@ public class RedisProvider : IRebalancerProvider
         }
     }
 
-    private Task StartLeadershipTask(CancellationToken token,
-        BlockingCollection<ClientEvent> clientEvents)
-    {
-        return Task.Run(async () =>
+    private Task StartLeadershipTask(CancellationToken token, BlockingCollection<ClientEvent> clientEvents) => Task.Run(
+        async () =>
         {
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    AcquireLeaseRequest request = new() {ClientId = clientId, ResourceGroup = resourceGroup};
+                    AcquireLeaseRequest request = new() { ClientId = clientId, ResourceGroup = resourceGroup };
                     var response = await TryAcquireLeaseAsync(request, token);
                     if (response.Result == LeaseResult.Granted) // is now the Coordinator
                     {
@@ -372,9 +380,9 @@ public class RedisProvider : IRebalancerProvider
                 clientEvents.CompleteAdding();
             }
         });
-    }
 
-    private async Task ExecuteLeaseRenewals(CancellationToken token,
+    private async Task ExecuteLeaseRenewals(
+        CancellationToken token,
         BlockingCollection<ClientEvent> clientEvents,
         Lease lease)
     {
@@ -388,8 +396,9 @@ public class RedisProvider : IRebalancerProvider
             var response = await TryRenewLeaseAsync(
                 new RenewLeaseRequest
                 {
-                    ClientId = clientId, ResourceGroup = resourceGroup, FencingToken = lease.FencingToken
-                }, token);
+                    ClientId = clientId, ResourceGroup = resourceGroup, FencingToken = lease.FencingToken,
+                },
+                token);
             if (response.Result == LeaseResult.Granted)
             {
                 PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
@@ -411,9 +420,8 @@ public class RedisProvider : IRebalancerProvider
             }
             else
             {
-                throw
-                    new RebalancerException(
-                        "A non-supported lease result was received"); // should never happen, just in case I screw up in the future
+                throw new RebalancerException(
+                    "A non-supported lease result was received"); // should never happen, just in case I screw up in the future
             }
         }
     }
@@ -444,7 +452,7 @@ public class RedisProvider : IRebalancerProvider
         }
 
         // this should never happen
-        return new LeaseResponse {Result = LeaseResult.Error};
+        return new LeaseResponse { Result = LeaseResult.Error };
     }
 
     private async Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest request, CancellationToken token)
@@ -473,15 +481,14 @@ public class RedisProvider : IRebalancerProvider
         }
 
         // this should never happen
-        return new LeaseResponse {Result = LeaseResult.Error};
+        return new LeaseResponse { Result = LeaseResult.Error };
     }
 
-    private TimeSpan GetInterval(TimeSpan leaseExpiry)
-    {
-        return TimeSpan.FromMilliseconds(leaseExpiry.TotalMilliseconds / 2.5);
-    }
+    private TimeSpan GetInterval(TimeSpan leaseExpiry) =>
+        TimeSpan.FromMilliseconds(leaseExpiry.TotalMilliseconds / 2.5);
 
-    private void PostLeaderEvent(int fencingToken,
+    private void PostLeaderEvent(
+        int fencingToken,
         TimeSpan keepAliveExpiryPeriod,
         CoordinatorToken coordinatorToken,
         BlockingCollection<ClientEvent> clientEvents)
@@ -494,13 +501,12 @@ public class RedisProvider : IRebalancerProvider
             EventType = EventType.Coordinator,
             FencingToken = fencingToken,
             CoordinatorToken = coordinatorToken,
-            KeepAliveExpiryPeriod = keepAliveExpiryPeriod
+            KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
         };
         clientEvents.Add(clientEvent);
     }
 
-    private void PostFollowerEvent(TimeSpan keepAliveExpiryPeriod,
-        BlockingCollection<ClientEvent> clientEvents)
+    private void PostFollowerEvent(TimeSpan keepAliveExpiryPeriod, BlockingCollection<ClientEvent> clientEvents)
     {
         logger.Debug(clientId.ToString(), $"{clientId} is follower");
         isCoordinator = false;
@@ -508,17 +514,17 @@ public class RedisProvider : IRebalancerProvider
         {
             EventType = EventType.Follower,
             ResourceGroup = resourceGroup,
-            KeepAliveExpiryPeriod = keepAliveExpiryPeriod
+            KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
         };
         clientEvents.Add(clientEvent);
     }
 
-    private Task StartRoleTask(TimeSpan onStartDelay,
+    private Task StartRoleTask(
+        TimeSpan onStartDelay,
         CancellationToken token,
         OnChangeActions onChangeActions,
-        BlockingCollection<ClientEvent> clientEvents)
-    {
-        return Task.Run(async () =>
+        BlockingCollection<ClientEvent> clientEvents) => Task.Run(
+        async () =>
         {
             while (!token.IsCancellationRequested && !clientEvents.IsAddingCompleted)
             {
@@ -540,7 +546,8 @@ public class RedisProvider : IRebalancerProvider
                     {
                         if (onStartDelay.Ticks > 0)
                         {
-                            logger.Debug(clientId.ToString(),
+                            logger.Debug(
+                                clientId.ToString(),
                                 $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
                             await WaitFor(onStartDelay, token);
                         }
@@ -550,16 +557,14 @@ public class RedisProvider : IRebalancerProvider
                             return;
                         }
 
-                        await coordinator.ExecuteCoordinatorRoleAsync(clientId,
-                            clientEvent,
-                            onChangeActions,
-                            token);
+                        await coordinator.ExecuteCoordinatorRoleAsync(clientId, clientEvent, onChangeActions, token);
                     }
                     else
                     {
                         if (onStartDelay.Ticks > 0)
                         {
-                            logger.Debug(clientId.ToString(),
+                            logger.Debug(
+                                clientId.ToString(),
                                 $"Follower - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
                             await WaitFor(onStartDelay, token);
                         }
@@ -569,10 +574,7 @@ public class RedisProvider : IRebalancerProvider
                             return;
                         }
 
-                        await follower.ExecuteFollowerRoleAsync(clientId,
-                            clientEvent,
-                            onChangeActions,
-                            token);
+                        await follower.ExecuteFollowerRoleAsync(clientId, clientEvent, onChangeActions, token);
                     }
                 }
                 else
@@ -581,7 +583,6 @@ public class RedisProvider : IRebalancerProvider
                 }
             }
         });
-    }
 
     private async Task WaitFor(TimeSpan delayPeriod, CancellationToken token, CoordinatorToken coordinatorToken)
     {
@@ -621,14 +622,14 @@ public class RedisProvider : IRebalancerProvider
             {
                 return new AssignedResources
                 {
-                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus)
+                    Resources = response.Resources, ClientState = GetState(response.AssignmentStatus),
                 };
             }
 
             Thread.Sleep(100);
         }
 
-        return new AssignedResources {Resources = new List<string>(), ClientState = ClientState.Stopped};
+        return new AssignedResources { Resources = new List<string>(), ClientState = ClientState.Stopped };
     }
 
     private ClientState GetState(AssignmentStatus assignmentState)

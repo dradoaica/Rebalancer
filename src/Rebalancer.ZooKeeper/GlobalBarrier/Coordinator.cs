@@ -38,7 +38,8 @@ public class Coordinator : Watcher, ICoordinator
     // mutable state
     private StatusZnode status;
 
-    public Coordinator(IZooKeeperService zooKeeperService,
+    public Coordinator(
+        IZooKeeperService zooKeeperService,
         IRebalancerLogger logger,
         ResourceManager store,
         string clientId,
@@ -80,8 +81,7 @@ public class Coordinator : Watcher, ICoordinator
         }
         catch (ZkInvalidOperationException e)
         {
-            logger.Error(clientId, "Could not become coordinator as an invalid ZooKeeper operation occurred",
-                e);
+            logger.Error(clientId, "Could not become coordinator as an invalid ZooKeeper operation occurred", e);
             return BecomeCoordinatorResult.Error;
         }
 
@@ -136,8 +136,7 @@ public class Coordinator : Watcher, ICoordinator
                             rebalanceTimer.Reset();
                             rebalanceTimer.Start();
                             logger.Info(clientId, "Coordinator - Rebalancing triggered");
-                            rebalancingTask = Task.Run(async () =>
-                                await TriggerRebalancing(rebalancingCts.Token));
+                            rebalancingTask = Task.Run(async () => await TriggerRebalancing(rebalancingCts.Token));
                         }
                         else
                         {
@@ -174,7 +173,8 @@ public class Coordinator : Watcher, ICoordinator
 
         if (@event.getPath() != null)
         {
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 $"Coordinator - KEEPER EVENT {@event.getState()} - {@event.get_Type()} - {@event.getPath()}");
         }
         else
@@ -225,7 +225,8 @@ public class Coordinator : Watcher, ICoordinator
 
                 break;
             default:
-                logger.Error(clientId,
+                logger.Error(
+                    clientId,
                     $"Coordinator - Currently this library does not support ZooKeeper state {@event.getState()}");
                 events.Add(CoordinatorEvent.PotentialInconsistentState);
                 break;
@@ -321,22 +322,20 @@ public class Coordinator : Watcher, ICoordinator
         catch (ZkStaleVersionException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - A stale znode version was used, aborting rebalancing.", e);
+            logger.Error(clientId, "Coordinator - A stale znode version was used, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.NoLongerCoordinator);
         }
         catch (ZkInvalidOperationException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - An invalid ZooKeeper operation occurred, aborting rebalancing.",
-                e);
+            logger.Error(clientId, "Coordinator - An invalid ZooKeeper operation occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
         }
         catch (InconsistentStateException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
+            logger.Error(
+                clientId,
                 "Coordinator - An error occurred potentially leaving the client in an inconsistent state, aborting rebalancing.",
                 e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
@@ -344,9 +343,7 @@ public class Coordinator : Watcher, ICoordinator
         catch (TerminateClientException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - A fatal error has occurred, aborting rebalancing.",
-                e);
+            logger.Error(clientId, "Coordinator - A fatal error has occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.FatalError);
         }
         catch (ZkOperationCancelledException)
@@ -357,8 +354,7 @@ public class Coordinator : Watcher, ICoordinator
         catch (Exception e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - An unexpected error has occurred, aborting rebalancing.", e);
+            logger.Error(clientId, "Coordinator - An unexpected error has occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
         }
     }
@@ -374,7 +370,8 @@ public class Coordinator : Watcher, ICoordinator
             return stopPhaseResult.PhaseResult;
         }
 
-        var assignPhaseResult = await AssignResourcesPhaseAsync(rebalancingToken,
+        var assignPhaseResult = await AssignResourcesPhaseAsync(
+            rebalancingToken,
             stopPhaseResult.ResourcesZnode,
             stopPhaseResult.ClientsZnode);
         if (assignPhaseResult != RebalancingResult.Complete)
@@ -382,8 +379,7 @@ public class Coordinator : Watcher, ICoordinator
             return assignPhaseResult;
         }
 
-        var verifyPhaseResult = await VerifyStartedPhaseAsync(rebalancingToken,
-            stopPhaseResult.FollowerIds);
+        var verifyPhaseResult = await VerifyStartedPhaseAsync(rebalancingToken, stopPhaseResult.FollowerIds);
         if (verifyPhaseResult != RebalancingResult.Complete)
         {
             return assignPhaseResult;
@@ -392,10 +388,8 @@ public class Coordinator : Watcher, ICoordinator
         return RebalancingResult.Complete;
     }
 
-    private string GetClientId(string clientPath)
-    {
-        return clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
-    }
+    private string GetClientId(string clientPath) =>
+        clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
 
     private async Task<StopPhaseResult> StopActivityPhaseAsync(CancellationToken rebalancingToken)
     {
@@ -403,9 +397,11 @@ public class Coordinator : Watcher, ICoordinator
         var clients = await zooKeeperService.GetActiveClientsAsync();
         var followerIds = clients.ClientPaths.Select(GetClientId).Where(x => x != clientId).ToList();
         var resources = await zooKeeperService.GetResourcesAsync(null, null);
-        logger.Info(clientId,
+        logger.Info(
+            clientId,
             $"Coordinator - {followerIds.Count} followers in scope and {resources.Resources.Count} resources in scope");
-        logger.Info(clientId,
+        logger.Info(
+            clientId,
             $"Coordinator - Assign resources ({string.Join(",", resources.Resources)}) to clients ({string.Join(",", clients.ClientPaths.Select(GetClientId))})");
 
         if (resources.Version != resourcesVersion)
@@ -424,7 +420,8 @@ public class Coordinator : Watcher, ICoordinator
         // a new client or the loss of a client with no assignments need not trigger a rebalancing
         if (!IsRebalancingRequired(clients, resources))
         {
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 "Coordinator - No rebalancing required. No resource change. No change to existing assigned clients. More clients than resources.");
             return new StopPhaseResult(RebalancingResult.NotRequired);
         }
@@ -457,15 +454,15 @@ public class Coordinator : Watcher, ICoordinator
             var missingClients = GetMissing(followerIds, latestClients.ClientPaths);
             if (missingClients.Any())
             {
-                logger.Info(clientId,
+                logger.Info(
+                    clientId,
                     $"Coordinator - {missingClients.Count} followers have disappeared. Missing: {string.Join(",", missingClients)}. Triggering new rebalancing.");
                 events.Add(CoordinatorEvent.RebalancingTriggered);
                 return new StopPhaseResult(RebalancingResult.Cancelled);
             }
 
             var pendingClientIds = GetMissing(followerIds, stopped);
-            logger.Info(clientId,
-                $"Coordinator - waiting for followers to stop: {string.Join(",", pendingClientIds)}");
+            logger.Info(clientId, $"Coordinator - waiting for followers to stop: {string.Join(",", pendingClientIds)}");
             await WaitFor(TimeSpan.FromSeconds(2)); // try again in 2s
         }
 
@@ -476,13 +473,14 @@ public class Coordinator : Watcher, ICoordinator
 
         StopPhaseResult phaseResult = new(RebalancingResult.Complete)
         {
-            ResourcesZnode = resources, ClientsZnode = clients, FollowerIds = followerIds
+            ResourcesZnode = resources, ClientsZnode = clients, FollowerIds = followerIds,
         };
 
         return phaseResult;
     }
 
-    private async Task<RebalancingResult> AssignResourcesPhaseAsync(CancellationToken rebalancingToken,
+    private async Task<RebalancingResult> AssignResourcesPhaseAsync(
+        CancellationToken rebalancingToken,
         ResourcesZnode resources,
         ClientsZnode clients)
     {
@@ -492,10 +490,12 @@ public class Coordinator : Watcher, ICoordinator
         var clientIndex = 0;
         while (resourcesToAssign.Any())
         {
-            resourceAssignments.Add(new ResourceAssignment
-            {
-                ClientId = GetClientId(clients.ClientPaths[clientIndex]), Resource = resourcesToAssign.Dequeue()
-            });
+            resourceAssignments.Add(
+                new ResourceAssignment
+                {
+                    ClientId = GetClientId(clients.ClientPaths[clientIndex]),
+                    Resource = resourcesToAssign.Dequeue(),
+                });
 
             clientIndex++;
             if (clientIndex >= clients.ClientPaths.Count)
@@ -518,8 +518,7 @@ public class Coordinator : Watcher, ICoordinator
 
         if (onStartDelay.Ticks > 0)
         {
-            logger.Info(clientId,
-                $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
+            logger.Info(clientId, $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
             await WaitFor(onStartDelay, rebalancingToken);
         }
 
@@ -528,9 +527,12 @@ public class Coordinator : Watcher, ICoordinator
             return RebalancingResult.Cancelled;
         }
 
-        var leaderAssignments =
-            resourceAssignments.Where(x => x.ClientId == clientId).Select(x => x.Resource).ToList();
-        await store.InvokeOnStartActionsAsync(clientId, "Coordinator", leaderAssignments, rebalancingToken,
+        var leaderAssignments = resourceAssignments.Where(x => x.ClientId == clientId).Select(x => x.Resource).ToList();
+        await store.InvokeOnStartActionsAsync(
+            clientId,
+            "Coordinator",
+            leaderAssignments,
+            rebalancingToken,
             coordinatorToken);
 
         if (rebalancingToken.IsCancellationRequested)
@@ -541,7 +543,8 @@ public class Coordinator : Watcher, ICoordinator
         return RebalancingResult.Complete;
     }
 
-    private async Task<RebalancingResult> VerifyStartedPhaseAsync(CancellationToken rebalancingToken,
+    private async Task<RebalancingResult> VerifyStartedPhaseAsync(
+        CancellationToken rebalancingToken,
         IList<string> followerIds)
     {
         logger.Info(clientId, "Coordinator - Verify all followers have started");
@@ -559,7 +562,8 @@ public class Coordinator : Watcher, ICoordinator
                 break;
             }
 
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 $"Coordinator - Waiting for {stoppedClientsInScope.Count} remaining in scope followers to start");
             await WaitFor(TimeSpan.FromSeconds(2)); // try again in 2s
         }
@@ -579,10 +583,10 @@ public class Coordinator : Watcher, ICoordinator
     private bool IsRebalancingRequired(ClientsZnode clients, ResourcesZnode resources)
     {
         // if this is the first rebalancing as coordinator or the last one was not successful then rebalancing is required
-        if (store.GetAssignmentStatus() == AssignmentStatus.NoAssignmentYet
-            || !lastRebalancingResult.HasValue
-            || (lastRebalancingResult.Value != RebalancingResult.Complete &&
-                lastRebalancingResult.Value != RebalancingResult.NotRequired))
+        if (store.GetAssignmentStatus() == AssignmentStatus.NoAssignmentYet ||
+            !lastRebalancingResult.HasValue ||
+            (lastRebalancingResult.Value != RebalancingResult.Complete &&
+             lastRebalancingResult.Value != RebalancingResult.NotRequired))
         {
             return true;
         }

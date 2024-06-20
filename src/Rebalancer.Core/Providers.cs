@@ -2,9 +2,7 @@
 
 namespace Rebalancer.Core;
 
-/// <summary>
-///     Registers functions that create Rebalancer providers
-/// </summary>
+/// <summary>Registers functions that create Rebalancer providers</summary>
 public class Providers
 {
     private static Func<IRebalancerProvider> GetRebalancerProvider;
@@ -17,9 +15,7 @@ public class Providers
         }
     }
 
-    /// <summary>
-    ///     Called from inside the RebalancerClient
-    /// </summary>
+    /// <summary>Called from inside the RebalancerClient</summary>
     /// <returns>An IRebalancerProvider implementation</returns>
     /// <exception cref="ProviderException"></exception>
     public static IRebalancerProvider GetProvider()

@@ -37,7 +37,8 @@ public class Coordinator : Watcher, ICoordinator
     private Task rebalancingTask;
     private int resourcesVersion;
 
-    public Coordinator(IZooKeeperService zooKeeperService,
+    public Coordinator(
+        IZooKeeperService zooKeeperService,
         IRebalancerLogger logger,
         ResourceManager store,
         string clientId,
@@ -78,8 +79,7 @@ public class Coordinator : Watcher, ICoordinator
         }
         catch (ZkInvalidOperationException e)
         {
-            logger.Error(clientId, "Could not become coordinator as an invalid ZooKeeper operation occurred",
-                e);
+            logger.Error(clientId, "Could not become coordinator as an invalid ZooKeeper operation occurred", e);
             return BecomeCoordinatorResult.Error;
         }
 
@@ -134,8 +134,7 @@ public class Coordinator : Watcher, ICoordinator
                             rebalanceTimer.Reset();
                             rebalanceTimer.Start();
                             logger.Info(clientId, "Coordinator - Rebalancing triggered");
-                            rebalancingTask = Task.Run(async () =>
-                                await TriggerRebalancing(rebalancingCts.Token));
+                            rebalancingTask = Task.Run(async () => await TriggerRebalancing(rebalancingCts.Token));
                         }
                         else
                         {
@@ -173,7 +172,8 @@ public class Coordinator : Watcher, ICoordinator
 
         if (@event.getPath() != null)
         {
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 $"Coordinator - KEEPER EVENT {@event.getState()} - {@event.get_Type()} - {@event.getPath()}");
         }
         else
@@ -224,7 +224,8 @@ public class Coordinator : Watcher, ICoordinator
 
                 break;
             default:
-                logger.Error(clientId,
+                logger.Error(
+                    clientId,
                     $"Coordinator - Currently this library does not support ZooKeeper state {@event.getState()}");
                 events.Add(CoordinatorEvent.PotentialInconsistentState);
                 break;
@@ -316,23 +317,21 @@ public class Coordinator : Watcher, ICoordinator
         }
         catch (ZkStaleVersionException e)
         {
-            logger.Error(clientId,
-                "Coordinator - A stale znode version was used, aborting rebalancing.", e);
+            logger.Error(clientId, "Coordinator - A stale znode version was used, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.NoLongerCoordinator);
             lastRebalancingResult = RebalancingResult.Failed;
         }
         catch (ZkInvalidOperationException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - An invalid ZooKeeper operation occurred, aborting rebalancing.",
-                e);
+            logger.Error(clientId, "Coordinator - An invalid ZooKeeper operation occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
         }
         catch (InconsistentStateException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
+            logger.Error(
+                clientId,
                 "Coordinator - An error occurred potentially leaving the client in an inconsistent state, aborting rebalancing.",
                 e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
@@ -340,9 +339,7 @@ public class Coordinator : Watcher, ICoordinator
         catch (TerminateClientException e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - A fatal error has occurred, aborting rebalancing.",
-                e);
+            logger.Error(clientId, "Coordinator - A fatal error has occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.FatalError);
         }
         catch (ZkOperationCancelledException)
@@ -353,8 +350,7 @@ public class Coordinator : Watcher, ICoordinator
         catch (Exception e)
         {
             lastRebalancingResult = RebalancingResult.Failed;
-            logger.Error(clientId,
-                "Coordinator - An unexpected error has occurred, aborting rebalancing.", e);
+            logger.Error(clientId, "Coordinator - An unexpected error has occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
         }
     }
@@ -384,22 +380,26 @@ public class Coordinator : Watcher, ICoordinator
         // a new client or the loss of a client with no assignments need not trigger a rebalancing
         if (!IsRebalancingRequired(clients, resources))
         {
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 "Coordinator - No rebalancing required. No resource change. No change to existing clients. More clients than resources.");
             return RebalancingResult.Complete;
         }
 
-        logger.Info(clientId,
+        logger.Info(
+            clientId,
             $"Coordinator - Assign resources ({string.Join(",", resources.Resources)}) to clients ({string.Join(",", clients.ClientPaths.Select(GetClientId))})");
         Queue<string> resourcesToAssign = new(resources.Resources);
         List<ResourceAssignment> resourceAssignments = new();
         var clientIndex = 0;
         while (resourcesToAssign.Any())
         {
-            resourceAssignments.Add(new ResourceAssignment
-            {
-                ClientId = GetClientId(clients.ClientPaths[clientIndex]), Resource = resourcesToAssign.Dequeue()
-            });
+            resourceAssignments.Add(
+                new ResourceAssignment
+                {
+                    ClientId = GetClientId(clients.ClientPaths[clientIndex]),
+                    Resource = resourcesToAssign.Dequeue(),
+                });
 
             clientIndex++;
             if (clientIndex >= clients.ClientPaths.Count)
@@ -425,8 +425,7 @@ public class Coordinator : Watcher, ICoordinator
 
         if (onStartDelay.Ticks > 0)
         {
-            logger.Info(clientId,
-                $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
+            logger.Info(clientId, $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
             await WaitFor(onStartDelay, rebalancingToken);
         }
 
@@ -435,11 +434,12 @@ public class Coordinator : Watcher, ICoordinator
             return RebalancingResult.Cancelled;
         }
 
-        var leaderAssignments = resourceAssignments
-            .Where(x => x.ClientId == clientId)
-            .Select(x => x.Resource)
-            .ToList();
-        await store.InvokeOnStartActionsAsync(clientId, "Coordinator", leaderAssignments, rebalancingToken,
+        var leaderAssignments = resourceAssignments.Where(x => x.ClientId == clientId).Select(x => x.Resource).ToList();
+        await store.InvokeOnStartActionsAsync(
+            clientId,
+            "Coordinator",
+            leaderAssignments,
+            rebalancingToken,
             coordinatorToken);
         if (rebalancingToken.IsCancellationRequested)
         {
@@ -453,7 +453,8 @@ public class Coordinator : Watcher, ICoordinator
     {
         // if this is the first rebalancing as coordinator or the last one was not successful then rebalancing is required
         if (store.GetAssignmentStatus() == AssignmentStatus.NoAssignmentYet ||
-            !lastRebalancingResult.HasValue || lastRebalancingResult.Value != RebalancingResult.Complete)
+            !lastRebalancingResult.HasValue ||
+            lastRebalancingResult.Value != RebalancingResult.Complete)
         {
             return true;
         }
@@ -496,8 +497,6 @@ public class Coordinator : Watcher, ICoordinator
         return false;
     }
 
-    private string GetClientId(string clientPath)
-    {
-        return clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
-    }
+    private string GetClientId(string clientPath) =>
+        clientPath.Substring(clientPath.LastIndexOf("/", StringComparison.Ordinal) + 1);
 }

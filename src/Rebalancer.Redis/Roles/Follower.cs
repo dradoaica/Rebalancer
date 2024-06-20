@@ -16,22 +16,22 @@ internal class Follower
     private readonly IRebalancerLogger logger;
     private readonly ResourceGroupStore store;
 
-    public Follower(IRebalancerLogger logger,
-        IClientService clientService,
-        ResourceGroupStore store)
+    public Follower(IRebalancerLogger logger, IClientService clientService, ResourceGroupStore store)
     {
         this.logger = logger;
         this.clientService = clientService;
         this.store = store;
     }
 
-    public async Task ExecuteFollowerRoleAsync(Guid followerClientId,
+    public async Task ExecuteFollowerRoleAsync(
+        Guid followerClientId,
         ClientEvent clientEvent,
         OnChangeActions onChangeActions,
         CancellationToken token)
     {
         var self = await clientService.KeepAliveAsync(followerClientId);
-        logger.Debug(followerClientId.ToString(),
+        logger.Debug(
+            followerClientId.ToString(),
             $"FOLLOWER : Keep Alive sent. Coordinator: {self.CoordinatorStatus} Client: {self.ClientStatus}");
         if (self.CoordinatorStatus == CoordinatorStatus.StopActivity)
         {
@@ -44,10 +44,11 @@ internal class Follower
                     stopAction.Invoke();
                 }
 
-                store.SetResources(new SetResourcesRequest
-                {
-                    AssignmentStatus = AssignmentStatus.AssignmentInProgress, Resources = new List<string>()
-                });
+                store.SetResources(
+                    new SetResourcesRequest
+                    {
+                        AssignmentStatus = AssignmentStatus.AssignmentInProgress, Resources = new List<string>(),
+                    });
                 await clientService.SetClientStatusAsync(followerClientId, ClientStatus.Waiting);
                 logger.Info(followerClientId.ToString(), $"FOLLOWER : State= {self.ClientStatus} -> WAITING");
             }
@@ -62,17 +63,20 @@ internal class Follower
             {
                 if (self.AssignedResources.Any())
                 {
-                    store.SetResources(new SetResourcesRequest
-                    {
-                        AssignmentStatus = AssignmentStatus.ResourcesAssigned, Resources = self.AssignedResources
-                    });
+                    store.SetResources(
+                        new SetResourcesRequest
+                        {
+                            AssignmentStatus = AssignmentStatus.ResourcesAssigned,
+                            Resources = self.AssignedResources,
+                        });
                 }
                 else
                 {
-                    store.SetResources(new SetResourcesRequest
-                    {
-                        AssignmentStatus = AssignmentStatus.NoResourcesAssigned, Resources = new List<string>()
-                    });
+                    store.SetResources(
+                        new SetResourcesRequest
+                        {
+                            AssignmentStatus = AssignmentStatus.NoResourcesAssigned, Resources = new List<string>(),
+                        });
                 }
 
                 if (token.IsCancellationRequested)
@@ -84,7 +88,8 @@ internal class Follower
 
                 if (self.AssignedResources.Any())
                 {
-                    logger.Info(followerClientId.ToString(),
+                    logger.Info(
+                        followerClientId.ToString(),
                         $"FOLLOWER : Granted resources={string.Join(",", self.AssignedResources)}");
                 }
                 else

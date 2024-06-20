@@ -6,5 +6,5 @@ public enum FollowerExitReason
     Cancelled,
     SessionExpired,
     PotentialInconsistentState,
-    FatalError
+    FatalError,
 }

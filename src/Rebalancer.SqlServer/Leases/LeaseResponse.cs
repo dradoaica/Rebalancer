@@ -9,9 +9,5 @@ public class LeaseResponse
     public string Message { get; set; }
     public Exception Exception { get; set; }
 
-    public bool IsErrorResponse()
-    {
-        return Result == LeaseResult.TransientError
-               || Result == LeaseResult.Error;
-    }
+    public bool IsErrorResponse() => Result == LeaseResult.TransientError || Result == LeaseResult.Error;
 }

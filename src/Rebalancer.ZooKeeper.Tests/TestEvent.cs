@@ -6,7 +6,7 @@ public enum EventType
 {
     Assignment,
     Unassignment,
-    Error
+    Error,
 }
 
 public class TestEvent

@@ -36,7 +36,8 @@ public class Follower : Watcher, IFollower
     // mutable state
     private string watchSiblingPath;
 
-    public Follower(IZooKeeperService zooKeeperService,
+    public Follower(
+        IZooKeeperService zooKeeperService,
         IRebalancerLogger logger,
         ResourceManager store,
         string clientId,
@@ -135,8 +136,7 @@ public class Follower : Watcher, IFollower
                         {
                             await CancelRebalancingIfInProgressAsync();
                             logger.Info(clientId, "Follower - Status change received");
-                            rebalancingTask = Task.Run(async () =>
-                                await RespondToRebalancing(rebalancingCts.Token));
+                            rebalancingTask = Task.Run(async () => await RespondToRebalancing(rebalancingCts.Token));
                         }
 
                         break;
@@ -170,7 +170,8 @@ public class Follower : Watcher, IFollower
 
         if (@event.getPath() != null)
         {
-            logger.Info(clientId,
+            logger.Info(
+                clientId,
                 $"Follower - KEEPER EVENT {@event.getState()} - {@event.get_Type()} - {@event.getPath()}");
         }
         else
@@ -205,8 +206,7 @@ public class Follower : Watcher, IFollower
                     }
                     else
                     {
-                        logger.Error(clientId,
-                            $"Follower - Unexpected node deletion detected of {@event.getPath()}");
+                        logger.Error(clientId, $"Follower - Unexpected node deletion detected of {@event.getPath()}");
                         events.Add(FollowerEvent.PotentialInconsistentState);
                     }
                 }
@@ -220,7 +220,8 @@ public class Follower : Watcher, IFollower
 
                 break;
             default:
-                logger.Error(clientId,
+                logger.Error(
+                    clientId,
                     $"Follower - Currently this library does not support ZooKeeper state {@event.getState()}");
                 events.Add(FollowerEvent.PotentialInconsistentState);
                 break;
@@ -245,8 +246,7 @@ public class Follower : Watcher, IFollower
     private async Task CheckForRebalancingAsync()
     {
         var resources = await zooKeeperService.GetResourcesAsync(null, null);
-        var assignedResources = resources.ResourceAssignments.Assignments
-            .Where(x => x.ClientId.Equals(clientId))
+        var assignedResources = resources.ResourceAssignments.Assignments.Where(x => x.ClientId.Equals(clientId))
             .Select(x => x.Resource)
             .ToList();
 
@@ -272,8 +272,7 @@ public class Follower : Watcher, IFollower
                     break;
 
                 default:
-                    logger.Error(clientId,
-                        $"Follower - A non-supported RebalancingResult has been returned: {result}");
+                    logger.Error(clientId, $"Follower - A non-supported RebalancingResult has been returned: {result}");
                     events.Add(FollowerEvent.PotentialInconsistentState);
                     break;
             }
@@ -289,7 +288,8 @@ public class Follower : Watcher, IFollower
         }
         catch (InconsistentStateException e)
         {
-            logger.Error(clientId,
+            logger.Error(
+                clientId,
                 "Follower - An error occurred potentially leaving the client in an inconsistent state. Termination of the client or creationg of a new session will follow",
                 e);
             events.Add(FollowerEvent.PotentialInconsistentState);
@@ -337,8 +337,7 @@ public class Follower : Watcher, IFollower
             logger.Info(clientId, "Follower - Status change received - resources granted");
             var resources = await zooKeeperService.GetResourcesAsync(null, null);
 
-            var assignedResources = resources.ResourceAssignments.Assignments
-                .Where(x => x.ClientId.Equals(clientId))
+            var assignedResources = resources.ResourceAssignments.Assignments.Where(x => x.ClientId.Equals(clientId))
                 .Select(x => x.Resource)
                 .ToList();
 
@@ -346,15 +345,15 @@ public class Follower : Watcher, IFollower
 
             if (store.IsInStartedState())
             {
-                logger.Warn(clientId,
+                logger.Warn(
+                    clientId,
                     "Follower - The resources granted status change has been received while already in the started state. Stopped all activity first");
                 await store.InvokeOnStopActionsAsync(clientId, "Follower");
             }
 
             if (onStartDelay.Ticks > 0)
             {
-                logger.Info(clientId,
-                    $"Follower - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
+                logger.Info(clientId, $"Follower - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms");
                 await WaitFor(onStartDelay, rebalancingToken);
             }
 
@@ -363,7 +362,11 @@ public class Follower : Watcher, IFollower
                 return RebalancingResult.Cancelled;
             }
 
-            await store.InvokeOnStartActionsAsync(clientId, "Follower", assignedResources, rebalancingToken,
+            await store.InvokeOnStartActionsAsync(
+                clientId,
+                "Follower",
+                assignedResources,
+                rebalancingToken,
                 followerToken);
 
             if (rebalancingToken.IsCancellationRequested)
@@ -469,8 +472,7 @@ public class Follower : Watcher, IFollower
                 else
                 {
                     watchSiblingPath = watchChild;
-                    siblingId =
-                        watchSiblingPath.Substring(watchChild.LastIndexOf("/", StringComparison.Ordinal));
+                    siblingId = watchSiblingPath.Substring(watchChild.LastIndexOf("/", StringComparison.Ordinal));
                     await zooKeeperService.WatchSiblingNodeAsync(watchChild, this);
                     logger.Info(clientId, $"Follower - Set a watch on sibling node {watchSiblingPath}");
                 }

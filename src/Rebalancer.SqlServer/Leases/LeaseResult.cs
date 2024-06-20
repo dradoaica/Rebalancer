@@ -6,5 +6,5 @@ public enum LeaseResult
     Granted,
     Denied,
     TransientError,
-    Error
+    Error,
 }

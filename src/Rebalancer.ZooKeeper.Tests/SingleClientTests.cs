@@ -47,12 +47,12 @@ public class SingleClientTests : IDisposable
             "res1",
             "res2",
             "res3",
-            "res4"
+            "res4",
         };
 
         // ACT
         var (client, testEvents) = CreateClient();
-        await client.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -70,47 +70,41 @@ public class SingleClientTests : IDisposable
         List<TestEvent> testEvents = new();
         client1.OnAssignment += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Assignment, Resources = args.Resources});
+            testEvents.Add(new TestEvent { EventType = EventType.Assignment, Resources = args.Resources });
         };
 
         client1.OnUnassignment += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Unassignment});
+            testEvents.Add(new TestEvent { EventType = EventType.Unassignment });
         };
 
         client1.OnAborted += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Error});
+            testEvents.Add(new TestEvent { EventType = EventType.Error });
             Console.WriteLine($"OnAborted: {args.Exception}");
         };
 
         return (client1, testEvents);
     }
 
-    private bool ResourcesMatch(List<string> expectedRes, List<string> actualRes)
-    {
-        return expectedRes.OrderBy(x => x).SequenceEqual(actualRes.OrderBy(x => x));
-    }
+    private bool ResourcesMatch(List<string> expectedRes, List<string> actualRes) =>
+        expectedRes.OrderBy(x => x).SequenceEqual(actualRes.OrderBy(x => x));
 
-    private IRebalancerProvider GetResourceBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer",
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(5),
-            RebalancingMode.ResourceBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetResourceBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(5),
+        RebalancingMode.ResourceBarrier,
+        new TestOutputLogger());
 
-    private IRebalancerProvider GetGlobalBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer",
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(5),
-            RebalancingMode.GlobalBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetGlobalBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(5),
+        RebalancingMode.GlobalBarrier,
+        new TestOutputLogger());
 }

@@ -23,8 +23,8 @@ internal static class Program
 
     private static async Task RunAsync()
     {
-        Providers.Register(() =>
-            new SqlServerProvider("Server=(local);Database=RabbitMqScaling;Trusted_Connection=true;"));
+        Providers.Register(
+            () => new SqlServerProvider("Server=(local);Database=RabbitMqScaling;Trusted_Connection=true;"));
         clientTasks = [];
         using RebalancerClient context = new();
         context.OnAssignment += (sender, args) =>
@@ -44,8 +44,9 @@ internal static class Program
         {
             LogInfo($"Error: {args.AbortReason}, Exception: {args.Exception.Message}");
         };
-        await context.StartAsync("NotificationsGroup",
-            new ClientOptions {AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(30)});
+        await context.StartAsync(
+            "NotificationsGroup",
+            new ClientOptions { AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(30) });
         LogInfo("Press enter to shutdown");
         while (!Console.KeyAvailable)
         {
@@ -61,43 +62,43 @@ internal static class Program
         LogInfo("Subscription started for queue: " + queueName);
         CancellationTokenSource cts = new();
 
-        var task = Task.Factory.StartNew(() =>
-        {
-            try
+        var task = Task.Factory.StartNew(
+            () =>
             {
-                ConnectionFactory factory = new() {HostName = "localhost"};
-                using var connection = factory.CreateConnection();
-                using var channel = connection.CreateModel();
-                EventingBasicConsumer consumer = new(channel);
-                consumer.Received += (model, ea) =>
+                try
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    LogInfo($"{queueName} Received {message}");
-                };
-                channel.BasicConsume(queueName,
-                    true,
-                    consumer);
-                while (!cts.Token.IsCancellationRequested)
-                {
-                    Thread.Sleep(100);
+                    ConnectionFactory factory = new() { HostName = "localhost" };
+                    using var connection = factory.CreateConnection();
+                    using var channel = connection.CreateModel();
+                    EventingBasicConsumer consumer = new(channel);
+                    consumer.Received += (model, ea) =>
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        LogInfo($"{queueName} Received {message}");
+                    };
+                    channel.BasicConsume(queueName, true, consumer);
+                    while (!cts.Token.IsCancellationRequested)
+                    {
+                        Thread.Sleep(100);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.ToString());
-            }
+                catch (Exception ex)
+                {
+                    LogError(ex.ToString());
+                }
 
-            if (cts.Token.IsCancellationRequested)
-            {
-                LogInfo("Cancellation signal received for " + queueName);
-            }
-            else
-            {
-                LogInfo("Consumer stopped for " + queueName);
-            }
-        }, TaskCreationOptions.LongRunning);
-        clientTasks.Add(new ClientTask {Cts = cts, Client = task});
+                if (cts.Token.IsCancellationRequested)
+                {
+                    LogInfo("Cancellation signal received for " + queueName);
+                }
+                else
+                {
+                    LogInfo("Consumer stopped for " + queueName);
+                }
+            },
+            TaskCreationOptions.LongRunning);
+        clientTasks.Add(new ClientTask { Cts = cts, Client = task });
     }
 
     private static void StopAllConsumption()
@@ -108,13 +109,9 @@ internal static class Program
         }
     }
 
-    private static void LogInfo(string text)
-    {
+    private static void LogInfo(string text) =>
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {text}");
-    }
 
-    private static void LogError(string text)
-    {
+    private static void LogError(string text) =>
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR  : {text}");
-    }
 }

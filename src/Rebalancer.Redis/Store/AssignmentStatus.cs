@@ -4,5 +4,5 @@ public enum AssignmentStatus
 {
     ResourcesAssigned,
     NoResourcesAssigned,
-    AssignmentInProgress
+    AssignmentInProgress,
 }

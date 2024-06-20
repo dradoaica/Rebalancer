@@ -20,7 +20,7 @@ internal class ResourceService : IResourceService
     {
         var cacheKey = $"{Constants.SCHEMA}:Resources";
         RedisList<Resource> redisList = new(cache, cacheKey);
-        return Task.FromResult(redisList.Where(x => x.ResourceGroup == resourceGroup).Select(x => x.ResourceName)
-            .ToList());
+        return Task.FromResult(
+            redisList.Where(x => x.ResourceGroup == resourceGroup).Select(x => x.ResourceName).ToList());
     }
 }

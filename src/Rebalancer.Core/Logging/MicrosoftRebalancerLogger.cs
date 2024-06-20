@@ -3,9 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Rebalancer.Core.Logging;
 
-/// <summary>
-///     Temporary hack
-/// </summary>
+/// <summary>Temporary hack</summary>
 public class MicrosoftRebalancerLogger : IRebalancerLogger
 {
     private readonly ILogger logger;
@@ -71,8 +69,5 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
         }
     }
 
-    public void SetMinimumLevel(LogLevel logLevel)
-    {
-        this.logLevel = logLevel;
-    }
+    public void SetMinimumLevel(LogLevel logLevel) => this.logLevel = logLevel;
 }

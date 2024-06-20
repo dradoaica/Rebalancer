@@ -23,11 +23,11 @@ internal class ResourceGroupStore
             {
                 return new GetResourcesResponse
                 {
-                    Resources = new List<string>(resources), AssignmentStatus = AssignmentStatus
+                    Resources = new List<string>(resources), AssignmentStatus = AssignmentStatus,
                 };
             }
 
-            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = AssignmentStatus};
+            return new GetResourcesResponse { Resources = new List<string>(), AssignmentStatus = AssignmentStatus };
         }
     }
 

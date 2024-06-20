@@ -4,5 +4,5 @@ public enum BecomeCoordinatorResult
 {
     Ok,
     StaleEpoch,
-    Error
+    Error,
 }

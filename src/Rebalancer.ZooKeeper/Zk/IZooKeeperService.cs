@@ -14,15 +14,14 @@ public interface IZooKeeperService
     Task<bool> StartSessionAsync(TimeSpan sessionTimeout, TimeSpan connectTimeout, CancellationToken token);
     Task CloseSessionAsync();
 
-    Task InitializeGlobalBarrierAsync(string clientsPath,
+    Task InitializeGlobalBarrierAsync(
+        string clientsPath,
         string statusPath,
         string stoppedPath,
         string resourcesPath,
         string epochPath);
 
-    Task InitializeResourceBarrierAsync(string clientsPath,
-        string resourcesPath,
-        string epochPath);
+    Task InitializeResourceBarrierAsync(string clientsPath, string resourcesPath, string epochPath);
 
     Task DeleteClientAsync(string clientPath);
     Task<string> CreateClientAsync();

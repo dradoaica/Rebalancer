@@ -13,5 +13,6 @@ public class ResourcesZnodeData
         Assignments = new List<ResourceAssignment>();
     }
 
-    [DataMember(Name = "Assignments")] public List<ResourceAssignment> Assignments { get; set; }
+    [DataMember(Name = "Assignments")]
+    public List<ResourceAssignment> Assignments { get; set; }
 }

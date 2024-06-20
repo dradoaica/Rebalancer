@@ -6,9 +6,7 @@ namespace Rebalancer.ZooKeeper.Zk;
 
 public static class JSONSerializer<TType> where TType : class
 {
-    /// <summary>
-    ///     Serializes an object to JSON
-    /// </summary>
+    /// <summary>Serializes an object to JSON</summary>
     public static string Serialize(TType instance)
     {
         DataContractJsonSerializer serializer = new(typeof(TType));
@@ -20,9 +18,7 @@ public static class JSONSerializer<TType> where TType : class
         }
     }
 
-    /// <summary>
-    ///     DeSerializes an object from JSON
-    /// </summary>
+    /// <summary>DeSerializes an object from JSON</summary>
     public static TType DeSerialize(string json)
     {
         if (string.IsNullOrWhiteSpace(json))

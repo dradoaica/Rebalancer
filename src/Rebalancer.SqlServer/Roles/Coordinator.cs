@@ -23,7 +23,8 @@ internal class Coordinator
     private List<string> resources;
     private bool stoppedDueToInternalErrorFlag;
 
-    public Coordinator(IRebalancerLogger logger,
+    public Coordinator(
+        IRebalancerLogger logger,
         IResourceService resourceService,
         IClientService clientService,
         ResourceGroupStore store)
@@ -36,25 +37,19 @@ internal class Coordinator
         clients = new List<Guid>();
     }
 
-    public int GetFencingToken()
-    {
-        return currentFencingToken;
-    }
+    public int GetFencingToken() => currentFencingToken;
 
-    public void SetStoppedDueToInternalErrorFlag()
-    {
-        stoppedDueToInternalErrorFlag = true;
-    }
+    public void SetStoppedDueToInternalErrorFlag() => stoppedDueToInternalErrorFlag = true;
 
-    public async Task ExecuteCoordinatorRoleAsync(Guid coordinatorClientId,
+    public async Task ExecuteCoordinatorRoleAsync(
+        Guid coordinatorClientId,
         ClientEvent clientEvent,
         OnChangeActions onChangeActions,
         CancellationToken token)
     {
         currentFencingToken = clientEvent.FencingToken;
         var self = await clientService.KeepAliveAsync(coordinatorClientId);
-        var resourcesNow = (await resourceService.GetResourcesAsync(clientEvent.ResourceGroup))
-            .OrderBy(x => x)
+        var resourcesNow = (await resourceService.GetResourcesAsync(clientEvent.ResourceGroup)).OrderBy(x => x)
             .ToList();
         var clientsNow = await GetLiveClientsAsync(clientEvent, coordinatorClientId);
         var clientIds = clientsNow.Select(x => x.ClientId).ToList();
@@ -70,34 +65,44 @@ internal class Coordinator
         {
             stoppedDueToInternalErrorFlag = false;
             await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Waiting);
-            logger.Debug(coordinatorClientId.ToString(),
-                "Status change: COORDINATOR was terminated due to an error");
-            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            logger.Debug(coordinatorClientId.ToString(), "Status change: COORDINATOR was terminated due to an error");
+            await TriggerRebalancingAsync(
+                coordinatorClientId,
+                clientEvent,
+                clientsNow,
+                resourcesNow,
                 onChangeActions,
                 token);
         }
         else if (!resources.OrderBy(x => x).SequenceEqual(resourcesNow.OrderBy(x => x)))
         {
-            logger.Debug(coordinatorClientId.ToString(),
+            logger.Debug(
+                coordinatorClientId.ToString(),
                 $"Resource change: Old: {string.Join(",", resources.OrderBy(x => x))} New: {string.Join(",", resourcesNow.OrderBy(x => x))}");
-            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            await TriggerRebalancingAsync(
+                coordinatorClientId,
+                clientEvent,
+                clientsNow,
+                resourcesNow,
                 onChangeActions,
                 token);
         }
         else if (!clients.OrderBy(x => x).SequenceEqual(clientIds.OrderBy(x => x)))
         {
-            logger.Debug(coordinatorClientId.ToString(),
+            logger.Debug(
+                coordinatorClientId.ToString(),
                 $"Client change: Old: {string.Join(",", clients.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}");
-            await TriggerRebalancingAsync(coordinatorClientId, clientEvent, clientsNow, resourcesNow,
+            await TriggerRebalancingAsync(
+                coordinatorClientId,
+                clientEvent,
+                clientsNow,
+                resourcesNow,
                 onChangeActions,
                 token);
         }
     }
 
-    public int GetCurrentFencingToken()
-    {
-        return currentFencingToken;
-    }
+    public int GetCurrentFencingToken() => currentFencingToken;
 
     private async Task<List<Client>> GetLiveClientsAsync(ClientEvent clientEvent, Guid coordinatorClientId)
     {
@@ -105,13 +110,14 @@ internal class Coordinator
             .Where(x => x.ClientId != coordinatorClientId)
             .ToList();
 
-        var liveClientsNow = allClientsNow
-            .Where(x => x.TimeNow - x.LastKeepAlive < clientEvent.KeepAliveExpiryPeriod).ToList();
+        var liveClientsNow = allClientsNow.Where(x => x.TimeNow - x.LastKeepAlive < clientEvent.KeepAliveExpiryPeriod)
+            .ToList();
 
         return liveClientsNow;
     }
 
-    private async Task TriggerRebalancingAsync(Guid coordinatorClientId,
+    private async Task TriggerRebalancingAsync(
+        Guid coordinatorClientId,
         ClientEvent clientEvent,
         List<Client> clients,
         List<string> resources,
@@ -164,14 +170,13 @@ internal class Coordinator
 
             if (allClientsWaitingCheckCount % 12 == 0)
             {
-                logger.Warn(coordinatorClientId.ToString(),
+                logger.Warn(
+                    coordinatorClientId.ToString(),
                     "COORDINATOR: May be stuck waiting for all live clients to confirm stopped, request stop of the remaining clients!!!");
-                var clientsRemaining =
-                    clientsNow.Where(x => x.ClientStatus != ClientStatus.Waiting).ToList();
+                var clientsRemaining = clientsNow.Where(x => x.ClientStatus != ClientStatus.Waiting).ToList();
                 if (clientsRemaining.Any())
                 {
-                    var result =
-                        await clientService.StopActivityAsync(clientEvent.FencingToken, clientsRemaining);
+                    var result = await clientService.StopActivityAsync(clientEvent.FencingToken, clientsRemaining);
                     if (result == ModifyClientResult.FencingTokenViolation)
                     {
                         clientEvent.CoordinatorToken.FencingTokenViolation = true;
@@ -202,7 +207,7 @@ internal class Coordinator
             var remainingClients = clientsNow.Count + 1;
             var resourcesPerClient = Math.Max(1, resourcesToAssign.Count / remainingClients);
 
-            ClientStartRequest coordinatorRequest = new() {ClientId = coordinatorClientId};
+            ClientStartRequest coordinatorRequest = new() { ClientId = coordinatorClientId };
             while (coordinatorRequest.AssignedResources.Count < resourcesPerClient && resourcesToAssign.Any())
             {
                 coordinatorRequest.AssignedResources.Add(resourcesToAssign.Dequeue());
@@ -215,7 +220,7 @@ internal class Coordinator
             {
                 resourcesPerClient = Math.Max(1, resourcesToAssign.Count / remainingClients);
 
-                ClientStartRequest request = new() {ClientId = client.ClientId};
+                ClientStartRequest request = new() { ClientId = client.ClientId };
 
                 while (request.AssignedResources.Count < resourcesPerClient && resourcesToAssign.Any())
                 {
@@ -232,8 +237,7 @@ internal class Coordinator
             }
 
             logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Resources assigned");
-            var startResult =
-                await clientService.StartActivityAsync(clientEvent.FencingToken, clientStartRequests);
+            var startResult = await clientService.StartActivityAsync(clientEvent.FencingToken, clientStartRequests);
             if (startResult == ModifyClientResult.FencingTokenViolation)
             {
                 clientEvent.CoordinatorToken.FencingTokenViolation = true;
@@ -246,11 +250,12 @@ internal class Coordinator
                 return;
             }
 
-            store.SetResources(new SetResourcesRequest
-            {
-                AssignmentStatus = AssignmentStatus.ResourcesAssigned,
-                Resources = coordinatorRequest.AssignedResources
-            });
+            store.SetResources(
+                new SetResourcesRequest
+                {
+                    AssignmentStatus = AssignmentStatus.ResourcesAssigned,
+                    Resources = coordinatorRequest.AssignedResources,
+                });
             foreach (var onStartAction in onChangeActions.OnStartActions)
             {
                 onStartAction.Invoke(coordinatorRequest.AssignedResources);

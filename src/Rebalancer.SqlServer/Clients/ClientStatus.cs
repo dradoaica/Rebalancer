@@ -4,5 +4,5 @@ public enum ClientStatus
 {
     Waiting,
     Active,
-    Terminated
+    Terminated,
 }

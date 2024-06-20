@@ -4,5 +4,5 @@ public enum BecomeFollowerResult
 {
     Ok,
     WatchSiblingGone,
-    Error
+    Error,
 }

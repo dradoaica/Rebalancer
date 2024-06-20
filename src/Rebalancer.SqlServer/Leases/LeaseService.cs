@@ -67,7 +67,7 @@ WHERE ResourceGroup = @ResourceGroup";
                             LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
                             FencingToken = (int)reader["FencingToken"],
                             LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
-                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"]
+                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"],
                         };
                     }
                 }
@@ -79,13 +79,13 @@ WHERE ResourceGroup = @ResourceGroup";
                         Result = LeaseResult.NoLease,
                         Lease = new Lease
                         {
-                            ExpiryPeriod = TimeSpan.FromMinutes(1), HeartbeatPeriod = TimeSpan.FromSeconds(25)
-                        }
+                            ExpiryPeriod = TimeSpan.FromMinutes(1), HeartbeatPeriod = TimeSpan.FromSeconds(25),
+                        },
                     };
                 }
 
                 // determine the response, if the CoordinatorId is empty or expired then grant, else deny
-                LeaseResponse response = new() {Lease = new Lease()};
+                LeaseResponse response = new() { Lease = new Lease() };
                 if (rg.CoordinatorId == Guid.Empty ||
                     (rg.TimeNow - rg.LastCoordinatorRenewal).TotalSeconds > rg.LeaseExpirySeconds)
                 {
@@ -138,7 +138,7 @@ WHERE ResourceGroup = @ResourceGroup";
                     Result =
                         TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
                     Message = "Lease acquisition failure",
-                    Exception = ex
+                    Exception = ex,
                 };
             }
         }
@@ -193,22 +193,22 @@ WHERE ResourceGroup = @ResourceGroup";
                             LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
                             FencingToken = (int)reader["FencingToken"],
                             LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
-                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"]
+                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"],
                         };
                     }
                 }
 
                 if (rg == null)
                 {
-                    return new LeaseResponse {Result = LeaseResult.NoLease};
+                    return new LeaseResponse { Result = LeaseResult.NoLease };
                 }
 
                 // determine the response, if the CoordinatorId matches the current client id and the fencing token is the same then grant, else deny
-                LeaseResponse response = new() {Lease = new Lease()};
+                LeaseResponse response = new() { Lease = new Lease() };
                 if (!rg.CoordinatorId.Equals(renewLeaseRequest.ClientId) ||
                     rg.FencingToken > renewLeaseRequest.FencingToken)
                 {
-                    return new LeaseResponse {Result = LeaseResult.Denied};
+                    return new LeaseResponse { Result = LeaseResult.Denied };
                 }
 
                 if ((rg.TimeNow - rg.LastCoordinatorRenewal).TotalSeconds <= rg.LeaseExpirySeconds)
@@ -254,7 +254,7 @@ WHERE ResourceGroup = @ResourceGroup";
                     Result =
                         TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
                     Message = "Lease renew failure",
-                    Exception = ex
+                    Exception = ex,
                 };
             }
         }

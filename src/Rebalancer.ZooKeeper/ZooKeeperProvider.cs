@@ -40,7 +40,8 @@ public class ZooKeeperProvider : IRebalancerProvider
     private ClientInternalState state;
     private string watchSiblingNodePath;
 
-    public ZooKeeperProvider(string zookeeperHosts,
+    public ZooKeeperProvider(
+        string zookeeperHosts,
         string zooKeeperRootPath,
         TimeSpan sessionTimeout,
         TimeSpan connectTimeout,
@@ -67,7 +68,8 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
     }
 
-    public async Task StartAsync(string resourceGroup,
+    public async Task StartAsync(
+        string resourceGroup,
         OnChangeActions onChangeActions,
         CancellationToken token,
         ClientOptions clientOptions)
@@ -83,8 +85,7 @@ public class ZooKeeperProvider : IRebalancerProvider
             started = true;
         }
 
-        resourceManager =
-            new ResourceManager(zooKeeperService, logger, onChangeActions, rebalancingMode);
+        resourceManager = new ResourceManager(zooKeeperService, logger, onChangeActions, rebalancingMode);
         SetStateToNoSession();
         this.resourceGroup = resourceGroup;
         onStartDelay = clientOptions.OnAssignmentDelay;
@@ -103,17 +104,14 @@ public class ZooKeeperProvider : IRebalancerProvider
         await CreateClientNodeAsync();
     }
 
-    public async Task WaitForCompletionAsync()
-    {
-        await mainTask;
-    }
+    public async Task WaitForCompletionAsync() => await mainTask;
 
     public AssignedResources GetAssignedResources()
     {
         var assignment = resourceManager.GetResources();
         return new AssignedResources
         {
-            Resources = assignment.Resources, ClientState = GetState(assignment.AssignmentStatus)
+            Resources = assignment.Resources, ClientState = GetState(assignment.AssignmentStatus),
         };
     }
 
@@ -179,8 +177,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                         var epochAttained = await CacheEpochLocallyAsync();
                         if (!epochAttained)
                         {
-                            await EvaluateTerminationAsync(token, clientOptions,
-                                "Couldn't read the current epoch.");
+                            await EvaluateTerminationAsync(token, clientOptions, "Couldn't read the current epoch.");
                         }
 
                         var (electionResult, lowerSiblingPath) = await DetermineLeadershipAsync();
@@ -195,7 +192,9 @@ public class ZooKeeperProvider : IRebalancerProvider
                                 watchSiblingNodePath = lowerSiblingPath;
                                 break;
                             default:
-                                await EvaluateTerminationAsync(token, clientOptions,
+                                await EvaluateTerminationAsync(
+                                    token,
+                                    clientOptions,
                                     "The client has entered an unknown state");
                                 break;
                         }
@@ -215,14 +214,18 @@ public class ZooKeeperProvider : IRebalancerProvider
                                 SetStateToNoSession();
                                 break;
                             case CoordinatorExitReason.PotentialInconsistentState:
-                                await EvaluateTerminationAsync(token, clientOptions,
+                                await EvaluateTerminationAsync(
+                                    token,
+                                    clientOptions,
                                     "The client has entered a potentially inconsistent state");
                                 break;
                             case CoordinatorExitReason.FatalError:
                                 await TerminateAsync("fatal error", true);
                                 break;
                             default:
-                                await EvaluateTerminationAsync(token, clientOptions,
+                                await EvaluateTerminationAsync(
+                                    token,
+                                    clientOptions,
                                     "The client has entered an unknown state");
                                 break;
                         }
@@ -245,23 +248,25 @@ public class ZooKeeperProvider : IRebalancerProvider
                                 await TerminateAsync("fatal error", true);
                                 break;
                             case FollowerExitReason.PotentialInconsistentState:
-                                await EvaluateTerminationAsync(token, clientOptions,
+                                await EvaluateTerminationAsync(
+                                    token,
+                                    clientOptions,
                                     "The client has entered an potential inconsistent state");
                                 break;
                             default:
-                                await EvaluateTerminationAsync(token, clientOptions,
+                                await EvaluateTerminationAsync(
+                                    token,
+                                    clientOptions,
                                     "The client has entered an unknown state");
                                 break;
                         }
 
                         break;
                     case ClientInternalState.Error:
-                        await EvaluateTerminationAsync(token, clientOptions,
-                            "The client has entered an error state");
+                        await EvaluateTerminationAsync(token, clientOptions, "The client has entered an error state");
                         break;
                     default:
-                        await EvaluateTerminationAsync(token, clientOptions,
-                            "The client has entered an unknown state");
+                        await EvaluateTerminationAsync(token, clientOptions, "The client has entered an unknown state");
                         break;
                 }
             }
@@ -280,8 +285,11 @@ public class ZooKeeperProvider : IRebalancerProvider
             }
             catch (InconsistentStateException e)
             {
-                await EvaluateTerminationAsync(token, clientOptions,
-                    "An error has caused that may have left the client in an inconsistent state.", e);
+                await EvaluateTerminationAsync(
+                    token,
+                    clientOptions,
+                    "An error has caused that may have left the client in an inconsistent state.",
+                    e);
             }
             catch (Exception e)
             {
@@ -313,7 +321,8 @@ public class ZooKeeperProvider : IRebalancerProvider
         epoch = 0;
     }
 
-    private async Task EvaluateTerminationAsync(CancellationToken token,
+    private async Task EvaluateTerminationAsync(
+        CancellationToken token,
         ClientOptions clientOptions,
         string message,
         Exception e = null)
@@ -327,12 +336,14 @@ public class ZooKeeperProvider : IRebalancerProvider
             SetStateToNoSession();
             if (e != null)
             {
-                logger.Error(clientId,
+                logger.Error(
+                    clientId,
                     $"Error: {message} - {e} Auto-recovery enabled. Will restart in {clientOptions.RestartDelay.TotalMilliseconds}ms.");
             }
             else
             {
-                logger.Error(clientId,
+                logger.Error(
+                    clientId,
                     $"Error: {message} Auto-recovery enabled. Will restart in {clientOptions.RestartDelay.TotalMilliseconds}ms.");
             }
 
@@ -395,8 +406,7 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
         catch (Exception e)
         {
-            var msg =
-                "An unexpected error occurred while intializing the rebalancer ZooKeeper paths";
+            var msg = "An unexpected error occurred while intializing the rebalancer ZooKeeper paths";
             logger.Error(clientId, msg, e);
             return NewSessionResult.Error;
         }
@@ -495,21 +505,36 @@ public class ZooKeeperProvider : IRebalancerProvider
         switch (rebalancingMode)
         {
             case RebalancingMode.GlobalBarrier:
-                coordinator = new GB.Coordinator(zooKeeperService, logger, resourceManager,
-                    clientId, minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                coordinator = new GB.Coordinator(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    minimumRebalancingInterval,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
             case RebalancingMode.ResourceBarrier:
-                coordinator = new RB.Coordinator(zooKeeperService, logger, resourceManager,
-                    clientId, minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                coordinator = new RB.Coordinator(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    minimumRebalancingInterval,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
             default:
-                coordinator = new RB.Coordinator(zooKeeperService, logger, resourceManager,
-                    clientId, minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                coordinator = new RB.Coordinator(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    minimumRebalancingInterval,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
         }
@@ -525,7 +550,8 @@ public class ZooKeeperProvider : IRebalancerProvider
                 logger.Info(clientId, $"The coordinator has exited for reason {coordinatorExitReason}");
                 return coordinatorExitReason;
             case BecomeCoordinatorResult.StaleEpoch:
-                logger.Info(clientId,
+                logger.Info(
+                    clientId,
                     "Since being elected, the epoch has been incremented suggesting another leader. Aborting coordinator role to check leadership again");
                 return CoordinatorExitReason.NoLongerCoordinator;
             default:
@@ -542,21 +568,39 @@ public class ZooKeeperProvider : IRebalancerProvider
         switch (rebalancingMode)
         {
             case RebalancingMode.GlobalBarrier:
-                follower = new GB.Follower(zooKeeperService, logger, resourceManager, clientId,
-                    clientNumber, watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                follower = new GB.Follower(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    clientNumber,
+                    watchSiblingNodePath,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
             case RebalancingMode.ResourceBarrier:
-                follower = new RB.Follower(zooKeeperService, logger, resourceManager, clientId,
-                    clientNumber, watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                follower = new RB.Follower(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    clientNumber,
+                    watchSiblingNodePath,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
             default:
-                follower = new RB.Follower(zooKeeperService, logger, resourceManager, clientId,
-                    clientNumber, watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3), onStartDelay,
+                follower = new RB.Follower(
+                    zooKeeperService,
+                    logger,
+                    resourceManager,
+                    clientId,
+                    clientNumber,
+                    watchSiblingNodePath,
+                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    onStartDelay,
                     token);
                 break;
         }
@@ -589,8 +633,7 @@ public class ZooKeeperProvider : IRebalancerProvider
             {
                 if (abortException != null)
                 {
-                    logger.Error(clientId,
-                        $"Client aborting due: {terminationReason}. Exception: {abortException}");
+                    logger.Error(clientId, $"Client aborting due: {terminationReason}. Exception: {abortException}");
                 }
                 else
                 {
@@ -607,16 +650,17 @@ public class ZooKeeperProvider : IRebalancerProvider
 
             if (aborted)
             {
-                await resourceManager.InvokeOnAbortActionsAsync(clientId,
-                    $"The client has aborted due to: {terminationReason}", abortException);
+                await resourceManager.InvokeOnAbortActionsAsync(
+                    clientId,
+                    $"The client has aborted due to: {terminationReason}",
+                    abortException);
             }
 
             logger.Info(clientId, "Client terminated");
         }
         catch (TerminateClientException e)
         {
-            logger.Error(clientId, "Client termination failure during invocation of on stop/abort actions",
-                e);
+            logger.Error(clientId, "Client termination failure during invocation of on stop/abort actions", e);
         }
         finally
         {
@@ -629,8 +673,5 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
     }
 
-    private async Task WaitRandomTime(TimeSpan maxWait)
-    {
-        await Task.Delay(rand.Next((int)maxWait.TotalMilliseconds));
-    }
+    private async Task WaitRandomTime(TimeSpan maxWait) => await Task.Delay(rand.Next((int)maxWait.TotalMilliseconds));
 }

@@ -26,7 +26,7 @@ internal static class Program
             Username = GetOptionalArg(configuration, "RabbitUser", "guest"),
             Password = GetOptionalArg(configuration, "RabbitPassword", "guest"),
             Port = int.Parse(GetOptionalArg(configuration, "RabbitPort", "5672")),
-            ManagementPort = int.Parse(GetOptionalArg(configuration, "RabbitMgmtPort", "15672"))
+            ManagementPort = int.Parse(GetOptionalArg(configuration, "RabbitMgmtPort", "15672")),
         };
         QueueInventory queueInventory = new()
         {
@@ -34,7 +34,7 @@ internal static class Program
             ExchangeName = GetMandatoryArg(configuration, "ExchangeName"),
             QueueCount = int.Parse(GetMandatoryArg(configuration, "QueueCount")),
             QueuePrefix = GetMandatoryArg(configuration, "QueuePrefix"),
-            LeaseExpirySeconds = int.Parse(GetMandatoryArg(configuration, "LeaseExpirySeconds"))
+            LeaseExpirySeconds = int.Parse(GetMandatoryArg(configuration, "LeaseExpirySeconds")),
         };
         if (command.Equals("create", StringComparison.OrdinalIgnoreCase))
         {
@@ -55,7 +55,9 @@ internal static class Program
         return 0;
     }
 
-    private static async Task DeployQueuesWithSqlBackend(string connection, RabbitConnection rabbitConn,
+    private static async Task DeployQueuesWithSqlBackend(
+        string connection,
+        RabbitConnection rabbitConn,
         QueueInventory queueInventory)
     {
         try
@@ -80,8 +82,11 @@ internal static class Program
                 var queuesToAdd = queueInventory.QueueCount - existingQueues.Count;
                 for (var i = 0; i < queuesToAdd; i++)
                 {
-                    await QueueManager.AddQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory.ExchangeName,
-                        queueInventory.QueuePrefix).ConfigureAwait(false);
+                    await QueueManager.AddQueueSqlAsync(
+                            queueInventory.ConsumerGroup,
+                            queueInventory.ExchangeName,
+                            queueInventory.QueuePrefix)
+                        .ConfigureAwait(false);
                 }
             }
 
@@ -117,18 +122,12 @@ internal static class Program
         return value;
     }
 
-    private static void LogInfo(string text)
-    {
+    private static void LogInfo(string text) =>
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {text}");
-    }
 
-    private static void LogWarn(string text)
-    {
+    private static void LogWarn(string text) =>
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN  : {text}");
-    }
 
-    private static void LogError(string text)
-    {
+    private static void LogError(string text) =>
         Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR  : {text}");
-    }
 }

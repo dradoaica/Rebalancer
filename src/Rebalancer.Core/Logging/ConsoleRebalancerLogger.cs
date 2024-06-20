@@ -2,9 +2,7 @@
 
 namespace Rebalancer.Core.Logging;
 
-/// <summary>
-///     Temporary hack
-/// </summary>
+/// <summary>Temporary hack</summary>
 public class ConsoleRebalancerLogger : IRebalancerLogger
 {
     private LogLevel logLevel;
@@ -67,8 +65,5 @@ public class ConsoleRebalancerLogger : IRebalancerLogger
         }
     }
 
-    public void SetMinimumLevel(LogLevel logLevel)
-    {
-        this.logLevel = logLevel;
-    }
+    public void SetMinimumLevel(LogLevel logLevel) => this.logLevel = logLevel;
 }

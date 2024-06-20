@@ -31,12 +31,10 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         sessionExpired = false;
     }
 
-    public void SessionExpired()
-    {
-        sessionExpired = true;
-    }
+    public void SessionExpired() => sessionExpired = true;
 
-    public async Task InitializeGlobalBarrierAsync(string clientsPath,
+    public async Task InitializeGlobalBarrierAsync(
+        string clientsPath,
         string statusPath,
         string stoppedPath,
         string resourcesPath,
@@ -52,13 +50,12 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         await EnsurePathAsync(this.epochPath);
         await EnsurePathAsync(this.statusPath, BitConverter.GetBytes(0));
         await EnsurePathAsync(this.stoppedPath);
-        await EnsurePathAsync(this.resourcesPath,
+        await EnsurePathAsync(
+            this.resourcesPath,
             Encoding.UTF8.GetBytes(JSONSerializer<ResourcesZnodeData>.Serialize(new ResourcesZnodeData())));
     }
 
-    public async Task InitializeResourceBarrierAsync(string clientsPath,
-        string resourcesPath,
-        string epochPath)
+    public async Task InitializeResourceBarrierAsync(string clientsPath, string resourcesPath, string epochPath)
     {
         this.clientsPath = clientsPath;
         this.resourcesPath = resourcesPath;
@@ -66,17 +63,14 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
         await EnsurePathAsync(this.clientsPath);
         await EnsurePathAsync(this.epochPath);
-        await EnsurePathAsync(this.resourcesPath,
+        await EnsurePathAsync(
+            this.resourcesPath,
             Encoding.UTF8.GetBytes(JSONSerializer<ResourcesZnodeData>.Serialize(new ResourcesZnodeData())));
     }
 
-    public Event.KeeperState GetKeeperState()
-    {
-        return keeperState;
-    }
+    public Event.KeeperState GetKeeperState() => keeperState;
 
-    public async Task<bool> StartSessionAsync(TimeSpan sessionTimeout, TimeSpan connectTimeout,
-        CancellationToken token)
+    public async Task<bool> StartSessionAsync(TimeSpan sessionTimeout, TimeSpan connectTimeout, CancellationToken token)
     {
         this.token = token;
         Stopwatch sw = new();
@@ -87,9 +81,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             await zookeeper.closeAsync();
         }
 
-        zookeeper = new org.apache.zookeeper.ZooKeeper(zookeeperHosts,
-            (int)sessionTimeout.TotalMilliseconds,
-            this);
+        zookeeper = new org.apache.zookeeper.ZooKeeper(zookeeperHosts, (int)sessionTimeout.TotalMilliseconds, this);
 
         while (keeperState != Event.KeeperState.SyncConnected && sw.Elapsed <= connectTimeout)
         {
@@ -133,8 +125,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as parent node does not exist",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as parent node does not exist", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -166,8 +157,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -202,7 +192,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                         bytesToSet = Encoding.UTF8.GetBytes("0");
                     }
 
-                    await zookeeper.createAsync(znodePath,
+                    await zookeeper.createAsync(
+                        znodePath,
                         bytesToSet,
                         ZooDefs.Ids.OPEN_ACL_UNSAFE,
                         CreateMode.PERSISTENT);
@@ -253,12 +244,12 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.BadVersionException e)
             {
                 throw new ZkStaleVersionException(
-                    $"Could not {actionToPerform} as the current epoch was incremented already.", e);
+                    $"Could not {actionToPerform} as the current epoch was incremented already.",
+                    e);
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -289,8 +280,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -318,12 +308,13 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             {
                 var childrenResult = await zookeeper.getChildrenAsync(clientsPath);
                 var childrenPaths = childrenResult.Children.Select(x => $"{clientsPath}/{x}").ToList();
-                return new ClientsZnode {Version = childrenResult.Stat.getVersion(), ClientPaths = childrenPaths};
+                return new ClientsZnode { Version = childrenResult.Stat.getVersion(), ClientPaths = childrenPaths };
             }
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the clients node does not exist.", e);
+                    $"Could not {actionToPerform} as the clients node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -356,12 +347,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                     status = (RebalancingStatus)BitConverter.ToInt32(dataResult.Data, 0);
                 }
 
-                return new StatusZnode {RebalancingStatus = status, Version = dataResult.Stat.getVersion()};
+                return new StatusZnode { RebalancingStatus = status, Version = dataResult.Stat.getVersion() };
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -397,8 +387,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -440,7 +429,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the stopped znode does not exist.", e);
+                    $"Could not {actionToPerform} as the stopped znode does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -530,13 +520,14 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                 {
                     ResourceAssignments = resourcesZnodeData,
                     Resources = childrenResult.Children,
-                    Version = dataResult.Stat.getVersion()
+                    Version = dataResult.Stat.getVersion(),
                 };
             }
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the resources node does not exist.", e);
+                    $"Could not {actionToPerform} as the resources node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -573,8 +564,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NoNodeException e)
             {
-                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.",
-                    e);
+                throw new ZkInvalidOperationException($"Could not {actionToPerform} as the node does not exist.", e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -623,8 +613,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         }
     }
 
-    public async Task TryPutResourceBarrierAsync(string resource, CancellationToken waitToken,
-        IRebalancerLogger logger)
+    public async Task TryPutResourceBarrierAsync(string resource, CancellationToken waitToken, IRebalancerLogger logger)
     {
         Stopwatch sw = new();
         sw.Start();
@@ -668,7 +657,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the resource node does not exist.", e);
+                    $"Could not {actionToPerform} as the resource node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -700,7 +690,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the stopped node does not exist.", e);
+                    $"Could not {actionToPerform} as the stopped node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -763,7 +754,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                 return new StatusZnode
                 {
                     RebalancingStatus = (RebalancingStatus)BitConverter.ToInt32(dataResult.Data, 0),
-                    Version = dataResult.Stat.getVersion()
+                    Version = dataResult.Stat.getVersion(),
                 };
             }
             catch (KeeperException.NoNodeException e)
@@ -803,7 +794,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the resources node does not exist.", e);
+                    $"Could not {actionToPerform} as the resources node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -835,7 +827,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the resources node does not exist.", e);
+                    $"Could not {actionToPerform} as the resources node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -868,7 +861,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkInvalidOperationException(
-                    $"Could not {actionToPerform} as the clients node does not exist.", e);
+                    $"Could not {actionToPerform} as the clients node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -901,7 +895,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             catch (KeeperException.NoNodeException e)
             {
                 throw new ZkNoEphemeralNodeWatchException(
-                    $"Could not {actionToPerform} as the client node does not exist.", e);
+                    $"Could not {actionToPerform} as the client node does not exist.",
+                    e);
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -957,8 +952,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
     private async Task BlockUntilConnected(string logAction)
     {
-        while (!sessionExpired && !token.IsCancellationRequested &&
-               keeperState != Event.KeeperState.SyncConnected)
+        while (!sessionExpired && !token.IsCancellationRequested && keeperState != Event.KeeperState.SyncConnected)
         {
             if (keeperState == Event.KeeperState.Expired)
             {

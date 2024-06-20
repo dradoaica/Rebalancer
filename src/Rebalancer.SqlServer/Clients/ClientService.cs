@@ -73,7 +73,7 @@ AND (ClientStatus = 0 OR ClientStatus = 1)";
                         CoordinatorStatus = (CoordinatorStatus)(byte)reader["CoordinatorStatus"],
                         ClientId = (Guid)reader["ClientId"],
                         LastKeepAlive = (DateTime)reader["LastKeepAlive"],
-                        TimeNow = (DateTime)reader["TimeNow"]
+                        TimeNow = (DateTime)reader["TimeNow"],
                     };
                     clients.Add(client);
                 }
@@ -103,8 +103,10 @@ WHERE ClientId = @ClientId";
                         ClientStatus = (ClientStatus)(byte)reader["ClientStatus"],
                         CoordinatorStatus = (CoordinatorStatus)(byte)reader["CoordinatorStatus"],
                         LastKeepAlive = (DateTime)reader["LastKeepAlive"],
-                        AssignedResources = reader["Resources"].ToString()
-                            .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).ToList()
+                        AssignedResources = reader["Resources"]
+                            .ToString()
+                            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                            .ToList(),
                     };
 
                     return client;
@@ -130,7 +132,8 @@ WHERE ClientId = @ClientId";
         }
     }
 
-    public async Task<ModifyClientResult> StartActivityAsync(int fencingToken,
+    public async Task<ModifyClientResult> StartActivityAsync(
+        int fencingToken,
         List<ClientStartRequest> clientStartRequests)
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
@@ -192,7 +195,8 @@ SELECT @@ROWCOUNT";
     private string GetSetStatusQuery(List<Client> clients)
     {
         StringBuilder sb = new();
-        sb.Append(@"UPDATE [RBR].[Clients]
+        sb.Append(
+            @"UPDATE [RBR].[Clients]
    SET [CoordinatorStatus] = @CoordinatorStatus
       ,[Resources] = ''
       ,[FencingToken] = @FencingToken
@@ -208,7 +212,8 @@ WHERE ClientId IN (");
             sb.Append($"@Client{i}");
         }
 
-        sb.Append(@")
+        sb.Append(
+            @")
 AND FencingToken <= @FencingToken
 SELECT @@ROWCOUNT");
 

@@ -5,5 +5,5 @@ public enum RebalancingResult
     Complete,
     Cancelled,
     Failed,
-    NotRequired
+    NotRequired,
 }

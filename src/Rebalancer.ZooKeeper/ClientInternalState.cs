@@ -8,5 +8,5 @@ public enum ClientInternalState
     Error,
     IsLeader,
     IsFollower,
-    Terminated
+    Terminated,
 }

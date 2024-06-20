@@ -3,5 +3,5 @@
 public enum CoordinatorStatus
 {
     ResourcesGranted,
-    StopActivity
+    StopActivity,
 }

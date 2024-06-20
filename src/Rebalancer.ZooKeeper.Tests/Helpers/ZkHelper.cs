@@ -26,10 +26,7 @@ public class ZkHelper : Watcher
 
     private async Task EstablishSession()
     {
-        zookeeper = new org.apache.zookeeper.ZooKeeper(
-            zooKeeperHosts,
-            (int)sessionTimeout.TotalMilliseconds,
-            this);
+        zookeeper = new org.apache.zookeeper.ZooKeeper(zooKeeperHosts, (int)sessionTimeout.TotalMilliseconds, this);
 
         Stopwatch sw = new();
         sw.Start();
@@ -73,10 +70,8 @@ public class ZkHelper : Watcher
         }
     }
 
-    public async Task AddResourceAsync(string group, string resourceName)
-    {
+    public async Task AddResourceAsync(string group, string resourceName) =>
         await CreateZnodeAsync($"{zkRootPath}/{group}/resources/{resourceName}");
-    }
 
     public async Task DeleteResourceAsync(string group, string resourceName)
     {
@@ -84,8 +79,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                var childrenRes =
-                    await zookeeper.getChildrenAsync($"{zkRootPath}/{group}/resources/{resourceName}");
+                var childrenRes = await zookeeper.getChildrenAsync($"{zkRootPath}/{group}/resources/{resourceName}");
                 foreach (var child in childrenRes.Children)
                 {
                     await SafeDelete($"{zkRootPath}/{group}/resources/{resourceName}/{child}");
@@ -147,7 +141,8 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await zookeeper.createAsync(path,
+                await zookeeper.createAsync(
+                    path,
                     Encoding.UTF8.GetBytes("0"),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
                     CreateMode.PERSISTENT);
@@ -173,10 +168,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await zookeeper.createAsync(path,
-                    new byte[0],
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT);
+                await zookeeper.createAsync(path, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
                 return;
             }

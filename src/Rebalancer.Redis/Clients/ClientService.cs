@@ -32,9 +32,9 @@ internal class ClientService : IClientService
                     LastKeepAlive = DateTime.UtcNow,
                     ClientStatus = ClientStatus.Waiting,
                     CoordinatorStatus = CoordinatorStatus.StopActivity,
-                    FencingToken = 1
+                    FencingToken = 1,
                 }
-            }
+            },
         };
         return Task.CompletedTask;
     }
@@ -43,9 +43,10 @@ internal class ClientService : IClientService
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
         RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        var clients = redisDictionary.Values.Where(x =>
-            x.ResourceGroup == resourceGroup &&
-            (x.ClientStatus == ClientStatus.Waiting || x.ClientStatus == ClientStatus.Active)).ToList();
+        var clients = redisDictionary.Values.Where(
+                x => x.ResourceGroup == resourceGroup &&
+                     (x.ClientStatus == ClientStatus.Waiting || x.ClientStatus == ClientStatus.Active))
+            .ToList();
         clients.ForEach(x => x.TimeNow = DateTime.UtcNow);
         return Task.FromResult(clients);
     }
@@ -81,16 +82,14 @@ internal class ClientService : IClientService
         return Task.CompletedTask;
     }
 
-    public Task<ModifyClientResult> StartActivityAsync(int fencingToken,
-        List<ClientStartRequest> clientStartRequests)
+    public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> clientStartRequests)
     {
         var cacheKey = $"{Constants.SCHEMA}:Clients";
         RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
         foreach (var request in clientStartRequests)
         {
-            var client =
-                redisDictionary.Values.FirstOrDefault(x =>
-                    x.ClientId == request.ClientId && x.FencingToken <= fencingToken);
+            var client = redisDictionary.Values.FirstOrDefault(
+                x => x.ClientId == request.ClientId && x.FencingToken <= fencingToken);
             if (client == null)
             {
                 Task.FromResult(ModifyClientResult.FencingTokenViolation);

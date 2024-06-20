@@ -33,7 +33,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -52,7 +52,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -71,7 +71,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -90,7 +90,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -109,7 +109,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -128,7 +128,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(60),
             RandomiseInterval = false,
-            CheckType = CheckType.FullCheck
+            CheckType = CheckType.FullCheck,
         };
 
         currentConfig = config;
@@ -138,8 +138,7 @@ public class RandomisedResourceBarrierTests : IDisposable
     }
 
     [Fact]
-    public async Task
-        ResourceBarrier_RandomisedReleaseBarrierTest_LongInterval_LargeClient_LargeResource_FullCheck()
+    public async Task ResourceBarrier_RandomisedReleaseBarrierTest_LongInterval_LargeClient_LargeResource_FullCheck()
     {
         RandomConfig config = new()
         {
@@ -152,7 +151,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             StartUpClientInterval = TimeSpan.FromSeconds(2),
             MinimumRebalancingInterval = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromMinutes(1),
-            SessionTimeout = TimeSpan.FromMinutes(1)
+            SessionTimeout = TimeSpan.FromMinutes(1),
         };
 
         currentConfig = config;
@@ -175,7 +174,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             StartUpClientInterval = TimeSpan.FromSeconds(2),
             MinimumRebalancingInterval = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromMinutes(1),
-            SessionTimeout = TimeSpan.FromMinutes(1)
+            SessionTimeout = TimeSpan.FromMinutes(1),
         };
 
         currentConfig = config;
@@ -198,7 +197,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             StartUpClientInterval = TimeSpan.FromSeconds(2),
             MinimumRebalancingInterval = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromMinutes(1),
-            SessionTimeout = TimeSpan.FromMinutes(1)
+            SessionTimeout = TimeSpan.FromMinutes(1),
         };
 
         currentConfig = config;
@@ -221,7 +220,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             StartUpClientInterval = TimeSpan.FromSeconds(2),
             MinimumRebalancingInterval = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromMinutes(1),
-            SessionTimeout = TimeSpan.FromMinutes(1)
+            SessionTimeout = TimeSpan.FromMinutes(1),
         };
 
         currentConfig = config;
@@ -244,7 +243,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             StartUpClientInterval = TimeSpan.FromSeconds(2),
             MinimumRebalancingInterval = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromMinutes(1),
-            SessionTimeout = TimeSpan.FromMinutes(1)
+            SessionTimeout = TimeSpan.FromMinutes(1),
         };
 
         currentConfig = config;
@@ -254,8 +253,7 @@ public class RandomisedResourceBarrierTests : IDisposable
     }
 
     [Fact]
-    public async Task
-        ResourceBarrier_RandomisedTest_ShortRandomInterval_MediumClient_MediumResource_ConditionalCheck()
+    public async Task ResourceBarrier_RandomisedTest_ShortRandomInterval_MediumClient_MediumResource_ConditionalCheck()
     {
         // the wait period is set quite high as running the test long enough
         // can induce a scenario similar to:
@@ -274,7 +272,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             RandomiseInterval = true,
             CheckType = CheckType.ConditionalCheck,
             ConditionalCheckInterval = 5,
-            ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2)
+            ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2),
         };
 
         currentConfig = config;
@@ -284,8 +282,7 @@ public class RandomisedResourceBarrierTests : IDisposable
     }
 
     [Fact]
-    public async Task
-        GlobalBarrier_RandomisedTest_ShortRandomInterval_MediumClient_MediumResource_ConditionalCheck()
+    public async Task GlobalBarrier_RandomisedTest_ShortRandomInterval_MediumClient_MediumResource_ConditionalCheck()
     {
         // the wait period is set quite high as running the test long enough
         // can induce a scenario similar to:
@@ -304,7 +301,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             RandomiseInterval = true,
             CheckType = CheckType.ConditionalCheck,
             ConditionalCheckInterval = 5,
-            ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2)
+            ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2),
         };
 
         currentConfig = config;
@@ -327,7 +324,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.ConditionalCheck,
             ConditionalCheckInterval = 5,
             ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2),
-            OnAssignmentDelay = TimeSpan.FromSeconds(30)
+            OnAssignmentDelay = TimeSpan.FromSeconds(30),
         };
 
         currentConfig = config;
@@ -350,7 +347,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.ConditionalCheck,
             ConditionalCheckInterval = 5,
             ConditionalCheckWaitPeriod = TimeSpan.FromMinutes(2),
-            OnAssignmentDelay = TimeSpan.FromSeconds(30)
+            OnAssignmentDelay = TimeSpan.FromSeconds(30),
         };
 
         currentConfig = config;
@@ -369,7 +366,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TestDuration = TimeSpan.FromMinutes(120),
             MaxInterval = TimeSpan.FromSeconds(5),
             RandomiseInterval = false,
-            CheckType = CheckType.DoubleAssignmentCheck
+            CheckType = CheckType.DoubleAssignmentCheck,
         };
 
         currentConfig = config;
@@ -396,7 +393,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             CheckType = CheckType.DoubleAssignmentCheck,
             OnStartEventHandlerTime = TimeSpan.FromSeconds(10),
             OnStopEventHandlerTime = TimeSpan.FromSeconds(10),
-            RandomiseEventHandlerTimes = true
+            RandomiseEventHandlerTimes = true,
         };
 
         currentConfig = config;
@@ -425,18 +422,20 @@ public class RandomisedResourceBarrierTests : IDisposable
         {
             AutoRecoveryOnError = true,
             RestartDelay = TimeSpan.FromSeconds(10),
-            OnAssignmentDelay = config.OnAssignmentDelay
+            OnAssignmentDelay = config.OnAssignmentDelay,
         };
 
         List<TestClient> clients = new();
         for (var i = 0; i < config.ClientCount; i++)
         {
-            clients.Add(new TestClient(resourceMonitor,
-                groupName,
-                clientOptions,
-                config.OnStartEventHandlerTime,
-                config.OnStopEventHandlerTime,
-                config.RandomiseEventHandlerTimes));
+            clients.Add(
+                new TestClient(
+                    resourceMonitor,
+                    groupName,
+                    clientOptions,
+                    config.OnStartEventHandlerTime,
+                    config.OnStopEventHandlerTime,
+                    config.RandomiseEventHandlerTimes));
         }
 
         for (var i = 0; i < config.ClientCount; i++)
@@ -499,8 +498,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             TimeSpan currentTestInterval;
             if (config.RandomiseInterval)
             {
-                currentTestInterval =
-                    TimeSpan.FromMilliseconds(rand.Next((int)config.MaxInterval.TotalMilliseconds));
+                currentTestInterval = TimeSpan.FromMilliseconds(rand.Next((int)config.MaxInterval.TotalMilliseconds));
             }
             else
             {
@@ -556,21 +554,21 @@ public class RandomisedResourceBarrierTests : IDisposable
         }
     }
 
-    private IRebalancerProvider GetResourceBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
-            currentConfig.MinimumRebalancingInterval,
-            RebalancingMode.ResourceBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetResourceBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        currentConfig.SessionTimeout,
+        currentConfig.ConnectTimeout,
+        currentConfig.MinimumRebalancingInterval,
+        RebalancingMode.ResourceBarrier,
+        new TestOutputLogger());
 
-    private IRebalancerProvider GetGlobalBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer", currentConfig.SessionTimeout, currentConfig.ConnectTimeout,
-            currentConfig.MinimumRebalancingInterval,
-            RebalancingMode.GlobalBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetGlobalBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        currentConfig.SessionTimeout,
+        currentConfig.ConnectTimeout,
+        currentConfig.MinimumRebalancingInterval,
+        RebalancingMode.GlobalBarrier,
+        new TestOutputLogger());
 }

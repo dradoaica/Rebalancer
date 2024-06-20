@@ -1,8 +1,10 @@
-#  Rebalancer (forked from [Jack Vanlightly](https://github.com/Vanlightly) and improved)
+# Rebalancer (forked from [Jack Vanlightly](https://github.com/Vanlightly) and improved)
 
-Create Kafka style consumer groups in other technologies. Rebalancer was born of the need for consumer groups with RabbitMQ. But Rebalancer is completely technology agnostic and will balance activity over any group of resources across a group of participating nodes.
+Create Kafka style consumer groups in other technologies. Rebalancer was born of the need for consumer groups with
+RabbitMQ. But Rebalancer is completely technology agnostic and will balance activity over any group of resources across
+a group of participating nodes.
 
-##  Use cases
+## Use cases
 
 - Create Kafka-like "consumer groups" with messaging technologies like RabbitMQ, SQS, etc.
 
@@ -10,17 +12,18 @@ Create Kafka style consumer groups in other technologies. Rebalancer was born of
 
 - Single Active-Consumer / Active-Backup
 
-- Create an application cluster that consumes a single resource in a highly available manner. The cluster leader (Coordinator) consumes the single resource and the slaves (Followers) remain idle in backup in case the leader dies.
+- Create an application cluster that consumes a single resource in a highly available manner. The cluster leader (
+  Coordinator) consumes the single resource and the slaves (Followers) remain idle in backup in case the leader dies.
 
-###  Balancing assignment of multiple resources over multiples nodes
+### Balancing assignment of multiple resources over multiples nodes
 
 ![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/RebalancerMultipleNodesMultipleResources.png)
 
-###  Consuming from a single resource with backup nodes in case of failure
+### Consuming from a single resource with backup nodes in case of failure
 
 ![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/RebalancerBackupNodes.png)
 
-##  Concepts
+## Concepts
 
 Rebalancer consists of (or will consist of when complete):
 
@@ -34,7 +37,10 @@ The important terms are:
 
 - Resource Group = Group of Nodes + Group of Resources
 
-When a node becomes active it notifies the other nodes. One node is the Coordinator (leader) and the rest are Followers. The Coordinator has the job to assign resources to nodes. It monitors the coming and going of nodes, as well as changes to the number of resources available to the resource group. When any change happens to the nodes or resources then the Coordinator triggers a rebalancing.
+When a node becomes active it notifies the other nodes. One node is the Coordinator (leader) and the rest are Followers.
+The Coordinator has the job to assign resources to nodes. It monitors the coming and going of nodes, as well as changes
+to the number of resources available to the resource group. When any change happens to the nodes or resources then the
+Coordinator triggers a rebalancing.
 
 Different rebalancing algorithms exist:
 
@@ -48,14 +54,20 @@ With an RDBMS we use the global barrier algorithm where:
 
 1. The Coordinator orders all Followers to stop activity.
 
-2. Once activity has stopped the Coordinator distributes the resource identifiers equally between the Followers and itself.
+2. Once activity has stopped the Coordinator distributes the resource identifiers equally between the Followers and
+   itself.
 
-3. The final step is that the Coordinator notifies each Follower of the resources it has been assigned and can start its activity (consuming, reading, writing etc).
+3. The final step is that the Coordinator notifies each Follower of the resources it has been assigned and can start its
+   activity (consuming, reading, writing etc).
 
 Other backends are suited to either.
 
-Leader election determines who the Coordinator is. If the Coordinator dies, then a Follower takes its place. Leader election and meta-data storage is performed via a consensus service (ZooKeeper, Etcd, Consul, Redis) or an RDBMS with serializable transaction support (SQL Server, Oracle, PostgreSQL). All communication between nodes is also performed via this backing meta-data store.
+Leader election determines who the Coordinator is. If the Coordinator dies, then a Follower takes its place. Leader
+election and meta-data storage is performed via a consensus service (ZooKeeper, Etcd, Consul, Redis) or an RDBMS with
+serializable transaction support (SQL Server, Oracle, PostgreSQL). All communication between nodes is also performed via
+this backing meta-data store.
 
-##  Languages and Backends
+## Languages and Backends
 
-Rebalancer is a suite of code libraries. It must be implemented in your language in order to use it. Also, different backends will be available.
+Rebalancer is a suite of code libraries. It must be implemented in your language in order to use it. Also, different
+backends will be available.

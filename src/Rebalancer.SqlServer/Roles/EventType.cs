@@ -3,5 +3,5 @@
 public enum EventType
 {
     Coordinator,
-    Follower
+    Follower,
 }

@@ -46,9 +46,9 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(15));
 
@@ -94,9 +94,9 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(15));
 
@@ -162,7 +162,7 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(15));
 
@@ -173,7 +173,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start one client
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(15));
 
@@ -184,7 +184,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start one client
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(15));
 
@@ -225,7 +225,7 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -236,7 +236,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start one client
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -246,7 +246,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start one client
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -298,7 +298,7 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         // ASSERT - client 1 has started has each been assigned both resources
@@ -307,7 +307,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents2);
         AssertNoEvents(testEvents3);
 
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -318,7 +318,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start client 3
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -351,8 +351,7 @@ public class MultiClientTests : IDisposable
     }
 
     [Fact]
-    public async Task
-        GlobalBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing()
+    public async Task GlobalBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing()
     {
         Providers.Register(GetGlobalBarrierProvider);
         await GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing();
@@ -370,7 +369,7 @@ public class MultiClientTests : IDisposable
         var (client2, testEvents2) = CreateClient();
         var (client3, testEvents3) = CreateClient();
 
-        await client1.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client1.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         // ASSERT - client 1 has started has each been assigned both resources
@@ -379,7 +378,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents2);
         AssertNoEvents(testEvents3);
 
-        await client2.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client2.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -390,7 +389,7 @@ public class MultiClientTests : IDisposable
         AssertNoEvents(testEvents3);
 
         // ACT - start client 3
-        await client3.StartAsync(groupName, new ClientOptions {AutoRecoveryOnError = false});
+        await client3.StartAsync(groupName, new ClientOptions { AutoRecoveryOnError = false });
 
         await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -450,42 +449,38 @@ public class MultiClientTests : IDisposable
         List<TestEvent> testEvents = new();
         client1.OnAssignment += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Assignment, Resources = args.Resources});
+            testEvents.Add(new TestEvent { EventType = EventType.Assignment, Resources = args.Resources });
         };
 
         client1.OnUnassignment += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Unassignment});
+            testEvents.Add(new TestEvent { EventType = EventType.Unassignment });
         };
 
         client1.OnAborted += (sender, args) =>
         {
-            testEvents.Add(new TestEvent {EventType = EventType.Error});
+            testEvents.Add(new TestEvent { EventType = EventType.Error });
             Console.WriteLine($"OnAborted: {args.AbortReason} {args.Exception}");
         };
 
         return (client1, testEvents);
     }
 
-    private IRebalancerProvider GetResourceBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer",
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(5),
-            RebalancingMode.ResourceBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetResourceBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(5),
+        RebalancingMode.ResourceBarrier,
+        new TestOutputLogger());
 
-    private IRebalancerProvider GetGlobalBarrierProvider()
-    {
-        return new ZooKeeperProvider(ZkHelper.zooKeeperHosts,
-            "/rebalancer",
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(20),
-            TimeSpan.FromSeconds(5),
-            RebalancingMode.GlobalBarrier,
-            new TestOutputLogger());
-    }
+    private IRebalancerProvider GetGlobalBarrierProvider() => new ZooKeeperProvider(
+        ZkHelper.zooKeeperHosts,
+        "/rebalancer",
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(20),
+        TimeSpan.FromSeconds(5),
+        RebalancingMode.GlobalBarrier,
+        new TestOutputLogger());
 }

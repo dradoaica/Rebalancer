@@ -25,7 +25,8 @@ public class ResourceManager
     // mutable statwe
     private List<string> resources;
 
-    public ResourceManager(IZooKeeperService zooKeeperService,
+    public ResourceManager(
+        IZooKeeperService zooKeeperService,
         IRebalancerLogger logger,
         OnChangeActions onChangeActions,
         RebalancingMode rebalancingMode)
@@ -54,11 +55,11 @@ public class ResourceManager
             {
                 return new GetResourcesResponse
                 {
-                    Resources = new List<string>(resources), AssignmentStatus = assignmentStatus
+                    Resources = new List<string>(resources), AssignmentStatus = assignmentStatus,
                 };
             }
 
-            return new GetResourcesResponse {Resources = new List<string>(), AssignmentStatus = assignmentStatus};
+            return new GetResourcesResponse { Resources = new List<string>(), AssignmentStatus = assignmentStatus };
         }
     }
 
@@ -89,7 +90,8 @@ public class ResourceManager
             List<string> resourcesToRemove = new(GetResources().Resources);
             if (resourcesToRemove.Any())
             {
-                logger.Info(clientId,
+                logger.Info(
+                    clientId,
                     $"{role} - Invoking on stop actions. Unassigned resources {string.Join(",", resourcesToRemove)}");
 
                 try
@@ -101,8 +103,7 @@ public class ResourceManager
                 }
                 catch (Exception e)
                 {
-                    logger.Error(clientId, "{role} - End user on stop actions threw an exception. Terminating. ",
-                        e);
+                    logger.Error(clientId, "{role} - End user on stop actions threw an exception. Terminating. ", e);
                     throw new TerminateClientException("End user on stop actions threw an exception.", e);
                 }
 
@@ -110,7 +111,8 @@ public class ResourceManager
                 {
                     try
                     {
-                        logger.Info(clientId,
+                        logger.Info(
+                            clientId,
                             $"{role} - Removing barriers on resources {string.Join(",", resourcesToRemove)}");
                         var counter = 1;
                         foreach (var resource in resourcesToRemove)
@@ -119,14 +121,16 @@ public class ResourceManager
 
                             if (counter % 10 == 0)
                             {
-                                logger.Info(clientId,
+                                logger.Info(
+                                    clientId,
                                     $"{role} - Removed barriers on {counter} resources of {resourcesToRemove.Count}");
                             }
 
                             counter++;
                         }
 
-                        logger.Info(clientId,
+                        logger.Info(
+                            clientId,
                             $"{role} - Removed barriers on {resourcesToRemove.Count} resources of {resourcesToRemove.Count}");
                     }
                     catch (ZkOperationCancelledException)
@@ -139,8 +143,7 @@ public class ResourceManager
                     }
                     catch (Exception e)
                     {
-                        throw new InconsistentStateException("An error occurred while removing resource barriers",
-                            e);
+                        throw new InconsistentStateException("An error occurred while removing resource barriers", e);
                     }
                 }
 
@@ -158,7 +161,8 @@ public class ResourceManager
         }
     }
 
-    public async Task InvokeOnStartActionsAsync(string clientId,
+    public async Task InvokeOnStartActionsAsync(
+        string clientId,
         string role,
         List<string> newResources,
         CancellationToken rebalancingToken,
@@ -180,24 +184,26 @@ public class ResourceManager
                 {
                     try
                     {
-                        logger.Info(clientId,
+                        logger.Info(
+                            clientId,
                             $"{role} - Putting barriers on resources {string.Join(",", newResources)}");
                         var counter = 1;
                         foreach (var resource in newResources)
                         {
-                            await zooKeeperService.TryPutResourceBarrierAsync(resource, rebalancingToken,
-                                logger);
+                            await zooKeeperService.TryPutResourceBarrierAsync(resource, rebalancingToken, logger);
 
                             if (counter % 10 == 0)
                             {
-                                logger.Info(clientId,
+                                logger.Info(
+                                    clientId,
                                     $"{role} - Put barriers on {counter} resources of {newResources.Count}");
                             }
 
                             counter++;
                         }
 
-                        logger.Info(clientId,
+                        logger.Info(
+                            clientId,
                             $"{role} - Put barriers on {newResources.Count} resources of {newResources.Count}");
                     }
                     catch (ZkOperationCancelledException)
@@ -207,7 +213,8 @@ public class ResourceManager
                             throw;
                         }
 
-                        logger.Info(clientId,
+                        logger.Info(
+                            clientId,
                             $"{role} - Rebalancing cancelled, removing barriers on resources {string.Join(",", newResources)}");
                         try
                         {
@@ -218,14 +225,16 @@ public class ResourceManager
 
                                 if (counter % 10 == 0)
                                 {
-                                    logger.Info(clientId,
+                                    logger.Info(
+                                        clientId,
                                         $"{role} - Removing barriers on {counter} resources of {newResources.Count}");
                                 }
 
                                 counter++;
                             }
 
-                            logger.Info(clientId,
+                            logger.Info(
+                                clientId,
                                 $"{role} - Removed barriers on {newResources.Count} resources of {newResources.Count}");
                         }
                         catch (ZkSessionExpiredException)
@@ -251,8 +260,7 @@ public class ResourceManager
                     }
                     catch (Exception e)
                     {
-                        throw new InconsistentStateException("An error occurred while putting resource barriers",
-                            e);
+                        throw new InconsistentStateException("An error occurred while putting resource barriers", e);
                     }
                 }
 
@@ -260,8 +268,7 @@ public class ResourceManager
 
                 try
                 {
-                    logger.Info(clientId,
-                        $"{role} - Invoking on start with resources {string.Join(",", resources)}");
+                    logger.Info(clientId, $"{role} - Invoking on start with resources {string.Join(",", resources)}");
                     foreach (var onStartAction in onChangeActions.OnStartActions)
                     {
                         onStartAction.Invoke(resources);
@@ -269,8 +276,7 @@ public class ResourceManager
                 }
                 catch (Exception e)
                 {
-                    logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ",
-                        e);
+                    logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ", e);
                     throw new TerminateClientException("End user on start actions threw an exception.", e);
                 }
 
