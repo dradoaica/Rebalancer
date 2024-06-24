@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.SqlServer.Clients;
+using Rebalancer.SqlServer.Store;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.Core.Logging;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Store;
 
 namespace Rebalancer.SqlServer.Roles;
 

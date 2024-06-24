@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Rebalancer.Core;
+﻿using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.Redis.Clients;
 using Rebalancer.Redis.Leases;
@@ -13,6 +6,13 @@ using Rebalancer.Redis.Resources;
 using Rebalancer.Redis.Roles;
 using Rebalancer.Redis.Store;
 using StackExchange.Redis;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Rebalancer.Redis;
 

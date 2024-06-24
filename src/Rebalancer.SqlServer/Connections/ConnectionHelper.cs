@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 
 namespace Rebalancer.SqlServer.Connections;
 

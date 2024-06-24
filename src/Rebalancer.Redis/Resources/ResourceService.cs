@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Rebalancer.Redis.Utils;
+﻿using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
 using StackExchange.Redis.DataTypes.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Rebalancer.Redis.Resources;
 

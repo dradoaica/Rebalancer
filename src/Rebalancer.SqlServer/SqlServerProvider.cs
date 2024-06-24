@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Rebalancer.Core;
+﻿using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.SqlServer.Clients;
 using Rebalancer.SqlServer.Leases;
 using Rebalancer.SqlServer.Resources;
 using Rebalancer.SqlServer.Roles;
 using Rebalancer.SqlServer.Store;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Rebalancer.SqlServer;
 

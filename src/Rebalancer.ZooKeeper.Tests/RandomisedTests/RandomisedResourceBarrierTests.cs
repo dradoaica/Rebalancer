@@ -1,11 +1,11 @@
+using Rebalancer.Core;
+using Rebalancer.ZooKeeper.Tests.Helpers;
+using Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.ZooKeeper.Tests.Helpers;
-using Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 using Xunit;
 
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests;

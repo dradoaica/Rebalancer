@@ -1,10 +1,10 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.ZooKeeper.ResourceManagement;
 using Rebalancer.ZooKeeper.Zk;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using GB = Rebalancer.ZooKeeper.GlobalBarrier;
 using RB = Rebalancer.ZooKeeper.ResourceBarrier;
 

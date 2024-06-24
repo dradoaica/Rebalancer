@@ -1,13 +1,13 @@
+using org.apache.zookeeper;
+using Rebalancer.Core.Logging;
+using Rebalancer.ZooKeeper.ResourceManagement;
+using Rebalancer.ZooKeeper.Zk;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using org.apache.zookeeper;
-using Rebalancer.Core.Logging;
-using Rebalancer.ZooKeeper.ResourceManagement;
-using Rebalancer.ZooKeeper.Zk;
 
 namespace Rebalancer.ZooKeeper.ResourceBarrier;
 

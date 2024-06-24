@@ -1,5 +1,5 @@
-﻿using System;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
+using System;
 
 namespace Rebalancer.Redis.Leases;
 

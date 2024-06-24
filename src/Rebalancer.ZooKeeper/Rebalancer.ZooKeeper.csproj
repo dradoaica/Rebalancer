@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>0.3.4</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Jack Vanlightly</Authors>
-    <Company>Jack Vanlightly</Company>
-    <Copyright>Jack Vanlightly</Copyright>
-    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Rebalancer/rebalancer-net-zookeeper</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Rebalancer/rebalancer-net-zookeeper</RepositoryUrl>
-    <RepositoryType>Git</RepositoryType>
-    <Description>Apache ZooKeeper provider for Rebalancer</Description>
-    <LangVersion>default</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Version>0.3.4</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>Jack Vanlightly</Authors>
+        <Company>Jack Vanlightly</Company>
+        <Copyright>Jack Vanlightly</Copyright>
+        <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/Rebalancer/rebalancer-net-zookeeper</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Rebalancer/rebalancer-net-zookeeper</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+        <Description>Apache ZooKeeper provider for Rebalancer</Description>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4"/>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
+    </ItemGroup>
 
 </Project>

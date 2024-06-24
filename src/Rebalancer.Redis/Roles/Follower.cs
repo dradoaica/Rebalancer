@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.Redis.Clients;
+using Rebalancer.Redis.Store;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.Core.Logging;
-using Rebalancer.Redis.Clients;
-using Rebalancer.Redis.Store;
 
 namespace Rebalancer.Redis.Roles;
 

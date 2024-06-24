@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 namespace Rebalancer.RabbitMQTools;
 

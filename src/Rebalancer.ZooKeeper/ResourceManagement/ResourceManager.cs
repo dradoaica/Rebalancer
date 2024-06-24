@@ -1,11 +1,11 @@
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
+using Rebalancer.ZooKeeper.Zk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.Core.Logging;
-using Rebalancer.ZooKeeper.Zk;
 
 namespace Rebalancer.ZooKeeper.ResourceManagement;
 

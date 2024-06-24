@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Rebalancer.ZooKeeper.Zk;
+using System.Collections.Generic;
 
 namespace Rebalancer.ZooKeeper.GlobalBarrier;
 

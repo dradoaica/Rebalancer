@@ -1,9 +1,9 @@
+using Rebalancer.Core;
+using Rebalancer.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.Core.Logging;
 
 namespace Rebalancer.ZooKeeper.Tests.RandomisedTests.TestComponents;
 

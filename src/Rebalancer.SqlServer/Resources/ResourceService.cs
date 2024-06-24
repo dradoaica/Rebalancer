@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Rebalancer.SqlServer.Connections;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Rebalancer.SqlServer.Connections;
 
 namespace Rebalancer.SqlServer.Resources;
 

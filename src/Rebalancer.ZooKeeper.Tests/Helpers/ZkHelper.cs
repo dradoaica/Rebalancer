@@ -1,8 +1,8 @@
+using org.apache.zookeeper;
 using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using org.apache.zookeeper;
 
 namespace Rebalancer.ZooKeeper.Tests.Helpers;
 

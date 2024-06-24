@@ -1,5 +1,5 @@
-using System;
 using Rebalancer.Core.Logging;
+using System;
 
 namespace Rebalancer.ZooKeeper.Tests.Helpers;
 

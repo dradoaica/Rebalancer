@@ -1,9 +1,9 @@
+using org.apache.zookeeper;
+using Rebalancer.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using org.apache.zookeeper;
-using Rebalancer.Core.Logging;
 
 namespace Rebalancer.ZooKeeper.Zk;
 

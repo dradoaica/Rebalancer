@@ -1,9 +1,9 @@
+using Rebalancer.Core;
+using Rebalancer.ZooKeeper.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Rebalancer.Core;
-using Rebalancer.ZooKeeper.Tests.Helpers;
 using Xunit;
 
 namespace Rebalancer.ZooKeeper.Tests;
