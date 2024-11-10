@@ -48,7 +48,7 @@ public class MessageManager
         }
     }
 
-    public static void SendMessagesViaClient(string exchange, string routingKeyPrefix, int count)
+    public static async Task SendMessagesViaClient(string exchange, string routingKeyPrefix, int count)
     {
         ConnectionFactory factory = new()
         {
@@ -58,14 +58,14 @@ public class MessageManager
             UserName = rabbitConn.Username,
             Password = rabbitConn.Password,
         };
-        using var connection = factory.CreateConnection();
-        using var channel = connection.CreateModel();
+        await using var connection = await factory.CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
         for (var i = 0; i < count; i++)
         {
             var routingKey = routingKeyPrefix + i;
             var message = routingKeyPrefix + i;
             var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(exchange, routingKey, null, body);
+            await channel.BasicPublishAsync(exchange, routingKey, body);
         }
     }
 }

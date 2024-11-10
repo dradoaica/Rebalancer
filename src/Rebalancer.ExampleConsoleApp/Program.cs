@@ -62,22 +62,23 @@ internal static class Program
         LogInfo("Subscription started for queue: " + queueName);
         CancellationTokenSource cts = new();
 
-        var task = Task.Factory.StartNew(
-            () =>
+        var task = Task.Run(
+            async () =>
             {
                 try
                 {
                     ConnectionFactory factory = new() { HostName = "localhost" };
-                    using var connection = factory.CreateConnection();
-                    using var channel = connection.CreateModel();
-                    EventingBasicConsumer consumer = new(channel);
-                    consumer.Received += (model, ea) =>
+                    await using var connection = await factory.CreateConnectionAsync(cts.Token);
+                    await using var channel = await connection.CreateChannelAsync(cancellationToken: cts.Token);
+                    AsyncEventingBasicConsumer consumer = new(channel);
+                    consumer.ReceivedAsync += (_, ea) =>
                     {
                         var body = ea.Body.ToArray();
                         var message = Encoding.UTF8.GetString(body);
                         LogInfo($"{queueName} Received {message}");
+                        return Task.CompletedTask;
                     };
-                    channel.BasicConsume(queueName, true, consumer);
+                    await channel.BasicConsumeAsync(queueName, true, consumer, cts.Token);
                     while (!cts.Token.IsCancellationRequested)
                     {
                         Thread.Sleep(100);
@@ -96,8 +97,7 @@ internal static class Program
                 {
                     LogInfo("Consumer stopped for " + queueName);
                 }
-            },
-            TaskCreationOptions.LongRunning);
+            });
         clientTasks.Add(new ClientTask { Cts = cts, Client = task });
     }
 
