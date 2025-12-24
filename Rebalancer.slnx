@@ -1,0 +1,22 @@
+﻿<Solution>
+    <Folder Name="/samples/">
+        <Project Path="src/Rebalancer.ExampleConsoleApp/Rebalancer.RabbitMq.ExampleWithSqlServerBackend.csproj"/>
+        <Project Path="src/Rebalancer.RabbitMQTools/Rebalancer.RabbitMQTools.csproj"/>
+    </Folder>
+    <Folder Name="/Solution Items/">
+        <File Path=".editorconfig"/>
+        <File Path=".gitattributes"/>
+        <File Path=".gitignore"/>
+        <File Path="global.json"/>
+        <File Path="LICENSE.md"/>
+        <File Path="NuGet.Config"/>
+        <File Path="README.md"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="src/Rebalancer.ZooKeeper.Tests/Rebalancer.ZooKeeper.Tests.csproj"/>
+    </Folder>
+    <Project Path="src/Rebalancer.Core/Rebalancer.Core.csproj"/>
+    <Project Path="src/Rebalancer.Redis/Rebalancer.Redis.csproj"/>
+    <Project Path="src/Rebalancer.SqlServer/Rebalancer.SqlServer.csproj"/>
+    <Project Path="src/Rebalancer.ZooKeeper/Rebalancer.ZooKeeper.csproj"/>
+</Solution>
