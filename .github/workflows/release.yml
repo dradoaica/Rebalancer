@@ -1,0 +1,61 @@
+name: Release Packages
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    permissions:
+      contents: read # to checkout codebase
+      packages: write # to push NuGet packages to GitHub Packages
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore Dependencies
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' csproj; do
+            dotnet restore "$csproj"
+          done < <(find src -name '*.csproj' -print0)
+
+      - name: Pack NuGet Packages
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/package/release
+          out="${GITHUB_WORKSPACE}/artifacts/package/release"
+          while IFS= read -r -d '' csproj; do
+            dotnet pack "$csproj" -c Release -o "$out" --no-restore
+          done < <(find src -name '*.csproj' -print0)
+
+      - name: Push to GitHub Packages
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          owner="${{ github.repository_owner }}"
+          for f in artifacts/package/release/*.nupkg; do
+            dotnet nuget push "$f" \
+              --api-key "${{ secrets.GITHUB_TOKEN }}" \
+              --source "https://nuget.pkg.github.com/${owner}/index.json" \
+              --skip-duplicate
+          done
