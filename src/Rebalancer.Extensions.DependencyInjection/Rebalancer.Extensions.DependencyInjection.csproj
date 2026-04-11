@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Rebalancer.Extensions.DependencyInjection</RootNamespace>
+        <Description>Microsoft.Extensions.DependencyInjection registration helpers for Rebalancer.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
+        <ProjectReference Include="..\Rebalancer.Redis\Rebalancer.Redis.csproj"/>
+        <ProjectReference Include="..\Rebalancer.SqlServer\Rebalancer.SqlServer.csproj"/>
+        <ProjectReference Include="..\Rebalancer.ZooKeeper\Rebalancer.ZooKeeper.csproj"/>
+    </ItemGroup>
+
+</Project>

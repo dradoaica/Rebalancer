@@ -1,0 +1,16 @@
+---
+description: Co-governed agentic SDLC (Software Development Life Cycle) — canonical instructions for this repo
+alwaysApply: true
+---
+
+# Canonical standard for this repository
+
+All AI-assisted work here must follow `.agents/AGENTS.md`. Treat that file as the single source of truth for
+gates, artifacts, traceability, allowed tools, and co-governance.
+
+This Cursor rule is an **adapter only**: it may add IDE-specific mechanics (for example how to invoke tools or
+apply project rules). It must **not** contradict `.agents/AGENTS.md`. If anything conflicts, defer to
+`.agents/AGENTS.md` and tell the human about the mismatch.
+
+To dive deeper, open `.agents/AGENTS.md` first, then persona files under `.agents/agents/` and concepts under
+`.agents/concepts/` as the task requires.

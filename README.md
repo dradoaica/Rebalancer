@@ -71,3 +71,52 @@ this backing meta-data store.
 
 Rebalancer is a suite of code libraries. It must be implemented in your language in order to use it. Also, different
 backends will be available.
+
+## Documentation
+
+- [Traceability matrix](docs/traceability-matrix.md) — ADRs, user stories, and paths under `src/`, `examples/`, and
+  `tests/`
+- [Product baseline (.NET)](docs/initial-product-specs/rebalancer-product-baseline.md) — scope, non-goals, v2 themes
+- [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
+- [Architectural decision records](docs/adrs/) — `docs/adrs/`
+- [User stories](docs/user-stories/) — `docs/user-stories/`
+
+### Contributors and AI agents
+
+- [`.agents/AGENTS.md`](.agents/AGENTS.md) — canonical instructions for all agents; root [`AGENTS.md`](AGENTS.md) and
+  vendor adapters defer to it.
+- [`docs/initial-product-specs/README.md`](docs/initial-product-specs/README.md) — start here for spec-first product
+  work.
+- [`docs/cogov-a-sdlc/README.md`](docs/governance/README.md) — overview of the co-governed SDLC layout (single vs
+  multi-repo, `docs/` artifacts).
+
+### Dependency injection (v2)
+
+Reference `Rebalancer.Extensions.DependencyInjection` and register the backend you use, for example:
+
+```csharp
+var services = new ServiceCollection();
+services.AddRebalancerSqlServer(connectionString);
+await using var provider = services.BuildServiceProvider();
+var client = provider.GetRequiredService<RebalancerClient>();
+```
+
+Alternatively use `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or `AddRebalancerProvider(_ => new MyProvider(...))`.
+The parameterless `RebalancerClient` constructor still uses static
+`Providers.Register` ([ADR 0005](docs/adrs/0005-dependency-injection-for-provider-registration-v2.md)).
+
+### Building and testing
+
+- Solution: [Rebalancer.slnx](Rebalancer.slnx)
+- **`tests/Rebalancer.UnitTests`** — DI registration tests (no Docker).
+- **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
+  unavailable). ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
+  `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
+
+### Repository layout
+
+| Folder                   | Contents                                                                                                    |
+|--------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`).                |
+| [`examples/`](examples/) | Sample host and CLI tools (`Rebalancer.RabbitMq.ExampleWithSqlServerBackend`, `Rebalancer.RabbitMq.Tools`). |
+| [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                      |

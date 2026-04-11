@@ -13,9 +13,17 @@ public class RebalancerClient : IDisposable
 
     private bool disposed;
 
+    /// <summary>Uses the provider registered via <see cref="Providers.Register" />.</summary>
     public RebalancerClient()
+        : this(Providers.GetProvider())
     {
-        rebalancerProvider = Providers.GetProvider();
+    }
+
+    /// <summary>Uses the supplied provider (e.g. from dependency injection). Does not use <see cref="Providers" />.</summary>
+    /// <param name="rebalancerProvider">Non-null coordination backend.</param>
+    public RebalancerClient(IRebalancerProvider rebalancerProvider)
+    {
+        this.rebalancerProvider = rebalancerProvider ?? throw new ArgumentNullException(nameof(rebalancerProvider));
     }
 
     /// <summary>
@@ -27,9 +35,13 @@ public class RebalancerClient : IDisposable
     {
         if (!disposed)
         {
-            cts.Cancel(); // signals provider to stop
-            var completionTask = Task.Run(async () => await rebalancerProvider.WaitForCompletionAsync());
-            completionTask.Wait(5000); // waits for completion up to 5 seconds
+            if (cts != null)
+            {
+                cts.Cancel(); // signals provider to stop
+                var completionTask = Task.Run(async () => await rebalancerProvider.WaitForCompletionAsync());
+                completionTask.Wait(5000); // waits for completion up to 5 seconds
+            }
+
             disposed = true;
         }
     }
@@ -114,8 +126,12 @@ public class RebalancerClient : IDisposable
     {
         if (!disposed)
         {
-            cts.Cancel(); // signals provider to stop
-            await rebalancerProvider.WaitForCompletionAsync();
+            if (cts != null)
+            {
+                cts.Cancel(); // signals provider to stop
+                await rebalancerProvider.WaitForCompletionAsync();
+            }
+
             disposed = true;
         }
     }
@@ -129,11 +145,14 @@ public class RebalancerClient : IDisposable
     {
         if (!disposed)
         {
-            cts.Cancel(); // signals provider to stop
-            var completionTask = rebalancerProvider.WaitForCompletionAsync();
-            if (await Task.WhenAny(completionTask, Task.Delay(timeout)) == completionTask)
+            if (cts != null)
             {
-                await completionTask;
+                cts.Cancel(); // signals provider to stop
+                var completionTask = rebalancerProvider.WaitForCompletionAsync();
+                if (await Task.WhenAny(completionTask, Task.Delay(timeout)) == completionTask)
+                {
+                    await completionTask;
+                }
             }
 
             disposed = true;
@@ -149,11 +168,14 @@ public class RebalancerClient : IDisposable
     {
         if (!disposed)
         {
-            cts.Cancel(); // signals provider to stop
-            var completionTask = rebalancerProvider.WaitForCompletionAsync();
-            if (await Task.WhenAny(completionTask, Task.Delay(timeout, token)) == completionTask)
+            if (cts != null)
             {
-                await completionTask;
+                cts.Cancel(); // signals provider to stop
+                var completionTask = rebalancerProvider.WaitForCompletionAsync();
+                if (await Task.WhenAny(completionTask, Task.Delay(timeout, token)) == completionTask)
+                {
+                    await completionTask;
+                }
             }
 
             disposed = true;
