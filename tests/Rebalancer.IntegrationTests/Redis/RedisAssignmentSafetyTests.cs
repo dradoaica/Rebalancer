@@ -7,7 +7,7 @@ using StackExchange.Redis.DataTypes.Collections;
 using Testcontainers.Redis;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests;
+namespace Rebalancer.IntegrationTests.Redis;
 
 /// <summary>Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled).</summary>
 public sealed class RedisAssignmentSafetyTests

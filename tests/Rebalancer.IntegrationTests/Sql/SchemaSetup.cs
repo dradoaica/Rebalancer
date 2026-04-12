@@ -1,6 +1,6 @@
 using Microsoft.Data.SqlClient;
 
-namespace Rebalancer.IntegrationTests;
+namespace Rebalancer.IntegrationTests.Sql;
 
 internal static class SchemaSetup
 {
