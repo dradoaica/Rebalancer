@@ -13,8 +13,8 @@ Read in this order for a new task:
 2. **Repository artifact locations** and **`.agents/` directory map** (where truth lives).
 3. **Decision-record gate** if the work implies a durable technical choice.
 4. **Co-Governance Protocol** before any side effect action.
-5. Deeper sections (**Multi-Agent**, **DevEx/AgentEx**, **Maintainability**, **Anti-Sycophancy**, **Anti-Delusional**)
-   as needed.
+5. Deeper sections (**Multi-Agent**, **DevEx/AgentEx**, **Maintainability**, **Anti-Sycophancy**, **Anti-Delusional**,
+   **Automated Governance**) as needed.
 
 ---
 
@@ -242,7 +242,7 @@ The orchestrating agent (the agent coordinating other agents, which may be the h
 ## Developer Experience (DevEx) and Agent Experience (AgentEx)
 
 A well-governed agentic SDLC must be usable by both humans and agents. Design every artifact with both audiences in
-mind.
+mind. Read the full [Agent Experience (AgentEx) & Context Management](concepts/agent-experience.md) guide.
 
 ### DevEx principles (for human developers)
 
@@ -444,3 +444,16 @@ These rules address hallucination and context drift (false premises the agent do
   their status. Propose a superseding decision record or a new change record instead.
 - **Session boundary awareness.** Do not carry implicit assumptions across sessions. At the start of each session,
   re-read the relevant specs and decision records rather than relying on memory of previous conversations.
+
+---
+
+## Automated Governance (Guardrails)
+
+To ensure the integrity of the SDLC, automated checks and human-verified guardrails are enforced.
+
+- **Documentation-Backed Changes**: No code change is permitted without a corresponding reference to an **Accepted** ADR
+  or an **Approved** User Story.
+- **Traceability Linter**: Every significant output must pass a traceability check. If "Sources" are missing or refer to
+  unapproved drafts, the task is incomplete.
+- **Learning Loop Verification**: When closing a Problem Record, the system must verify that at least one rule, skill,
+  or persona has been updated to prevent recurrence.

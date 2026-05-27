@@ -49,6 +49,7 @@
 
 ## Preventive measures
 
+- **Agent Governance:** {Updated `.agents/rules/`, `.agents/skills/`, or persona}
 - **Tests / automation:** {…}
 - **Monitoring / alerts:** {…}
 - **Runbooks / docs:** {…}
