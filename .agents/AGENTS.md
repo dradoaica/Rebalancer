@@ -77,8 +77,7 @@ Before producing any “real work” (design, code, config, process changes), do
 
 1. **Locate or create the governing artifact(s).**
     - Prefer **accepted** decision records (typically ADRs in `docs/adrs/`), user stories in `docs/user-stories/`, SDPs
-      in
-      `docs/sdps/`, change records in `docs/change-records/`.
+      in `docs/sdps/`, **threat models** in `docs/threat-models/`, and change records in `docs/change-records/`.
     - If something is missing, **you draft it** under the appropriate **persona** (see “Artifact ownership” below), mark
       status as **Draft** or **Proposed**, and surface it for **human review** when the gate requires approval.
     - **Do not** implement durable technical choices or production-impacting work without passing the relevant gate
@@ -94,6 +93,7 @@ For any non-trivial plan, decision, or implementation proposal, end your respons
 
 - `Sources`
     - `docs/adrs/NNNN-...md` (section: …)
+    - `docs/threat-models/TM-....md` (if security posture is affected)
     - `docs/user-stories/...` (if relevant)
     - `docs/change-records/...` (if relevant)
     - `.agents/concepts/...` (if you are applying a framework concept)

@@ -46,6 +46,7 @@ Git records submodules in **`.gitmodules`** at the repository root. That file is
 - **Decision records (ADRs)**: `docs/adrs/`
 - **User stories**: `docs/user-stories/`
 - **Service design packages (SDPs)**: `docs/sdps/`
+- **Threat models**: `docs/threat-models/`
 - **Change records**: `docs/change-records/`
 - **Problem records**: `docs/problem-records/`
 

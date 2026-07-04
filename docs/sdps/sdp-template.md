@@ -43,6 +43,7 @@
 - **Authentication / authorization:** {model}
 - **Secrets:** {where stored, rotation}
 - **Compliance:** {if any}
+- **Threat model:** `docs/threat-models/…` (reference accepted model covering this service)
 
 ## Interfaces
 
@@ -71,4 +72,5 @@
 ## Sources
 
 - `docs/adrs/…` (if any)
+- Threat models: `docs/threat-models/…`
 - Related user stories: `docs/user-stories/…`
