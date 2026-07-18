@@ -31,10 +31,6 @@ Recommended patterns (pick one and stay consistent):
 - Clear **As a / I want / So that**
 - **Testable** acceptance criteria
 - Explicit **non-goals**
-- **Security & compliance** notes (or “N/A” with rationale)
+- **Security & compliance** notes (or "N/A" with rationale)
 - `Sources` links to decision records / SDPs / change records when relevant
-
-## v2 slice
-
-Stories [US-012](US-012-register-rebalancer-with-dependency-injection.md)–[US-014](US-014-traceability-matrix-and-product-baseline.md) are **Done** (DI extensions, `tests/Rebalancer.IntegrationTests` / `tests/Rebalancer.UnitTests`, documentation). See [traceability matrix](../traceability-matrix.md).
 

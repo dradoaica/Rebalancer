@@ -35,7 +35,7 @@
 
 ## Root cause analysis
 
-{Known root cause, or “Unknown” with hypothesis and what would disprove it.}
+{Known root cause, or "Unknown" with hypothesis and what would disprove it.}
 
 ### Contributing factors
 

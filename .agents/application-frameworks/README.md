@@ -5,7 +5,7 @@ names one framework or stack family.
 
 ## When to read
 
-Before writing or refactoring **application code** that targets a listed framework, read that framework’s file(s) under
+Before writing or refactoring **application code** that targets a listed framework, read that framework’s file (s) under
 the matching subdirectory.
 
 ## Conventions

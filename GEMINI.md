@@ -1,3 +1,3 @@
-# Gemini CLI — project context
+# Gemini CLI - project context
 
 @.gemini/GEMINI.md

@@ -10,8 +10,7 @@ informed: []
 
 ## Context and Problem Statement
 
-We want to record architectural decisions made in this project independent whether decisions concern the architecture ("architectural decision record"), the code, or other fields.
-Which format and structure should these records follow?
+We want to record architectural decisions made in this project independent whether decisions concern the architecture ("architectural decision record"), the code, or other fields. Which format and structure should these records follow?
 
 ## Considered Options
 
@@ -25,9 +24,7 @@ Which format and structure should these records follow?
 
 Chosen option: "MADR 4.0.0", because
 
-* Implicit assumptions should be made explicit.
-  Design documentation is important to enable people understanding the decisions later on.
-  See also ["A rational design process: How and why to fake it"](https://doi.org/10.1109/TSE.1986.6312940).
+* Implicit assumptions should be made explicit. Design documentation is important to enable people understanding the decisions later on. See also ["A rational design process: How and why to fake it"](https://doi.org/10.1109/TSE.1986.6312940).
 * MADR allows for structured capturing of any decision.
 * The MADR format is lean and fits our development style.
 * The MADR structure is comprehensible and facilitates usage & maintenance.

@@ -1,8 +1,8 @@
 ---
 status:
-date: 
-decision-makers: 
-consulted: 
+date:
+decision-makers:
+consulted:
 informed: 
 ---
 

@@ -41,7 +41,7 @@
 
 ## Preconditions
 
-- [ ] Decision record(s) in place if required: `docs/adrs/…`
+- [ ] Decision record (s) in place if required: `docs/adrs/…`
 - [ ] Tests / dry-run completed: {…}
 
 ## Implementation plan

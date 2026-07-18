@@ -52,7 +52,7 @@
 
 ## Operations
 
-- **Runbooks:** {paths or “to be created”}
+- **Runbooks:** {paths or "to be created"}
 - **Monitoring & alerting:** {metrics, dashboards, on-call}
 - **Capacity & scaling:** {…}
 

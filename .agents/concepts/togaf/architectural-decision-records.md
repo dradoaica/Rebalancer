@@ -14,8 +14,8 @@ familiar with the whole project history just by reading its decision log in chro
 this documentation aims at:
 
 - 🚀 Improving and speeding up the onboarding of a new team member.
-- 🔭 Avoiding blind acceptance/reversal of a past decision (
-  cf [Michael Nygard's famous article on ADRs](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions.html)).
+- 🔭 Avoiding blind acceptance/reversal of a past decision
+  (cf [Michael Nygard's famous article on ADRs](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions.html)).
 - 🤝 Formalizing the decision process of the team.
 
 ## Usage

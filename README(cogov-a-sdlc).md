@@ -42,7 +42,7 @@ Git records submodules in **`.gitmodules`** at the repository root. That file is
 
 ## Repository layout (governance artifacts)
 
-- **Agent governance**: `.agents/` (personas, rules, skills, commands, tools, etc.)
+- **Agents governance**: `.agents/` (personas, rules, skills, commands, tools, etc.)
 - **Decision records (ADRs)**: `docs/adrs/`
 - **User stories**: `docs/user-stories/`
 - **Service design packages (SDPs)**: `docs/sdps/`

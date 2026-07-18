@@ -8,9 +8,7 @@ Use the template:
 
 ## Purpose
 
-Threat modeling is a standard governance artifact used to systematically identify, assess, and mitigate security risks
-for a system, service, or change. It complements ADRs (decision records) and SDPs (service design packages) by capturing
-assumptions, assets, data flows, threats, and mitigations early and maintaining them over the service lifecycle.
+Threat modeling is a standard governance artifact used to systematically identify, assess, and mitigate security risks for a system, service, or change. It complements ADRs (decision records) and SDPs (service design packages) by capturing assumptions, assets, data flows, threats, and mitigations early and maintaining them over the service lifecycle.
 
 ## Naming
 
@@ -43,7 +41,7 @@ Recommended patterns (pick one and stay consistent):
 
 - Clear scope and boundaries (system context, trust boundaries)
 - Assets and data classification
-- Data flow diagram(s) or structured flows
+- Data flow diagram (s) or structured flows
 - Threat analysis (e.g., STRIDE), with risks rated and mapped to mitigations/controls
 - Residual risk and acceptance rationale
 - Approvals (roles as per your organization)

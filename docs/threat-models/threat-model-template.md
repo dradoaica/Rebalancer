@@ -35,7 +35,7 @@ List the primary assets and their data classification. Example:
 
 Describe key data flows using a diagram (link) or structured steps:
 
-1. {Actor/System A} → {Interface} → {System B} — {what data and purpose}
+1. {Actor/System A} → {Interface} → {System B} - {what data and purpose}
 2. {…}
 
 If using a diagram, store it under `docs/diagrams/` and link it here.
@@ -48,8 +48,8 @@ Use STRIDE (or another method) across assets, data flows, and trust boundaries. 
 
 - Threat: {…}
 - Affected flow/asset: {…}
-- Mitigation(s): {authn method, mTLS, signed tokens, etc.}
-- Risk: {Low/Medium/High} — {rationale}
+- Mitigation (s): {authn method, mTLS, signed tokens, etc.}
+- Risk: {Low/Medium/High} - {rationale}
 
 ### Tampering
 

@@ -23,8 +23,7 @@ Recommended patterns:
 ## Review expectations (human vs agent)
 
 - Agents (typically solutions/systems architects) **draft** SDPs.
-- Humans **review/approve** before treating SLAs/SLOs, security/privacy commitments, and operational support models as
-  binding.
+- Humans **review/approve** before treating SLAs/SLOs, security/privacy commitments, and operational support models as binding.
 
 ## Must-haves per SDP
 

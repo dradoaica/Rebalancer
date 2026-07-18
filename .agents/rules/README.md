@@ -8,7 +8,7 @@ must surface the conflict and refuse to silently violate the rule.
 - Maintain a small set of **high-signal, testable** rules.
 - Each rule file must include:
     - **Scope** (what it applies to)
-    - **Rule statements** (“MUST / MUST NOT / SHOULD”)
+    - **Rule statements** ("MUST / MUST NOT / SHOULD")
     - **Rationale** (short)
     - **Examples** (1 good / 1 bad)
     - **Enforcement** (how to detect/confirm)

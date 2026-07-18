@@ -36,14 +36,14 @@
 
 ## Security & compliance
 
-{Threats, data classification, PII, authz—or “None / N/A” with rationale.}
+{Threats, data classification, PII, authz—or "None / N/A" with rationale.}
 
 ## Definition of done
 
 - [ ] Acceptance criteria met
 - [ ] Tests / checks agreed with team
 - [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [ ] Traceable to change record (if released) - `docs/change-records/…`
 
 ## Sources
 

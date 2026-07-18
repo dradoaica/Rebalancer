@@ -1,8 +1,8 @@
 # Tools (authorization and safe usage)
 
-This folder defines the **approved tool surface area** for agents in this repository, including constraints and
-required permissions. If a tool is not documented here, the agent must treat it as **not approved** unless the human
-explicitly authorizes it in the current session.
+This folder defines the **approved tool surface area** for agents in this repository, including constraints and required
+permissions. If a tool is not documented here, the agent must treat it as **not approved** unless the human explicitly
+authorizes it in the current session.
 
 ## Must-haves
 

@@ -6,7 +6,7 @@ model, etc.). Skills are meant to be followed **exactly**.
 ## Must-haves
 
 - Each skill must be:
-    - **Deterministic** (no “do what you think best” steps)
+    - **Deterministic** (no "do what you think best" steps)
     - **Gated** (states what approvals/artifacts must exist first)
     - **Auditable** (produces concrete outputs)
     - **Human-friendly** (a human can execute it without AI)
