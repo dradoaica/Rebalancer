@@ -16,6 +16,9 @@ Applies to all AI agents operating in this repository.
 ### Repository file access
 
 - **Read and search files** in the repository (including ripgrep-style search).
+- **Create or edit repository files** when the human explicitly requests or authorizes the change in the current task,
+  within the task's scope and applicable governance gates. Keep edits local and reviewable; do not treat this permission
+  as authorization to push, merge, deploy, or affect shared systems.
 
 Constraints:
 

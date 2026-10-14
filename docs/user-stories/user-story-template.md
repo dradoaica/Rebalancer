@@ -38,6 +38,13 @@
 
 {Threats, data classification, PII, authz—or "None / N/A" with rationale.}
 
+## Definition of ready
+
+- [ ] Governing ADR referenced (or marked "N/A - non-architectural")
+- [ ] Acceptance criteria are testable, unambiguous, and numbered
+- [ ] Security & compliance considerations addressed
+- [ ] Dependencies and non-goals explicitly identified
+
 ## Definition of done
 
 - [ ] Acceptance criteria met

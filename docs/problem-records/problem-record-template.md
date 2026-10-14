@@ -49,7 +49,8 @@
 
 ## Preventive measures
 
-- **Agent Governance:** {Updated `.agents/rules/`, `.agents/skills/`, or persona}
+- **Agent Governance:** {Update `.agents/rules/`, `.agents/skills/`, or persona if the root cause identifies a governance
+  gap; otherwise "N/A" with rationale.}
 - **Tests / automation:** {…}
 - **Monitoring / alerts:** {…}
 - **Runbooks / docs:** {…}
@@ -63,6 +64,8 @@
 
 - **Closed:** YYYY-MM-DD
 - **Resolution summary:** {…}
+- **Preventive action verification:** {Root-cause-appropriate action completed or explicitly owned/tracked; governance
+  change made if a governance gap was identified, or "N/A" with rationale.}
 
 ## Sources
 

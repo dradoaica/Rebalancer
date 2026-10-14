@@ -1,3 +1,3 @@
 # Threat Models
 
-Change records are maintained in [docs/threat-models](../../../docs/threat-models).
+Threat models are maintained in [docs/threat-models](../../../docs/threat-models).

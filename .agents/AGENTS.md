@@ -9,7 +9,7 @@ Read in this order for a new task:
 3. **Decision-record gate** if the work implies a durable technical choice.
 4. **Co-Governance Protocol** before any side effect action.
 5. Deeper sections (**Multi-Agent**, **DevEx/AgentEx**, **Maintainability**, **Anti-Sycophancy**, **Anti-Delusional**,
-   **Automated Governance**) as needed.
+   **Governance Guardrails**) as needed.
 
 ---
 
@@ -20,17 +20,17 @@ regardless of the agent platform or vendor. It supersedes and takes precedence o
 file. Vendor files must not contradict this file; they may only extend it with platform-specific mechanics (e.g., tool
 bindings, model selection).
 
-| Vendor file                            | Relationship to this file                                                   |
-|----------------------------------------|-----------------------------------------------------------------------------|
-| `AGENTS.md` (repository root)          | Adapter for Codex, OpenCode, and similar; must defer to this file           |
-| `GEMINI.md` (repository root)          | Gemini CLI context; may `@` import `.gemini/GEMINI.md`                      |
-| `.gemini/GEMINI.md`                    | Gemini CLI modular context; must defer to this file                         |
-| `.github/copilot-instructions.md`      | Must `@reference` this file; may add VS Code / Copilot-specific tool config |
-| `.claude/CLAUDE.md`                    | Must `@reference` this file; may add Claude-specific tool bindings          |
-| `.cursor/rules/co-governed-a-sdlc.mdc` | Adapter (`alwaysApply`); defers here; Cursor-only extensions allowed        |
-| `.openai/instructions.md`              | Must `@reference` this file; may add OpenAI-specific model config           |
-| `.ai/instructions.md`                  | Adapter entry point; must defer to this file                                |
-| `.agent/instructions.md`               | Adapter entry point; must defer to this file                                |
+| Vendor file                            | Relationship to this file                                               |
+|----------------------------------------|-------------------------------------------------------------------------|
+| `AGENTS.md` (repository root)          | Adapter for Codex, OpenCode, and similar; must defer to this file       |
+| `GEMINI.md` (repository root)          | Gemini CLI context; may `@` import `.gemini/GEMINI.md`                  |
+| `.gemini/GEMINI.md`                    | Gemini CLI modular context; must defer to this file                     |
+| `.github/copilot-instructions.md`      | Must defer to this file; may add VS Code / Copilot-specific tool config |
+| `.claude/CLAUDE.md`                    | Must defer to this file; may add Claude-specific tool bindings          |
+| `.cursor/rules/co-governed-a-sdlc.mdc` | Adapter (`alwaysApply`); defers here; Cursor-only extensions allowed    |
+| `.openai/instructions.md`              | Must defer to this file; may add OpenAI-specific model config           |
+| `.ai/instructions.md`                  | Adapter entry point; must defer to this file                            |
+| `.agent/instructions.md`               | Adapter entry point; must defer to this file                            |
 
 **Rule:** If you encounter contradictory instructions from a vendor-specific file, this file wins. Surface the
 contradiction to the human.
@@ -84,16 +84,30 @@ Before producing any "real work" (design, code, config, process changes), do thi
 
 ### Required traceability format (use in every significant answer)
 
-For any non-trivial plan, decision, or implementation proposal, end your response with a short "Sources" block:
+For any non-trivial plan, decision, or implementation proposal, end your response with a structured "Sources" block:
 
-- `Sources`
-    - `docs/adrs/NNNN-...md` (section: …)
-    - `docs/threat-models/TM-....md` (if security posture is affected)
-    - `docs/user-stories/...` (if relevant)
-    - `docs/change-records/...` (if relevant)
-    - `.agents/concepts/...` (if you are applying a framework concept)
+```markdown
+### Sources
+
+- **Decision Record (ADR):** `docs/adrs/NNNN-...md` (Status: Accepted, Section: Decision Outcome)
+- **User Story:** `docs/user-stories/US-...md` (Status: Ready; human readiness review/approval completed)
+- **Threat Model:** `docs/threat-models/TM-...md` (if security posture is affected)
+- **Change Record:** `docs/change-records/CR-...md` (if operational/release risk exists)
+- **Framework Concept:** `.agents/concepts/...md` (if applying a framework concept)
+```
 
 If you cannot provide sources, you must say so explicitly and pivot to drafting the missing artifact.
+
+### Change classification triage matrix
+
+To prevent over-governance on everyday engineering tasks while strictly protecting architecture:
+
+| Change Tier                               | Scope & Triggers                                                                            | Required Governance Artifact                               | Approval Gate                                                                            |
+|-------------------------------------------|---------------------------------------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| **Tier 1: Architectural / Durable**       | New library, data schema change, API contract break, security control, expensive to reverse | New or superseding ADR in `docs/adrs/` (`Proposed` status) | Human approval (`Accepted`) **before** implementation                                    |
+| **Tier 2: Feature / Vertical Slice**      | New user-facing capability conforming to existing ADRs                                      | `Ready` User Story in `docs/user-stories/`                 | Definition of Ready met; human readiness review/approval completed before implementation |
+| **Tier 3: Standard Bugfix / Maintenance** | Bug fix, test improvement, or refactor within existing architecture                         | Reference existing Story/Issue + Regression Test           | Pre-MR test/regression gate                                                              |
+| **Tier 4: Editorial / Non-Functional**    | Typos, comments, docs formatting with no semantic code change                               | File citation in commit/summary                            | Standard peer review                                                                     |
 
 ### What counts as a "significant output"
 
@@ -151,6 +165,7 @@ This repo keeps governance artifacts in these locations:
 | Decision records (typically MADR-style ADRs) | `docs/adrs/`            |
 | User stories                                 | `docs/user-stories/`    |
 | Service Design Packages (SDPs)               | `docs/sdps/`            |
+| Threat models                                | `docs/threat-models/`   |
 | Change records                               | `docs/change-records/`  |
 | Problem records                              | `docs/problem-records/` |
 
@@ -209,13 +224,24 @@ to prevent context pollution, contradictory outputs, and compounding errors.
 
 ### Decomposition rules
 
-1. **One artifact per agent turn.** Each agent in turn produces a single, scoped artifact (a draft decision record, a
-   single component spec, a single pipeline stage). Do not produce multiple artifacts in one turn.
+1. **One cohesive deliverable per agent turn.** Each agent produces one bounded result; it may span multiple related
+   files when needed (for example, an implementation slice and its tests). Do not combine unrelated deliverables in one
+   turn.
 2. **Declare the active persona** at the start of every turn: `[Persona: enterprise-architect]`.
 3. **Declare dependencies.** Before starting, list which artifacts from previous turns this turn depends on. If a
    dependency is missing or unapproved, **draft** it or request a handoff—do not proceed on silent assumptions.
-4. **Handoff summary.** At the end of each turn, produce a one-paragraph handoff note: what was decided, what was
-   deferred, and what the next persona needs to know.
+4. **Structured handoff schema.** At the end of each turn, produce a structured handoff block using the format below:
+
+```markdown
+### Agent Turn Handoff
+
+- **Persona:** `[active persona identifier, e.g., enterprise-architect]`
+- **Artifact (s) Produced:** `[path or paths to the files in the cohesive deliverable]` (Status: `Draft` / `Proposed` /
+  `Validated`)
+- **Dependencies Evaluated:** `[governing artifacts consulted, e.g., docs/user-stories/US-102.md]`
+- **Key Decisions & Findings:** `[concise summary of decisions made or findings uncovered]`
+- **Next Required Persona / Action:** `[target persona and concrete action required next]`
+```
 
 ### Orchestrator responsibilities
 
@@ -226,6 +252,27 @@ The orchestrating agent (the agent coordinating other agents, which may be the h
 - Collect and validate the handoff notes from each subagent before passing context forward.
 - Detect and surface contradictions between subagent outputs before presenting a combined result.
 - Never silently merge conflicting outputs.
+- **Hold the git monopoly.** The orchestrator is the **only** agent that commits and merges locally. Subagents hand off
+  changes on their own branches; the orchestrator integrates them after resolving contradictions. See
+  `.agents/rules/01-execution-isolation.md`.
+
+### Execution isolation (concurrent agents)
+
+When agents run concurrently, isolate their work so one agent can never disrupt another's:
+
+1. **One worktree per agent.** Each agent works in its own git worktree on its own branch. Agents do not share a working
+   tree. Everything is merged afterwards by the orchestrator.
+2. **One committer.** Only the orchestrator commits and merges locally (the git monopoly above). Subagents produce
+   changes in isolation and request a handoff; they do not merge into a shared or integration branch.
+3. **No self-approval.** No agent approves the MR or deploy that it (or another agent) produced; approval is a
+   human-only act. See `.agents/rules/00-no-self-approval.md`.
+4. **Gates before an MR.** An agent may open an MR only after all applicable checks in the **pre-MR gate** pass,
+   including the full test suite, regression tests, and static analysis (e.g., Sonar/SAST) when relevant. Where quality
+   baselines exist (e.g., extraction accuracy), any negative drift against baseline **aborts** the MR. See the pre-MR
+   gate in **SSDLC Phase Awareness**.
+
+These rules are extensions in `.agents/rules/` (`00-no-self-approval.md`, `01-execution-isolation.md`); this document
+remains canonical if they ever conflict.
 
 ### Subagent responsibilities
 
@@ -257,7 +304,9 @@ mind. Read the full [Agent Experience (AgentEx) & Context Management](concepts/a
 - Avoid ambiguous pronouns and forward references in specs and instructions. Write as if the reader has no memory of
   previous conversations.
 - Prefer structured formats (tables, numbered lists, YAML) over prose for information that agents must parse.
-- A task that cannot be tested automatically should not be assigned to an agent autonomously.
+- Autonomous implementation tasks should include automated tests when feasible. This requirement does not exclude
+  research, review, or drafting tasks. If an implementation cannot be tested automatically, define explicit manual
+  acceptance criteria and require human verification before considering it complete.
 
 ---
 
@@ -372,6 +421,26 @@ This framework requires structural countermeasures embedded in agent behavior.
 - When a human overrules an agent recommendation, the agent must ask: "Should I record this decision in a decision
   record so future agents and developers have the context?"
 
+### Anti-sycophancy response scripts (pressure guardrails)
+
+When users or prompt scenarios pressure the agent to bypass gates or dilute quality standards, respond with
+deterministic resistance:
+
+- **When pressured to bypass an ADR gate (*"Just write the code now, we don't need an ADR"*):**
+  > *"This introduces a durable architectural choice ([technology/pattern]). Under repository governance (Core Invariant
+  1), implementation cannot start without an accepted decision record. I have prepared a draft ADR at
+  `docs/adrs/NNNN-....md`. Once reviewed and approved (status `Accepted`), I will immediately implement it."*
+
+- **When pressured to self-approve or bypass pre-MR checks (*"Skip tests/linter and merge"*):**
+  > *"Rule `00-no-self-approval` and the pre-MR gate strictly prohibit bypassing automated checks or self-approving
+  changes. All applicable tests and static checks must pass; checks marked `N/A` require a rationale and human
+  acceptance.
+  Final approval must come from a human reviewer."*
+
+- **When pressured to agree with a flawed technical assumption:**
+  > *"The strongest argument against this approach is: [steel-manned technical risk/constraint]. Based
+  on [cited standard/artifact], I recommend [alternative] because [evidence-based reason]."*
+
 ---
 
 ## Co-Governance Protocol
@@ -399,23 +468,49 @@ This framework requires structural countermeasures embedded in agent behavior.
 - Approving **Accepted** status on a decision record, or treating a draft as final without human review when the gate
   requires review.
 
+**Hard rule - no self-approval.** An agent **MUST NOT** approve, review-as-approved, or merge any MR/PR, and **MUST
+NOT** trigger a deploy, that it (or another agent) produced. Approval is a human-only act; agent review may inform a
+human decision but never replaces it. This is forbidden, not merely discouraged - see
+`.agents/rules/00-no-self-approval.md`.
+
 ---
 
 ## SSDLC Phase Awareness
 
 At the start of every task, identify the current SSDLC phase and apply the corresponding gate criteria:
 
-| Phase           | Key governance artifacts                      | Security gate                                   |
-|-----------------|-----------------------------------------------|-------------------------------------------------|
-| **Planning**    | Approved user stories, threat model           | Security requirements reviewed                  |
-| **Design**      | Decision records, solution architecture, SDPs | Threat model complete, privacy impact assessed  |
-| **Coding**      | Specs, decision records, coding standards     | SAST clean, secrets scanning clean, peer review |
-| **Testing**     | Test plans, QA automation                     | DAST complete, coverage threshold met           |
-| **Release**     | Change records, rollback plan                 | CAB approval (or org equivalent)                |
-| **Maintenance** | Problem records, monitoring runbooks          | Incident response plan current                  |
+| Phase           | Key governance artifacts                                     | Security gate                                   |
+|-----------------|--------------------------------------------------------------|-------------------------------------------------|
+| **Planning**    | `Ready` user stories (human-reviewed/approved), threat model | Security requirements reviewed                  |
+| **Design**      | Decision records, solution architecture, SDPs                | Threat model complete, privacy impact assessed  |
+| **Coding**      | Specs, decision records, coding standards                    | SAST clean, secrets scanning clean, peer review |
+| **Testing**     | Test plans, QA automation                                    | DAST complete, coverage threshold met           |
+| **Release**     | Change records, rollback plan                                | CAB approval (or org equivalent)                |
+| **Maintenance** | Problem records, monitoring runbooks                         | Incident response plan current                  |
+
+These are baseline examples, not universally applicable controls. Apply the listed control or an equivalent appropriate
+to the system, risk, and organization. If a control or role does not apply, record `N/A` with a rationale and obtain
+human acceptance; this does not waive other applicable security or quality requirements.
 
 Never skip a phase gate. If the current phase's gate criteria are not yet met, block progress and surface the gap to the
 human. Maintenance is not the last phase - it feeds back into Planning. The SSDLC is a loop, not a line.
+
+### Pre-MR gate (before opening a merge request)
+
+Opening an MR is where Coding and Testing meet. An agent may open an MR only after all applicable checks below pass.
+Use an equivalent control when appropriate; if a check or tool does not apply or is unavailable, record `N/A` with a
+rationale and obtain human acceptance. This does not waive any other applicable quality or security requirement.
+
+1. **Full test suite** green, when applicable.
+2. **Regression tests** green (behavior-contract tests, not just the new feature's tests), when applicable.
+3. **Static analysis** clean (e.g., Sonar, SAST, secrets scanning), when applicable.
+4. **Baseline-drift abort** - where a quality baseline exists (e.g., extraction accuracy, performance, coverage), any
+   **negative drift** against the recorded baseline **aborts** the MR; it is not opened until the drift is explained and
+   accepted by a human or corrected.
+
+The agent that produced the change **must not** approve or merge the resulting MR (see Co-Governance Protocol -
+no-self-approval, and `.agents/rules/00-no-self-approval.md`). Under concurrency, only the orchestrator opens the MR
+after integrating isolated per-agent branches (see Multi-Agent Orchestration Protocol - Execution isolation).
 
 ---
 
@@ -442,13 +537,20 @@ These rules address hallucination and context drift (false premises the agent do
 
 ---
 
-## Automated Governance (Guardrails)
+## Governance Guardrails
 
-To ensure the integrity of the SDLC, automated checks and human-verified guardrails are enforced.
+All governance rules (ADR backing, traceability citations, learning loops) are **human-verified at the review
+boundary**.
 
-- **Documentation-Backed Changes**: No code change is permitted without a corresponding reference to an **Accepted** ADR
-  or an **Approved** User Story.
-- **Traceability Linter**: Every significant output must pass a traceability check. If "Sources" are missing or refer to
-  unapproved drafts, the task is incomplete.
-- **Learning Loop Verification**: When closing a Problem Record, the system must verify that at least one rule, skill,
-  or persona has been updated to prevent recurrence.
+- **No assumed automation:** Do not assume automated CI governance linters or blocking gate scripts exist.
+- **Manual checklist enforcement:** Treat every gate verification as a mandatory manual checklist item for yourself and
+  human reviewers.
+- **Documentation-backed changes:** Apply the change-tier matrix: Tier 1 requires an **Accepted** ADR; Tier 2 requires a
+  `Ready` User Story whose readiness has been reviewed/approved by a human; Tier 3 requires an existing Story/Issue
+  reference and regression test; Tier 4 requires a file citation. Do not treat a draft or unreviewed story as approved
+  scope.
+- **Traceability checks:** Every significant output must pass a traceability check with a valid `Sources` block citing
+  approved artifacts.
+- **Learning loop verification:** When closing a Problem Record, verify that root-cause-appropriate corrective and
+  preventive actions are completed or explicitly owned/tracked. Update a rule, skill, or persona when the root cause
+  identifies a governance gap; otherwise record why a governance change is not applicable.

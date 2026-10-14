@@ -80,10 +80,10 @@ Use STRIDE (or another method) across assets, data flows, and trust boundaries. 
 
 Map mitigations to concrete controls and references:
 
-| Threat / Risk                    | Control (design or runtime)                  | Evidence / Reference                             |
-|----------------------------------|----------------------------------------------|--------------------------------------------------|
-| {Token theft via header leakage} | `SameSite=strict`, CSRF token, mTLS          | ADR `docs/adrs/NNNN-…`, SDP section, config path |
-| {PII at rest exposure}           | AES-256, KMS-managed keys, role-based access | SDP Security & privacy; runbook; KMS policy link |
+| Threat / Risk                                | Control (design or runtime)                                                                                | Evidence / Reference                                          |
+|----------------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| {Bearer-token disclosure via header leakage} | Prevent or redact `Authorization` headers in logs and telemetry; use short-lived, scoped, revocable tokens | ADR `docs/adrs/NNNN-…`, SDP section, logging/telemetry config |
+| {PII at rest exposure}                       | AES-256, KMS-managed keys, role-based access                                                               | SDP Security & privacy; runbook; KMS policy link              |
 
 ## Residual risk and acceptance
 
@@ -110,4 +110,5 @@ Map mitigations to concrete controls and references:
 - ADRs: `docs/adrs/…`
 - SDP: `docs/sdps/…`
 - Related user stories: `docs/user-stories/…`
+- Change records: `docs/change-records/…` (when implementing mitigations or affecting risk posture)
 - External standards: {e.g., NIST 800-53, ISO 27001 control IDs}

@@ -43,6 +43,8 @@
 
 - [ ] Decision record (s) in place if required: `docs/adrs/…`
 - [ ] Tests / dry-run completed: {…}
+- [ ] Rollback procedure validated / dry-run tested
+- [ ] Pre-change test suite passing cleanly
 
 ## Implementation plan
 
@@ -77,3 +79,4 @@
 - User stories: `docs/user-stories/…`
 - ADRs: `docs/adrs/…`
 - SDP: `docs/sdps/…`
+- Accepted threat model: `docs/threat-models/…` (when the change affects risk posture)
