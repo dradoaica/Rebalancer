@@ -8,10 +8,10 @@
 
     <ItemGroup>
         <PackageReference Include="Consul" Version="1.8.0"/>
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.10"/>
-        <PackageReference Include="RabbitMQ.Client" Version="7.2.1"/>
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.13"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.13"/>
+        <PackageReference Include="RabbitMQ.Client" Version="7.2.2"/>
     </ItemGroup>
 
 </Project>
