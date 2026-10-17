@@ -10,7 +10,8 @@ description: >
 
 ## Purpose
 
-Scans the codebase for deliberate shortcut annotations (`# shortcut: <ceiling>, <upgrade path>` or `# ponytail: ...`)
+Scans the codebase for deliberate shortcut annotations
+(`# shortcut: <ceiling>, <upgrade trigger> (risk: <low|med|high>, track: <US-…|PRB-…>)` or legacy `# ponytail: ...`)
 and compiles them into a structured, auditable technical debt ledger.
 
 ## Inputs required
@@ -33,17 +34,22 @@ and compiles them into a structured, auditable technical debt ledger.
     - If a custom marker is requested by the user, scan for that marker.
 2. **Filter and parse hits**:
     - Discard non-deferral occurrences (e.g., references to keyboard shortcuts).
-    - Parse each valid comment into: *File & Line*, *Simplified behavior*, *Ceiling limit*, *Upgrade trigger*.
+    - Parse each valid comment into: *File & Line*, *Simplified behavior*, *Ceiling limit*, *Upgrade trigger*, *Risk*,
+      *Tracking item*.
 3. **Analyze risk and rot**:
     - Identify comments missing an explicit upgrade trigger or ceiling, tagging them with `[no-trigger]` (high risk of
       silent rot).
+    - Identify comments missing a `track:` reference (or referencing a non-existent story/problem record), tagging them
+      with `[untracked]` (violates `.agents/AGENTS.md` → Technical debt governance).
 4. **Format structured ledger**:
     - Output rows grouped by file:
-      `<file>:<line>, <what was simplified>. ceiling: <limit>. upgrade: <trigger>.`
-    - Conclude with summary statistics: `<N> markers, <M> with no trigger.` (or `No shortcut debt. Clean ledger.`).
+      `<file>:<line>, <what was simplified>. ceiling: <limit>. upgrade: <trigger>. risk: <level>. track: <id>.`
+    - Conclude with summary statistics: `<N> markers, <M> with no trigger, <K> untracked.` (or
+      `No shortcut debt. Clean ledger.`).
 5. **Optional ledger persistence**:
-    - If explicitly requested by the user, output the ledger to a markdown file (e.g.,
-      `docs/problem-records/debt-ledger.md`).
+    - If explicitly requested by the user, draft a problem record from `docs/problem-records/problem-record-template.md`
+      at `docs/problem-records/PRB-YYYY-MM-DD-tech-debt-ledger.md` (status `Open`), with the ledger as evidence.
+      It stays a draft until a human reviews it (Rule 00).
 
 ## Outputs
 

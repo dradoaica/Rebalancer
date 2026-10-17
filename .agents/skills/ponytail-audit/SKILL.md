@@ -42,7 +42,9 @@ Identifies dormant bugs, security vulnerabilities, scalability limits, missing t
       replaceable by standard libraries.
 3. **Verify and rank findings**:
     - Ensure every reported item includes a concrete problem scenario and minimal fix.
-    - Respect annotated shortcuts (`# shortcut: ...`) unless current system requirements exceed their limit.
+    - Respect annotated shortcuts only if they carry a `track:` reference
+      (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and current system requirements do not exceed
+      their limit. Report shortcuts without `track:` as `Should fix` (undocumented debt).
     - Rank findings by severity: `Must fix`, `Should fix`, `Nice to have` (capped at 20 most impactful findings).
 4. **Render structured audit report**:
     - **What this repo does**: 2–3 sentences defining core functionality and assumed load.

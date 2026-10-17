@@ -50,8 +50,11 @@ implementations, and leaves clear traceability for shortcuts.
     - Inspect every caller of the touched function and fix the root cause once in shared code.
     - Preserve error handling and input validation at trust boundaries.
 4. **Annotate deliberate trade-offs and limits**:
-    - When choosing an intentional simplification or shortcut with a known ceiling, annotate it explicitly:
-      `# shortcut: <the limit>, <when to upgrade / trigger>` (or `# ponytail: ...`).
+    - When choosing an intentional simplification or shortcut with a known ceiling, annotate it explicitly (per
+      `.agents/AGENTS.md` → Technical debt governance):
+      `# shortcut: <the limit>, <upgrade trigger> (risk: <low|med|high>, track: <US-…|PRB-…>)`
+    - The `track:` item must exist (user story in `docs/user-stories/` or problem record in `docs/problem-records/`);
+      if it does not, draft it. A shortcut without a `track:` reference is undocumented debt and is not allowed.
 5. **Add proportional validation**:
     - For new non-trivial logic (branching, loops, parsers, security, financial calculations), write one focused test or
       assertion verifying behavior. Trivial changes require no extra test scaffolding.
@@ -67,7 +70,7 @@ implementations, and leaves clear traceability for shortcuts.
 
 - Minimal, functional code diff with no speculative generality.
 - Targeted unit/regression test for non-trivial logic.
-- Documented shortcut comments (`# shortcut: ...`) where ceilings exist.
+- Documented shortcut comments (`# shortcut: ... (risk: ..., track: ...)`) where ceilings exist.
 - Human handoff summary and `### Sources` block.
 
 ## Validation

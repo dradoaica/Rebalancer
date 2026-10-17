@@ -116,6 +116,9 @@ To prevent over-governance on everyday engineering tasks while strictly protecti
 | **Tier 3: Standard Bugfix / Maintenance** | Bug fix, test improvement, or refactor within existing architecture                         | Reference existing Story/Issue + Regression Test           | Pre-MR test/regression gate                                                              |
 | **Tier 4: Editorial / Non-Functional**    | Typos, comments, docs formatting with no semantic code change                               | File citation in commit/summary                            | Standard peer review                                                                     |
 
+Tier 1 contract changes (public API, exported interface, configuration schema) require an `Accepted` ADR **and**, at
+release, a change record in `docs/change-records/` with a migration path (see "Regression-awareness rules").
+
 ### What counts as a "significant output"
 
 Treat the following as significant (must be traceable):
@@ -357,8 +360,8 @@ breaking previously working code. This framework is explicitly designed to count
   This is not optional documentation - it is part of the definition of done.
 - Tests must cover the *contract* of a component (inputs → outputs, pre- / post-conditions), not just its current
   implementation. Tests that only verify the internal state are brittle and must be refactored.
-- No agent may silently change a public API, exported interface, or configuration schema. Any such change requires a
-  change record and a migration path.
+- No agent may silently change a public API, exported interface, or configuration schema. Any such change is Tier 1:
+  it requires an `Accepted` ADR before implementation, and a change record with a migration path at release.
 
 ### EvoScore thinking
 
@@ -531,7 +534,9 @@ These rules address hallucination and context drift (false premises the agent do
 - **Express uncertainty explicitly.** Use "I am not certain - please verify:" rather than producing confident but
   unverified output.
 - **No hallucinated APIs or dependencies.** Only reference libraries, APIs, and services that are already present in the
-  codebase or explicitly named by the human in this session.
+  codebase or explicitly named by the human in this session. Exception: new options may be proposed **only** inside a
+  `Proposed` ADR (e.g., "Considered Options"), each marked "unverified - please confirm"; nothing is implemented with
+  them until the ADR is `Accepted`.
 - **No gold-plating.** Implement only what the current approved spec requires. Do not add features, optimizations, or
   refactors that were not asked for.
 - **No silent assumption.** If a required input (spec, decision record, user story) is missing, **draft** the missing

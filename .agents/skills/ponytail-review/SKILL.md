@@ -44,8 +44,10 @@ performance under scale, regression testing, and code bloat, providing actionabl
     - **Lean (YAGNI):** Dead code, redundant abstractions, unnecessary dependencies, duplicate helpers.
 3. **Verify findings against concrete scenarios**:
     - Ensure every finding describes a concrete, reproducible failure condition ("Input X leads to failure Y").
-    - Confirm shortcut comments (`# shortcut: ...`) are treated as recorded decisions unless current load violates their
-      ceiling.
+    - Treat shortcut comments as recorded decisions **only** if they carry a `track:` reference
+      (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and current load does not violate their
+      ceiling. Report shortcuts without `track:` as `Should fix` (undocumented debt, `.agents/AGENTS.md` → Technical
+      debt governance).
     - Propose the minimal fix that deletes or simplifies code rather than adding wrappers.
 4. **Generate structured output**:
     - **What this change does**: 2–3 plain English summary sentences.

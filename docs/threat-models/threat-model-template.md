@@ -38,7 +38,7 @@ Describe key data flows using a diagram (link) or structured steps:
 1. {Actor/System A} → {Interface} → {System B} - {what data and purpose}
 2. {…}
 
-If using a diagram, store it under `docs/diagrams/` and link it here.
+If using a diagram, store it next to this threat model (in `docs/threat-models/`) and link it here.
 
 ## Threat analysis (STRIDE)
 
