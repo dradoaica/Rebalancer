@@ -28,6 +28,13 @@ bindings, model selection).
 | `.github/copilot-instructions.md`      | Must defer to this file; may add VS Code / Copilot-specific tool config |
 | `.claude/CLAUDE.md`                    | Must defer to this file; may add Claude-specific tool bindings          |
 | `.cursor/rules/co-governed-a-sdlc.mdc` | Adapter (`alwaysApply`); defers here; Cursor-only extensions allowed    |
+| `.windsurfrules`                       | Windsurf Cascade adapter; must defer to this file                       |
+| `.clinerules`                          | Cline & Roo Code adapter; must defer to this file                       |
+| `.junie/guidelines.md`                 | JetBrains Junie / AI Assistant adapter; must defer to this file         |
+| `.amazonq/rules/project-rules.md`      | Amazon Q Developer adapter; must defer to this file                     |
+| `CONVENTIONS.md`                       | Aider / CLI agent conventions adapter; must defer to this file          |
+| `.cody/instructions.md`                | Sourcegraph Cody adapter; must defer to this file                       |
+| `.zed/rules.md`                        | Zed AI assistant adapter; must defer to this file                       |
 | `.openai/instructions.md`              | Must defer to this file; may add OpenAI-specific model config           |
 | `.ai/instructions.md`                  | Adapter entry point; must defer to this file                            |
 | `.agent/instructions.md`               | Adapter entry point; must defer to this file                            |

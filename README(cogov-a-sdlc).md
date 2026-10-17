@@ -11,8 +11,10 @@ The **single canonical entrypoint** for AI agents and humans using agents in thi
 
 - `.agents/AGENTS.md`
 
-If you are configuring a tool/vendor (Copilot, Claude, OpenAI, Gemini, Codex, OpenCode, etc.), use its adapter file
-(e.g., `.github/copilot-instructions.md`, root `AGENTS.md`, or `GEMINI.md`) which defers to `.agents/AGENTS.md`.
+If you are configuring a tool/vendor (Copilot, Claude, OpenAI, Gemini, Codex, OpenCode, Windsurf, Cline, JetBrains,
+Amazon Q, Cody, Aider, etc.), use its adapter file (e.g., `.github/copilot-instructions.md`, `.windsurfrules`,
+`.clinerules`, `.junie/guidelines.md`, `.amazonq/rules/project-rules.md`, root `AGENTS.md`, or `GEMINI.md`) which defers
+to `.agents/AGENTS.md`.
 
 Use the `docs/initial-product-specs/README.md` to begin.
 
@@ -54,6 +56,7 @@ Git records submodules in **`.gitmodules`** at the repository root. That file is
 
 Add personas, rules, skills, commands, tools, and similar assets from community lists, for example:
 
+- [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)
 - [github/awesome-copilot](https://github.com/github/awesome-copilot)
 - [affaan-m/ECC](https://github.com/affaan-m/ECC)
 - [mattpocock/skills](https://github.com/mattpocock/skills)
