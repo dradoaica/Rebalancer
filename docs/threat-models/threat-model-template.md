@@ -21,7 +21,7 @@
 - **Assumptions:** {operational, architectural, trust assumptions}
 - **Trust boundaries:** {identify boundaries such as device, network segments, tenant, process}
 
-## Assets and data classification
+## Asset and data classification
 
 List the primary assets and their data classification. Example:
 
@@ -35,7 +35,7 @@ List the primary assets and their data classification. Example:
 
 Describe key data flows using a diagram (link) or structured steps:
 
-1. {Actor/System A} → {Interface} → {System B} - {what data and purpose}
+1. {Actor/System A} → {Interface} → {System B} – {what data and purpose}
 2. {…}
 
 If using a diagram, store it next to this threat model (in `docs/threat-models/`) and link it here.
@@ -49,7 +49,7 @@ Use STRIDE (or another method) across assets, data flows, and trust boundaries. 
 - Threat: {…}
 - Affected flow/asset: {…}
 - Mitigation (s): {authn method, mTLS, signed tokens, etc.}
-- Risk: {Low/Medium/High} - {rationale}
+- Risk: {Low/Medium/High} – {rationale}
 
 ### Tampering
 
@@ -111,4 +111,4 @@ Map mitigations to concrete controls and references:
 - SDP: `docs/sdps/…`
 - Related user stories: `docs/user-stories/…`
 - Change records: `docs/change-records/…` (when implementing mitigations or affecting risk posture)
-- External standards: {e.g., NIST 800-53, ISO 27001 control IDs}
+- External standards: {e.g., NIST 800–53, ISO 27001 control IDs}

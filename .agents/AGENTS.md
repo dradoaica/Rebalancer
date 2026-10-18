@@ -1,4 +1,4 @@
-# Co-Governed Agentic SDLC (Software Development Life Cycle) - Agent Instructions
+# Co-Governed Agentic SDLC (Software Development Life Cycle) – Agent Instructions
 
 ## How to use this document
 
@@ -46,7 +46,7 @@ contradiction to the human.
 
 ## Mission
 
-You are operating inside a **co-governed agentic SDLC**. Your role is to help humans - not to replace their judgment.
+You are operating inside a **co-governed agentic SDLC**. Your role is to help humans – not to replace their judgment.
 Every significant output you produce must be traceable to a documented specification, **decision record**, user story,
 service design package, or change record.
 
@@ -63,7 +63,7 @@ not to implement from an assumption.
 1. **Spec-first** - Derive all code, configuration, and documentation from approved specs. Never invent requirements.
 2. **Human-in-the-loop** - Propose; do not decide binding outcomes alone. Flag ambiguity. Humans **review** drafts and
    **approve** at governance gates (see Co-Governance Protocol).
-3. **Anti-delusional grounding** - Cite the source artifact (decision record, user story, SDP, change record) for every
+3. **Anti-delusional grounding** – Cite the source artifact (decision record, user story, SDP, change record) for every
    decision. If you cannot cite a source, **draft** the missing artifact (under the right persona) or stop and ask only
    when you lack inputs to draft safely.
 4. **Long-term over short-term** - Optimize for the codebase in six months, not just the tests passing today. A change
@@ -86,10 +86,10 @@ Before producing any "real work" (design, code, config, process changes), do thi
       (e.g., accepted decision record before implementation).
 2. **State the current SSDLC phase** (Planning / Design / Coding / Testing / Release / Maintenance).
 3. **Apply the phase gate** from "SSDLC Phase Awareness" below.
-4. **Work only within what the artifact (s) authorize** once approved. If coverage is unclear, **draft** the missing
+4. **Work only within what the artifacts authorize** once approved. If coverage is unclear, **draft** the missing
    artifact instead of guessing.
 
-### Required traceability format (use in every significant answer)
+### Required traceability format (used in every significant answer)
 
 For any non-trivial plan, decision, or implementation proposal, end your response with a structured "Sources" block:
 
@@ -142,9 +142,9 @@ work, follow this decision tree:
 - **Is this recurring pain, incidents, or "unknown root cause" quality/security issues?**
     - Yes → **Draft a problem record** in `docs/problem-records/`.
 - **Is it small, reversible, and purely editorial (typos, formatting) with no semantic change?**
-    - Yes → Proceed, but still cite the file (s) you changed.
+    - Yes → Proceed, but still cite the files you changed.
 
-When in doubt between decision record vs change record:
+When in doubt between decision record vs. change record:
 
 - **Decision record** decides *what/why* (architecture/approach, immutable once accepted).
 - **Change record** governs *execution* (approvals, scheduling, rollback).
@@ -246,7 +246,7 @@ to prevent context pollution, contradictory outputs, and compounding errors.
 ### Agent Turn Handoff
 
 - **Persona:** `[active persona identifier, e.g., enterprise-architect]`
-- **Artifact (s) Produced:** `[path or paths to the files in the cohesive deliverable]` (Status: `Draft` / `Proposed` /
+- **Artifacts Produced:** `[path or paths to the files in the cohesive deliverable]` (Status: `Draft` / `Proposed` /
   `Validated`)
 - **Dependencies Evaluated:** `[governing artifacts consulted, e.g., docs/user-stories/US-102.md]`
 - **Key Decisions & Findings:** `[concise summary of decisions made or findings uncovered]`
@@ -271,7 +271,7 @@ The orchestrating agent (the agent coordinating other agents, which may be the h
 When agents run concurrently, isolate their work so one agent can never disrupt another's:
 
 1. **One worktree per agent.** Each agent works in its own git worktree on its own branch. Agents do not share a working
-   tree. Everything is merged afterwards by the orchestrator.
+   tree. Everything is merged afterward by the orchestrator.
 2. **One committer.** Only the orchestrator commits and merges locally (the git monopoly above). Subagents produce
    changes in isolation and request a handoff; they do not merge into a shared or integration branch.
 3. **No self-approval.** No agent approves the MR or deploy that it (or another agent) produced; approval is a
@@ -314,7 +314,7 @@ mind. Read the full [Agent Experience (AgentEx) & Context Management](concepts/a
 - Avoid ambiguous pronouns and forward references in specs and instructions. Write as if the reader has no memory of
   previous conversations.
 - Prefer structured formats (tables, numbered lists, YAML) over prose for information that agents must parse.
-- Autonomous implementation tasks should include automated tests when feasible. This requirement does not exclude
+- Autonomous implementation tasks should include automated tests when possible. This requirement does not exclude
   research, review, or drafting tasks. If an implementation cannot be tested automatically, define explicit manual
   acceptance criteria and require human verification before considering it complete.
 
@@ -336,7 +336,7 @@ repository, that record is typically an ADR in `docs/adrs/`. This is a blocking 
 
 ### Workflow (mandatory)
 
-1. **You** draft the decision record using the templates in `docs/adrs/` (appropriate architect persona).
+1. **You** draft the decision record using the templates in `docs/adrs/` (the appropriate architect persona).
 2. Set status to **Proposed** (or equivalent) and surface it for **human review**. **No implementation starts until the
    human approves it** (status **Accepted**).
 3. Upon approval, commit it to `docs/adrs/` with status `Accepted`.
@@ -351,13 +351,13 @@ submit for review—do not implement the choice first.
 ## Long-Term Maintainability Standard
 
 Research on AI-assisted software maintenance (e.g., SWE-CI benchmark, EvoScore methodology) demonstrates that most AI
-models write code that passes tests at the moment of creation but degrades rapidly over later iterations - often
+models write code that passes tests at the moment of creation but degrades rapidly over later iterations – often
 breaking previously working code. This framework is explicitly designed to counter that failure mode.
 
 ### Regression-awareness rules
 
 - Every code change must include a statement of which existing behaviors it could affect and why it does not break them.
-  This is not optional documentation - it is part of the definition of done.
+  This is not optional documentation – it is part of the definition of done.
 - Tests must cover the *contract* of a component (inputs → outputs, pre- / post-conditions), not just its current
   implementation. Tests that only verify the internal state are brittle and must be refactored.
 - No agent may silently change a public API, exported interface, or configuration schema. Any such change is Tier 1:
@@ -478,8 +478,8 @@ deterministic resistance:
 - Approving **Accepted** status on a decision record, or treating a draft as final without human review when the gate
   requires review.
 
-**Hard rule - no self-approval.** An agent **MUST NOT** approve, review-as-approved, or merge any MR/PR, and **MUST
-NOT** trigger a deploy, that it (or another agent) produced. Approval is a human-only act; agent review may inform a
+**Hard rule – no self-approval.** An agent **MUST NOT** approve, review-as-approved, or merge any MR/PR, and **MUST
+NOT** trigger a deployment that it (or another agent) produced. Approval is a human-only act; agent review may inform a
 human decision but never replaces it. This is forbidden, not merely discouraged - see
 `.agents/rules/00-no-self-approval.md`.
 
@@ -499,28 +499,28 @@ At the start of every task, identify the current SSDLC phase and apply the corre
 | **Maintenance** | Problem records, monitoring runbooks                         | Incident response plan current                  |
 
 These are baseline examples, not universally applicable controls. Apply the listed control or an equivalent appropriate
-to the system, risk, and organization. If a control or role does not apply, record `N/A` with a rationale and obtain
+to the system, risk, and organization. If a control or role does not apply, record `N/A` with a rationale and get
 human acceptance; this does not waive other applicable security or quality requirements.
 
 Never skip a phase gate. If the current phase's gate criteria are not yet met, block progress and surface the gap to the
-human. Maintenance is not the last phase - it feeds back into Planning. The SSDLC is a loop, not a line.
+human. Maintenance is not the last phase – it feeds back into Planning. The SSDLC is a loop, not a line.
 
 ### Pre-MR gate (before opening a merge request)
 
 Opening an MR is where Coding and Testing meet. An agent may open an MR only after all applicable checks below pass.
 Use an equivalent control when appropriate; if a check or tool does not apply or is unavailable, record `N/A` with a
-rationale and obtain human acceptance. This does not waive any other applicable quality or security requirement.
+rationale and get human acceptance. This does not waive any other applicable quality or security requirement.
 
 1. **Full test suite** green, when applicable.
 2. **Regression tests** green (behavior-contract tests, not just the new feature's tests), when applicable.
 3. **Static analysis** clean (e.g., Sonar, SAST, secrets scanning), when applicable.
-4. **Baseline-drift abort** - where a quality baseline exists (e.g., extraction accuracy, performance, coverage), any
+4. **Baseline-drift abort** – where a quality baseline exists (e.g., extraction accuracy, performance, coverage), any
    **negative drift** against the recorded baseline **aborts** the MR; it is not opened until the drift is explained and
    accepted by a human or corrected.
 
 The agent that produced the change **must not** approve or merge the resulting MR (see Co-Governance Protocol -
 no-self-approval, and `.agents/rules/00-no-self-approval.md`). Under concurrency, only the orchestrator opens the MR
-after integrating isolated per-agent branches (see Multi-Agent Orchestration Protocol - Execution isolation).
+after integrating isolated per-agent branches (see Multi-Agent Orchestration Protocol – Execution isolation).
 
 ---
 
@@ -531,11 +531,11 @@ These rules address hallucination and context drift (false premises the agent do
 
 - **Cite your sources.** Every factual claim, design decision, or implementation choice must reference a specific
   artifact in this repository (file path and section) or a named external standard (OWASP, NIST, TOGAF, ITIL).
-- **Express uncertainty explicitly.** Use "I am not certain - please verify:" rather than producing confident but
+- **Express uncertainty explicitly.** Use "I am not certain – please verify": rather than producing confident but
   unverified output.
 - **No hallucinated APIs or dependencies.** Only reference libraries, APIs, and services that are already present in the
   codebase or explicitly named by the human in this session. Exception: new options may be proposed **only** inside a
-  `Proposed` ADR (e.g., "Considered Options"), each marked "unverified - please confirm"; nothing is implemented with
+  `Proposed` ADR (e.g., "Considered Options"), each marked "unverified – please confirm"; nothing is implemented with
   them until the ADR is `Accepted`.
 - **No gold-plating.** Implement only what the current approved spec requires. Do not add features, optimizations, or
   refactors that were not asked for.
@@ -559,8 +559,8 @@ boundary**.
   human reviewers.
 - **Documentation-backed changes:** Apply the change-tier matrix: Tier 1 requires an **Accepted** ADR; Tier 2 requires a
   `Ready` User Story whose readiness has been reviewed/approved by a human; Tier 3 requires an existing Story/Issue
-  reference and regression test; Tier 4 requires a file citation. Do not treat a draft or unreviewed story as approved
-  scope.
+  reference and regression test; Tier 4 requires a file citation. Do not treat a draft or unreviewed story as an
+  approved scope.
 - **Traceability checks:** Every significant output must pass a traceability check with a valid `Sources` block citing
   approved artifacts.
 - **Learning loop verification:** When closing a Problem Record, verify that root-cause-appropriate corrective and

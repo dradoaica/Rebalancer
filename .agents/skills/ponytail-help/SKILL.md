@@ -23,7 +23,7 @@ and governance relationships.
 ## Procedure (mandatory)
 
 1. **Summarize operational levels**:
-    - `lite`: Build requested scope, present minimal option for human decision.
+    - `lite`: Build requested scope, present a minimal option for human decision.
     - `full` (Default): Minimal complete diff, standard libraries, necessary tests, clear handoff notes.
     - `ultra`: Challenge requirement assumptions before writing code.
 2. **List available skills and triggers**:

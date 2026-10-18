@@ -36,19 +36,19 @@
 
 ## Security & compliance
 
-{Threats, data classification, PII, authz—or "None / N/A" with rationale.}
+{Threats, data classification, PII, AuthZ—or "None / N/A" with rationale.}
 
 ## Definition of ready
 
 - [ ] Governing ADR referenced (or marked "N/A - non-architectural")
 - [ ] Acceptance criteria are testable, unambiguous, and numbered
 - [ ] Security & compliance considerations addressed
-- [ ] Dependencies and non-goals explicitly identified
+- [ ] Dependencies and non-goals are explicitly identified
 
 ## Definition of done
 
 - [ ] Acceptance criteria met
-- [ ] Tests / checks agreed with team
+- [ ] Tests / checks agreed with a team
 - [ ] Docs / runbooks updated if needed
 - [ ] Traceable to change record (if released) - `docs/change-records/…`
 

@@ -7,11 +7,11 @@ consulted: { list everyone whose opinions are sought (typically subject-matter e
 informed: { list everyone who is kept up-to-date on progress; and with whom there is a one-way communication }
 ---
 
-# {short title, representative of solved problem and found solution}
+# {short title, representative of a solved problem and found solution}
 
 ## Context and Problem Statement
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question. Consider adding links to collaboration boards or issue management systems. Make the scope of the decision explicit, for instance, by calling out or pointing at structural architecture elements (components, connectors, ...)}
+{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in the form of a question. Consider adding links to collaboration boards or issue management systems. Make the scope of the decision explicit, for instance, by calling out or pointing at structural architecture elements (components, connectors, ...)}
 
 <!-- This is an optional element. Feel free to remove. -->
 
@@ -30,7 +30,7 @@ informed: { list everyone who is kept up-to-date on progress; and with whom ther
 
 ## Decision Outcome
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+Chosen option: "{title of option 1}", because {justification. E.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
 
 <!-- This is an optional element. Feel free to remove. -->
 
@@ -64,7 +64,7 @@ Chosen option: "{title of option 1}", because {justification. e.g., only option,
 * Bad, because {argument d}
 * … <!-- numbers of pros and cons can vary -->
 
-### {title of other option}
+### {title of another option}
 
 {example | description | pointer to more information | …}
 

@@ -19,9 +19,9 @@ Recommended patterns (pick one and stay consistent):
 - **Ready**: Definition of Ready met; can be pulled into an iteration.
 - **In progress**: being implemented.
 - **Done**: acceptance criteria met; release/change record linked if applicable.
-- **Cancelled**: intentionally not doing; keep rationale.
+- **Canceled**: intentionally not doing; keep rationale.
 
-## Review expectations (human vs agent)
+## Review expectations (human vs. agent)
 
 - Agents (typically persona `agile-user-story-writer`) **draft** stories using the template.
 - Humans **review/approve** story readiness before treating it as committed scope (org-specific gate).

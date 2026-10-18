@@ -10,7 +10,7 @@ must surface the conflict and refuse to silently violate the rule.
     - **Scope** (what it applies to)
     - **Rule statements** ("MUST / MUST NOT / SHOULD")
     - **Rationale** (short)
-    - **Examples** (1 good / 1 bad)
+    - **Examples** (one good / one bad)
     - **Enforcement** (how to detect/confirm)
 
 ## Precedence

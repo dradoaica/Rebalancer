@@ -1,6 +1,6 @@
 # Commands (project task shortcuts)
 
-Commands are **repeatable, strictly-scoped task specs** that an agent can execute without guessing.
+Commands are **repeatable, strictly scoped task specs** that an agent can execute without guessing.
 
 ## Must-haves
 

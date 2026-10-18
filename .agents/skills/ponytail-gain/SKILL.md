@@ -28,7 +28,7 @@ on published agentic benchmarks.
 1. **Verify invocation parameters**:
     - Confirm read-only display intent without modifying execution mode.
 2. **Render standardized benchmark scoreboard**:
-    - Display benchmark metrics from published dataset (Opus 5.5, 39 tasks × 5 runs).
+    - Display benchmark metrics from the published dataset (Opus 5.5, 39 tasks × 5 runs).
     - Present ASCII comparative bars representing code volume, tokens, cost, and execution duration:
       ```
         ponytail gain           benchmark · 39 tasks × 5 runs · Opus 5.5

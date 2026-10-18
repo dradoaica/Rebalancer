@@ -14,7 +14,7 @@ is filled with irrelevant, redundant, or outdated information, leading to degrad
    the task.
 2. **Summarization**: Use intermediate agents to summarize long discussions or logs before passing them to the primary
    worker agent.
-3. **Hierarchy of Information**: Provide high-level structure first, and only drill down into details upon request or
+3. **Hierarchy of Information**: Provide high-level structure first and only drill down into details upon request or
    when specifically needed for the current step.
 4. **State Persistence**: Agents should maintain a concise `status` or `context` file for long-running tasks to track
    progress across sessions without re-reading the entire history.

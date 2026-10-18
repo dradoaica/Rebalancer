@@ -20,7 +20,7 @@ Recommended patterns:
 - **Accepted**: approved baseline for service design and operational commitments.
 - **Retired**: no longer applicable (service replaced/decommissioned).
 
-## Review expectations (human vs agent)
+## Review expectations (human vs. agent)
 
 - Agents (typically solutions/systems architects) **draft** SDPs.
 - Humans **review/approve** before treating SLAs/SLOs, security/privacy commitments, and operational support models as binding.

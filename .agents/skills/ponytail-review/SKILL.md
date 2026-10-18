@@ -33,7 +33,7 @@ performance under scale, regression testing, and code bloat, providing actionabl
     - Identify the target changes (uncommitted diff, branch, PR).
     - Read surrounding code: callers of modified functions, callees, test suites, and documentation.
     - Trace data flow end-to-end (inputs, persistence, outputs).
-    - Determine assumed load/scale based on repository configuration and docs.
+    - Determine the assumed load / scale based on repository configuration and docs.
 2. **Evaluate against quality dimensions**:
     - **Bug:** Wrong output, unhandled edge cases (empty collections, zero, bounds, time zones), broken callers.
     - **Risk:** Security vulnerabilities (injection, auth bypass, secret leaks) and data loss risks (unhandled
@@ -45,7 +45,7 @@ performance under scale, regression testing, and code bloat, providing actionabl
 3. **Verify findings against concrete scenarios**:
     - Ensure every finding describes a concrete, reproducible failure condition ("Input X leads to failure Y").
     - Treat shortcut comments as recorded decisions **only** if they carry a `track:` reference
-      (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and current load does not violate their
+      (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and the current load does not violate their
       ceiling. Report shortcuts without `track:` as `Should fix` (undocumented debt, `.agents/AGENTS.md` → Technical
       debt governance).
     - Propose the minimal fix that deletes or simplifies code rather than adding wrappers.
@@ -55,7 +55,7 @@ performance under scale, regression testing, and code bloat, providing actionabl
         - `Must fix`: Bugs, security vulnerabilities, data loss, scale breakages.
         - `Should fix`: Risky code without tests, performance regressions, unnecessary code.
         - `Nice to have`: Micro-optimizations, cleaner syntax.
-    - Number findings continuously across groups with 4-part structure: *What this is*, *Problem*, *Fix*, *If we skip
+    - Number findings continuously across groups with a 4-part structure: *What this is*, *Problem*, *Fix*, *If we skip
       it*.
     - **Verdict**: `Verdict: Ship.` or `Verdict: fix <numbers> first.`
     - **Metrics**: `Lean: -<N> lines possible.` (if applicable) and `Not checked:` for unreviewed areas.

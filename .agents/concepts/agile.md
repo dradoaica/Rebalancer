@@ -1,7 +1,7 @@
 # Agile (in co-governed agentic SDLC)
 
 Agile here means **small batches of value**, **fast feedback**, and **explicit priorities**—while staying aligned with
-SSDLC gates, decision records, and human approval. Agents assist; they do not replace product ownership or governance.
+SSDLC gates, decision records, and human approval. Agents help; they do not replace product ownership or governance.
 
 ## User stories
 
@@ -11,7 +11,7 @@ User stories are maintained in [docs/user-stories](../../docs/user-stories).
   **review and approve** before work is treated as committed backlog scope where your process requires it.
 - Use the template [`user-story-template.md`](../../docs/user-stories/user-story-template.md) for new stories.
 - Stories **must** be traceable: link to decision records, SDPs, or change records when the work implies them.
-- Prefer **vertical slices** (end-to-end value) over horizontal "layer only" tasks unless a decision record authorizes a
+- Prefer **vertical slices** (end-to-end value) over horizontal "layer-only" tasks unless a decision record authorizes a
   platform change.
 
 ## Backlog and flow
@@ -22,7 +22,7 @@ User stories are maintained in [docs/user-stories](../../docs/user-stories).
 - **Iteration (sprint) backlog:** subset the team commits to for the iteration; scope changes go through the product
   owner and governance (e.g., change record if production risk).
 
-Naming and tooling (Jira, GitHub Projects, etc.) are **team-specific**; this repo standardizes **where markdown
+Naming and tooling (Jira, GitHub Projects, etc.) are **team-specific**; this repo standardizes **where Markdown
 artifacts live** under `docs/user-stories/`.
 
 ## Ceremonies (typical)
@@ -36,16 +36,16 @@ Adapt names and cadence to your organization; keep the **intent**:
 | Review / demo      | Validate outcomes against acceptance criteria          |
 | Retrospective      | Improve process; feed into problem records if systemic |
 
-## Definition of Ready (DoR) - minimum before "ready to build"
+## Definition of Ready (DoR) – minimum before "ready to build"
 
-- Story has clear **As a / I want / So that** (or equivalent) and **acceptance criteria**.
-- Dependencies and **SSDLC phase** are identified (Planning vs Design vs Coding, etc.).
+- Story as clear **As a / I want / So that** (or equivalent) and **acceptance criteria**.
+- Dependencies and **SSDLC phase** are identified (Planning vs. Design vs. Coding, etc.).
 - If the work implies a **durable technical choice**, a **decision record** exists or is in flight.
 - Security/privacy notes are addressed or explicitly "N/A" with rationale.
 
-## Definition of Done (DoD) - minimum before "done"
+## Definition of Done (DoD) – minimum before "done"
 
-- Acceptance criteria met; tests/checks agreed with the team are satisfied.
+- Acceptance criteria are met; tests/checks agreed with the team are satisfied.
 - No silent changes to public APIs, schemas, or config without the artifacts required by `.agents/AGENTS.md`.
 - Traceability preserved: story links to **change record** (or equivalent) when released to shared environments.
 

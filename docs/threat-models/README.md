@@ -24,7 +24,7 @@ Recommended patterns (pick one and stay consistent):
 - **Accepted**: reviewed/approved; is the current baseline for the scoped system.
 - **Superseded**: replaced by a newer threat model; keep for traceability and diffing.
 
-## Review expectations (human vs agent)
+## Review expectations (human vs. agent)
 
 - Agents (typically personas `systems-architect`, `devsecops-engineer`) draft threat models using the template.
 - Humans with security/architecture responsibility review and approve before high‑risk changes proceed.
@@ -40,8 +40,8 @@ Recommended patterns (pick one and stay consistent):
 ## Contents checklist (must-haves)
 
 - Clear scope and boundaries (system context, trust boundaries)
-- Assets and data classification
-- Data flow diagram (s) or structured flows
+- Asset and data classification
+- Data flow diagrams or structured flows
 - Threat analysis (e.g., STRIDE), with risks rated and mapped to mitigations/controls
 - Residual risk and acceptance rationale
 - Approvals (roles as per your organization)

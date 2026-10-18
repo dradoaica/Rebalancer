@@ -6,14 +6,14 @@ authorizes it in the current session.
 
 ## Must-haves
 
-- A single allow-list of tools agents may use
+- A single allowlist of tools agents may use
 - Per-tool constraints:
     - allowed operations
     - forbidden operations
-    - required human approvals
+    - it required human approval
     - logging/audit expectations (what to report back)
-- Environment-specific restrictions (local-only vs remote)
+- Environment-specific restrictions (local-only vs. remote)
 
 ## Files in this folder
 
-- `allowed-tools.md`: the allow-list and constraints (authoritative)
+- `allowed-tools.md`: the allowlist and constraints (authoritative)

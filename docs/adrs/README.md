@@ -22,9 +22,9 @@ The MADR documentation is available at <https://adr.github.io/madr/> while gener
 - **Deprecated**: no longer applies, with no direct replacement.
 - **Superseded by NNNN**: replaced by a newer ADR; link to it.
 
-## Review expectations (human vs agent)
+## Review expectations (human vs. agent)
 
-- Agents **draft** ADRs with status `Proposed`, and may list unverified options marked "unverified - please confirm".
+- Agents **draft** ADRs with status `Proposed`, and may list unverified options marked "unverified – please confirm".
 - Only a **human** sets `Accepted`, `Rejected`, `Deprecated`, or `Superseded` (`.agents/rules/00-no-self-approval.md`).
 
 ## Index (this repository)

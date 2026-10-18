@@ -39,7 +39,7 @@ include:
   When developers design an application, they should assess potential security risks and ensure that the design
   mitigates them.
 
-- **Coding**  
+- **Coding*,*  
   As they write code, developers should adhere to best practices for secure coding. They should also consider running
   security tests on newly written code as a way of catching some security issues early.
 
@@ -50,7 +50,7 @@ include:
 
 - **Maintenance**  
   Once the SDLC reaches the maintenance stage, meaning that the application has been deployed, security testing and
-  monitoring should continue to discover risks that may not have been evident from testing in a dev/test environment.
+  monitoring should continue to discover risks that may not have been clear from testing in a dev/test environment.
 
 ---
 

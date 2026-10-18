@@ -1,4 +1,4 @@
-# Allowed tools (authoritative allow-list)
+# Allowed tools (authoritative allowlist)
 
 ## Scope
 
@@ -29,7 +29,7 @@ Constraints:
 
 - **Read-only diagnostics** (allowed): tests, lint, format check, build analysis, `git status`, `git diff`, dependency
   tree inspection.
-- **Side-effect commands** (requires explicit human approval): deploy, publish, push to shared remotes, infrastructure
+- **Side effect commands** (requires explicit human approval): deploy, publish, push to shared remotes, infrastructure
   changes, secret rotation, anything affecting non-local systems.
 
 Constraints:

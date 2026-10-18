@@ -41,7 +41,7 @@
 
 ## Preconditions
 
-- [ ] Decision record (s) in place if required: `docs/adrs/…`
+- [ ] Decision records in place if required: `docs/adrs/…`
 - [ ] Tests / dry-run completed: {…}
 - [ ] Rollback procedure validated / dry-run tested
 - [ ] Pre-change test suite passing cleanly

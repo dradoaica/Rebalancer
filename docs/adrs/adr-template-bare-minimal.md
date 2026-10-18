@@ -1,4 +1,4 @@
-# <!-- short title, representative of solved problem and found solution -->
+# <!-- short title, representative of a solved problem and found solution -->
 
 ## Context and Problem Statement
 

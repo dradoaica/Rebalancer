@@ -31,7 +31,7 @@ and compiles them into a structured, auditable technical debt ledger.
 1. **Execute pattern scan across codebase**:
     - Scan files ignoring build artifacts, caches, and `.gitignore` paths:
       `git grep --no-index --exclude-standard -nE '(#|//|/[*]) ?(shortcut|ponytail):'`
-    - If a custom marker is requested by the user, scan for that marker.
+    - If the user requests a custom marker, scan for that marker.
 2. **Filter and parse hits**:
     - Discard non-deferral occurrences (e.g., references to keyboard shortcuts).
     - Parse each valid comment into: *File & Line*, *Simplified behavior*, *Ceiling limit*, *Upgrade trigger*, *Risk*,

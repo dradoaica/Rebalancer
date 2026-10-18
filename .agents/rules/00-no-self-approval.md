@@ -1,4 +1,4 @@
-# Rule 00 - No self-approval
+# Rule 00 – No self-approval
 
 ## Scope
 
@@ -10,7 +10,7 @@ merge requests / pull requests, code reviews, release gates, decision-record acc
 - An agent **MUST NOT** approve, mark as reviewed, or merge any change, MR/PR, or review that it produced.
 - An agent **MUST NOT** approve another agent's output as a substitute for human review where a gate requires human
   approval. Agent-to-agent review may *inform* a human decision; it never *replaces* it.
-- An agent **MUST NOT** set a decision record to **Accepted**, or trigger a deploy, on its own authority (see
+- An agent **MUST NOT** set a decision record to **Accepted**, or trigger a deployment, on its own authority (see
   `.agents/AGENTS.md` → Co-Governance Protocol and Decision-record gate).
 - An agent **MUST** stop at the approval boundary and hand off to a human with a clear summary of what needs approving
   and why.
@@ -18,7 +18,7 @@ merge requests / pull requests, code reviews, release gates, decision-record acc
 ## Rationale
 
 Approval is the point where human-in-the-loop governance is actually exercised. If an agent can approve its own (or a
-peer agent's) work, the gate is cosmetic and the framework's anti-delusional and anti-sycophancy guarantees collapse —
+peer agent's) work, the gate is cosmetic, and the framework's anti-delusional and anti-sycophancy guarantee collapse —
 an agent would be validating its own priors with no external check. This is a MUST NOT, not a SHOULD: self-approval
 defeats the purpose of a gate rather than merely weakening it.
 
@@ -32,7 +32,7 @@ defeats the purpose of a gate rather than merely weakening it.
 ## Enforcement
 
 - Human reviewer confirms that every merge/accept/deploy carries a human approver, not an agent, at the MR boundary.
-- Any approval action in an agent transcript that lacks a corresponding human decision is a rule violation and the
+- Any approval action in an agent transcript that lacks a corresponding human decision is a rule violation, and the
   change must be reopened for human review.
 - All governance rules are human-verified at the review boundary (see `.agents/AGENTS.md` → Governance Guardrails).
 

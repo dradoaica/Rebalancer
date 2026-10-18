@@ -46,7 +46,7 @@ Identifies dormant bugs, security vulnerabilities, scalability limits, missing t
       (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and current system requirements do not exceed
       their limit. Report shortcuts without `track:` as `Should fix` (undocumented debt).
     - Rank findings by severity: `Must fix`, `Should fix`, `Nice to have` (capped at 20 most impactful findings).
-4. **Render structured audit report**:
+4. **Render a structured audit report**:
     - **What this repo does**: 2–3 sentences defining core functionality and assumed load.
     - **Grouped Findings**: 4-part details (*What this is*, *Problem*, *Fix*, *If we skip it*).
     - **Verdict**: Overall health summary.
@@ -60,7 +60,7 @@ Identifies dormant bugs, security vulnerabilities, scalability limits, missing t
 
 ## Validation
 
-- Confirm all code references exist and can be traced to active files.
+- Confirm all code references to exist and can be traced to active files.
 - Verify that potential deletions do not break dynamic or reflection-based usages.
 
 ## Escalation points

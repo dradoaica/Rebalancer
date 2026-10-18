@@ -22,7 +22,7 @@ Recommended patterns:
 - **Rolled back**: rollback executed; capture learnings.
 - **Closed**: follow-ups recorded; no further action required.
 
-## Review expectations (human vs agent)
+## Review expectations (human vs. agent)
 
 - Agents (typically DevSecOps / systems roles) **draft** change records.
 - Humans **review/approve** before executing changes with production/shared-environment impact.
@@ -34,7 +34,7 @@ Recommended patterns:
 - Impact assessment
 - Step-by-step implementation plan
 - Validation plan (how we know it worked)
-- Rollback plan (how we restore prior state)
+- Rollback plan (how we restore the prior state)
 - Approvals section
 - `Sources` links to the user story and decision records that authorize it
 
