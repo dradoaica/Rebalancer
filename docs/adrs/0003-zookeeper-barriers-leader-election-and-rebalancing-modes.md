@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0003
+status: Accepted
 date: 2026-04-11
-decision-makers: []
-consulted: []
-informed: []
+decides: "leader election and rebalancing algorithms for the ZooKeeper backend"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # ZooKeeper backend: leader election, barrier algorithms, and rebalancing modes

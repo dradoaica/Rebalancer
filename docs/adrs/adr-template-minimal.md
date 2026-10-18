@@ -1,3 +1,19 @@
+---
+# Required metadata (see docs/adrs/README.md). Keep keys; fill values.
+id: ADR-NNNN               # NNNN = the number in this file's name
+status: Proposed           # Proposed | Accepted | Rejected | Deprecated | Superseded
+date: YYYY-MM-DD           # date of the last status change
+decides: "{the single concern this record decides, e.g., primary datastore for the orders service}"
+owner: "{author or accountable architect}"
+approved-by: [ ]            # set by a human only
+decision-makers: [ ]        # everyone involved in the decision
+consulted: [ ]              # subject-matter experts consulted (two-way communication)
+informed: [ ]               # people kept up to date (one-way communication)
+depends-on: [ ]             # identifiers of records this decision relies on, e.g., [ADR-0003, US-0012]
+supersedes: [ ]             # identifiers of records this decision replaces
+superseded-by: ""          # set when status becomes Superseded, e.g., ADR-0123
+---
+
 # {short title, representative of a solved problem and found solution}
 
 ## Context and Problem Statement

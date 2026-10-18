@@ -1,14 +1,15 @@
+---
+id: US-002
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Must"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0001", "US-001" ]
+---
+
 # User story: React to assignment, unassignment, and fatal abort
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-002                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Must                                               |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

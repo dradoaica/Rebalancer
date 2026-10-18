@@ -1,14 +1,15 @@
+---
+id: US-013
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Should"
+ssdlc-phase: Design
+depends-on: [ "ADR-0002", "US-010" ]
+---
+
 # User story: Cross-backend assignment-safety tests
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-013                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Should                                             |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Design                                             |
 
 ## Story
 

@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0005
+status: Accepted
 date: 2026-04-11
-decision-makers: []
-consulted: []
-informed: []
+decides: "dependency-injection registration of providers and clients (v2)"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0001", "US-012" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Dependency injection for provider registration (v2)

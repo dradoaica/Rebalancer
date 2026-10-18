@@ -1,14 +1,15 @@
+---
+id: US-010
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Must"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0003", "US-007" ]
+---
+
 # User story: ZooKeeper tests uphold assignment safety invariants
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-010                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Must                                               |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

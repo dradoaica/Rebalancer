@@ -12,10 +12,19 @@ Threat modeling is a standard governance artifact used to systematically identif
 
 ## Naming
 
-Recommended patterns (pick one and stay consistent):
+- `TM-NNNN-kebab-case-title.md` (e.g., `TM-0001-orders-api.md`); front matter `id`: `TM-NNNN`.
+- `NNNN` is the next free number on the **shared trunk**, never reused (see
+  `.agents/protocols/multi-human-collaboration.md`).
 
-- `TM-0001-short-title.md`
-- `TM-<service-or-domain>-0001-short-title.md`
+## Metadata
+
+Copy the front matter from `threat-model-template.md` and keep every key.
+
+- `scope` names what the model covers; at most one `Accepted` model per scope.
+- `depends-on` is the canonical dependency list (identifiers, not paths); `Sources` adds paths for readers and
+  cites nothing missing from it.
+- Only a human sets `approved-by`.
+- Binding statuses take effect only once merged to the shared trunk.
 
 ## Statuses (meaning)
 

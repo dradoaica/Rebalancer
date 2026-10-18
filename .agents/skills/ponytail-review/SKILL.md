@@ -46,8 +46,8 @@ performance under scale, regression testing, and code bloat, providing actionabl
     - Ensure every finding describes a concrete, reproducible failure condition ("Input X leads to failure Y").
     - Treat shortcut comments as recorded decisions **only** if they carry a `track:` reference
       (`# shortcut: <limit>, <trigger> (risk: ..., track: <US-…|PRB-…>)`) and the current load does not violate their
-      ceiling. Report shortcuts without `track:` as `Should fix` (undocumented debt, `.agents/AGENTS.md` → Technical
-      debt governance).
+      ceiling. Report shortcuts without `track:` as `Should fix` (undocumented debt,
+      `.agents/protocols/maintainability.md` → Technical debt governance).
     - Propose the minimal fix that deletes or simplifies code rather than adding wrappers.
 4. **Generate structured output**:
     - **What this change does**: 2–3 plain English summary sentences.

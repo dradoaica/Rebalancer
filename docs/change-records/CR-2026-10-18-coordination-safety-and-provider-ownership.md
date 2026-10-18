@@ -1,15 +1,17 @@
+---
+id: CR-2026-10-18-coordination-safety-and-provider-ownership
+status: Implemented
+date: 2026-10-18
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+risk: "Medium"
+change-type: "Normal"
+requested-by: "dradoaica"
+planned-window: "Library release 2.1.0"
+depends-on: [ "ADR-0002", "ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "TM-0001", "PRB-2026-10-18-demoted-coordinator-keeps-resources", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider", "US-001", "US-003", "US-005", "US-006", "US-007", "US-010", "US-011", "US-012", "US-013" ]
+---
+
 # Change record: Coordination safety fixes, provider ownership, and ZooKeeper ACLs
-
-## Metadata
-
-| Field              | Value                                                   |
-|--------------------|---------------------------------------------------------|
-| **ID**             | CR-2026-10-18-coordination-safety-and-provider-ownership |
-| **Status**         | Implemented                                             |
-| **Risk**           | Medium                                                  |
-| **Change type**    | Normal                                                  |
-| **Requested by**   | dradoaica                                               |
-| **Planned window** | Library release 2.1.0 (date to be decided)              |
 
 ## Summary
 

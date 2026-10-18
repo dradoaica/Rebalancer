@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0001
+status: Accepted
 date: 2026-04-11
-decision-makers: []
-consulted: []
-informed: []
+decides: "provider abstraction and client lifecycle API for coordination backends"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Pluggable Rebalancer provider and client lifecycle

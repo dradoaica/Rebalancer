@@ -40,7 +40,7 @@ and compiles them into a structured, auditable technical debt ledger.
     - Identify comments missing an explicit upgrade trigger or ceiling, tagging them with `[no-trigger]` (high risk of
       silent rot).
     - Identify comments missing a `track:` reference (or referencing a non-existent story/problem record), tagging them
-      with `[untracked]` (violates `.agents/AGENTS.md` → Technical debt governance).
+      with `[untracked]` (violates `.agents/protocols/maintainability.md` → Technical debt governance).
 4. **Format structured ledger**:
     - Output rows grouped by file:
       `<file>:<line>, <what was simplified>. ceiling: <limit>. upgrade: <trigger>. risk: <level>. track: <id>.`

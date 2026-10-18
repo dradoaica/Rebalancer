@@ -48,6 +48,10 @@ include:
   is deployed in a dev/testing environment. This is another opportunity to perform tests, even if earlier testing of
   source code already happened.
 
+- **Release**  
+  Before software reaches shared or production environments, the change is approved (e.g., a change record and CAB
+  approval or equivalent) and has a tested rollback plan.
+
 - **Maintenance**  
   Once the SDLC reaches the maintenance stage, meaning that the application has been deployed, security testing and
   monitoring should continue to discover risks that may not have been clear from testing in a dev/test environment.
@@ -88,6 +92,14 @@ from the SSDLC concept, consider the following best practices:
 - **Set priority levels**  
   Not every security issue is serious enough to delay application delivery. By assigning priority levels to
   vulnerabilities, teams can establish clear response guidelines.
+
+---
+
+## Threat modeling
+
+Threat models live in [docs/threat-models](../../docs/threat-models). They are completed at the **Design** gate and
+kept current through **Maintenance**. The template uses STRIDE; see also
+[OWASP Threat Modeling](https://owasp.org/www-community/Threat_Modeling).
 
 ---
 

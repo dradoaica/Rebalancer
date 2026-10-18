@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0010
+status: Accepted
 date: 2026-10-18
-decision-makers: [dradoaica]
-consulted: []
-informed: []
+decides: "detection of open operator-created znodes when ZooKeeper ACLs are configured"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0006", "TM-0001", "US-007" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Warn when ZooKeeper ACLs are configured but operator-created znodes are still open

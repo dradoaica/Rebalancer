@@ -51,7 +51,7 @@ implementations, and leaves clear traceability for shortcuts.
     - Preserve error handling and input validation at trust boundaries.
 4. **Annotate deliberate trade-offs and limits**:
     - When choosing an intentional simplification or shortcut with a known ceiling, annotate it explicitly (per
-      `.agents/AGENTS.md` → Technical debt governance):
+      `.agents/protocols/maintainability.md` → Technical debt governance):
       `# shortcut: <the limit>, <upgrade trigger> (risk: <low|med|high>, track: <US-…|PRB-…>)`
     - The `track:` item must exist (user story in `docs/user-stories/` or problem record in `docs/problem-records/`);
       if it does not, draft it. A shortcut without a `track:` reference is undocumented debt and is not allowed.

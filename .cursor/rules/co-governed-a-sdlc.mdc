@@ -12,5 +12,6 @@ This Cursor rule is an **adapter only**: it may add IDE-specific mechanics (for 
 apply project rules). It must **not** contradict `.agents/AGENTS.md`. If anything conflicts, defer to
 `.agents/AGENTS.md` and tell the human about the mismatch.
 
-To dive deeper, open `.agents/AGENTS.md` first, then persona files under `.agents/agents/` and concepts under
-`.agents/concepts/` as the task requires.
+Before any task, read `.agents/AGENTS.md` in full (this rule does not load it automatically), then the
+`.agents/protocols/` files whose triggers apply, then personas in `.agents/agents/` and concepts in `.agents/concepts/`
+as the task requires.

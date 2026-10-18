@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0011
+status: Accepted
 date: 2026-10-18
-decision-makers: [dradoaica]
-consulted: []
-informed: []
+decides: "default ZooKeeper ACL policy from version 3.0"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0006", "ADR-0010", "TM-0001", "US-007" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Require ZooKeeper credentials by default in the next major version (3.0)

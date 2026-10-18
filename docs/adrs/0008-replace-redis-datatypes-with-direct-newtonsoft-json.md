@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0008
+status: Accepted
 date: 2026-10-18
-decision-makers: [dradoaica]
-consulted: []
-informed: []
+decides: "JSON serialization dependency of the Redis provider"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0002", "ADR-0006", "US-006" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Replace the `StackExchange.Redis.DataTypes` dependency with a direct, patched `Newtonsoft.Json` reference

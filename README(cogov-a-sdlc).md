@@ -1,7 +1,5 @@
 # Co-Governed Agentic SDLC (Software Development Life Cycle)
 
-> 🚧 **This project is currently under construction. Stay tuned for updates!** 🚀
-
 A spec‑first framework for human and agent co‑governance across SSDLC using the DevSecOps, Agile, TOGAF, and ITIL
 frameworks to ensure long‑term maintainability and to reduce AI‑induced delusional spiraling.
 

@@ -1,14 +1,15 @@
+---
+id: US-011
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Should"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0001", "US-001" ]
+---
+
 # User story: Pluggable Rebalancer logging
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-011                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Should                                             |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

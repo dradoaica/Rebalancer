@@ -1,14 +1,16 @@
+---
+id: TM-0002
+status: Accepted
+date: 2026-10-18
+scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+depends-on: [ "ADR-0002", "US-005" ]
+supersedes: [ ]
+superseded-by: ""
+---
+
 # Threat model: SQL Server coordination backend
-
-## Metadata
-
-| Field            | Value                                                                       |
-|------------------|-----------------------------------------------------------------------------|
-| **ID**           | TM-0002                                                                     |
-| **Status**       | Accepted                                                                    |
-| **Scope**        | `Rebalancer.SqlServer` provider and the `RBR` schema it uses                |
-| **Owners**       | Maintainer (dradoaica)                                                      |
-| **Last updated** | 2026-10-18                                                                  |
 
 ## Summary
 

@@ -8,10 +8,18 @@ Use the template:
 
 ## Naming
 
-Recommended patterns:
+- `CR-NNNN-kebab-case-title.md` (e.g., `CR-0001-rotate-db-credentials.md`); front matter `id`: `CR-NNNN`.
+- `NNNN` is the next free number on the **shared trunk**, never reused (see
+  `.agents/protocols/multi-human-collaboration.md`).
 
-- `CR-YYYY-MM-DD-short-title.md`
-- `YYYY-MM-DD-short-title.md`
+## Metadata
+
+Copy the front matter from `change-record-template.md` and keep every key.
+
+- `depends-on` is the canonical dependency list (identifiers, not paths); `Sources` adds paths for readers and
+  cites nothing missing from it.
+- Only a human sets `approved-by`.
+- Binding statuses take effect only once merged to the shared trunk.
 
 ## Statuses (meaning)
 

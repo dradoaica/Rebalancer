@@ -1,14 +1,15 @@
+---
+id: US-006
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Must"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0001", "ADR-0002", "US-005" ]
+---
+
 # User story: Coordinate via Redis backend
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-006                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Must                                               |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

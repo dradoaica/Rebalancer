@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0006
+status: Accepted
 date: 2026-10-18
-decision-makers: [dradoaica]
-consulted: []
-informed: []
+decides: "2.1 contract changes: provider ownership, Redis lease timing, and opt-in ZooKeeper ACLs"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0001", "ADR-0002", "ADR-0003", "US-003", "US-006", "US-007" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Provider resource ownership, Redis server-time leases, and ZooKeeper ACLs

@@ -12,7 +12,8 @@ subagents). Covers where each agent does its work and who may write to git.
 - Only the **orchestrator MUST** commit and merge locally ("git monopoly"). Subagents produce changes on their isolated
   branches and hand them off; they **MUST NOT** merge into a shared or integration branch.
 - The orchestrator **MUST** integrate subagent branches only after resolving contradictions between their outputs (see
-  `.agents/AGENTS.md` → Orchestrator responsibilities) and **MUST NOT** silently merge conflicting outputs.
+  `.agents/protocols/multi-agent-orchestration.md` → Orchestrator responsibilities) and **MUST NOT** silently merge
+  conflicting outputs.
 - Merging or pushing to any **shared** branch, and opening an MR, remain subject to the human-approval gates in
   `.agents/AGENTS.md` and to all applicable pre-MR checks (full test suite, regression, static analysis, and
   baseline-drift abort where relevant). Checks marked `N/A` require a rationale and human acceptance.
@@ -41,6 +42,7 @@ everyone push to the same tree.
 
 ## Sources
 
-- `.agents/AGENTS.md` (sections: Multi-Agent Orchestration Protocol; Co-Governance Protocol)
+- `.agents/protocols/multi-agent-orchestration.md`
+- `.agents/AGENTS.md` (section: Co-Governance Protocol)
 - `.agents/rules/00-no-self-approval.md`
 - Framework improvement incorporating external multi-agent practitioner feedback (2026-10-14).

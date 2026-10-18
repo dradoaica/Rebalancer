@@ -8,10 +8,18 @@ Use the template:
 
 ## Naming
 
-Recommended patterns (pick one and stay consistent):
+- `US-NNNN-kebab-case-title.md` (e.g., `US-0001-export-orders-csv.md`); front matter `id`: `US-NNNN`.
+- `NNNN` is the next free number on the **shared trunk**, never reused (see
+  `.agents/protocols/multi-human-collaboration.md`).
 
-- `US-001-short-title.md`
-- `US-<teamKey>-001-short-title.md`
+## Metadata
+
+Copy the front matter from `user-story-template.md` and keep every key.
+
+- `depends-on` is the canonical dependency list (identifiers, not paths); `Sources` adds paths for readers and
+  cites nothing missing from it.
+- Only a human sets `approved-by`.
+- Binding statuses take effect only once merged to the shared trunk.
 
 ## Statuses (meaning)
 

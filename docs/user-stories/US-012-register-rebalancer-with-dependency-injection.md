@@ -1,14 +1,15 @@
+---
+id: US-012
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Should"
+ssdlc-phase: Design
+depends-on: [ "ADR-0001", "ADR-0005" ]
+---
+
 # User story: Register Rebalancer with dependency injection
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-012                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Should                                             |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Design                                             |
 
 ## Story
 

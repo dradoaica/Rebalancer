@@ -1,14 +1,17 @@
+---
+# Required metadata (see docs/threat-models/README.md). Keep keys; fill values.
+id: TM-NNNN                # NNNN = the number in this file's name
+status: Draft              # Draft | Proposed | Accepted | Superseded
+date: YYYY-MM-DD           # date of the last update or status change
+scope: "{system/service/change this model covers}"
+owner: ""                  # service owner / security / architect
+approved-by: [ ]            # set by a human only
+depends-on: [ ]             # identifiers, e.g., [ADR-0003, SDP-orders]
+supersedes: [ ]             # identifiers of threat models this one replaces
+superseded-by: ""          # set when status becomes Superseded, e.g., TM-0009
+---
+
 # Threat model: {short title}
-
-## Metadata
-
-| Field            | Value                                       |
-|------------------|---------------------------------------------|
-| **ID**           | TM-{number-or-key}                          |
-| **Status**       | Draft \| Proposed \| Accepted \| Superseded |
-| **Scope**        | {system/service/change this model covers}   |
-| **Owners**       | {service owner / security / architect}      |
-| **Last updated** | YYYY-MM-DD                                  |
 
 ## Summary
 

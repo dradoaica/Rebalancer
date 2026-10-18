@@ -1,14 +1,15 @@
+---
+id: US-014
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Should"
+ssdlc-phase: Planning
+depends-on: [ "ADR-0000", "ADR-0001", "ADR-0002", "ADR-0003", "ADR-0004", "ADR-0005" ]
+---
+
 # User story: Traceability matrix and product baseline documentation
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-014                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Should                                             |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Planning                                           |
 
 ## Story
 

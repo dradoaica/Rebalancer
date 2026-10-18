@@ -8,10 +8,17 @@ Use the template:
 
 ## Naming
 
-Recommended patterns:
+- `SDP-<service-name>.md` (e.g., `SDP-orders-api.md`); front matter `id`: the file name without `.md`.
+- One SDP per service; revisions bump `version` in the same file. Check the shared trunk for an existing SDP first.
 
-- `<service-name>.md`
-- `SDP-<service-name>.md`
+## Metadata
+
+Copy the front matter from `sdp-template.md` and keep every key.
+
+- `depends-on` is the canonical dependency list (identifiers, not paths); `Sources` adds paths for readers and
+  cites nothing missing from it.
+- Only a human sets `approved-by`.
+- Binding statuses take effect only once merged to the shared trunk.
 
 ## Statuses (meaning)
 

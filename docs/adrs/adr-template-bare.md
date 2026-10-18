@@ -1,9 +1,16 @@
 ---
-status:
+id: ADR-NNNN
+status: Proposed
 date:
-decision-makers:
-consulted:
-informed: 
+decides:
+owner:
+approved-by: [ ]
+decision-makers: [ ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # <!-- short title, representative of a solved problem and found solution -->

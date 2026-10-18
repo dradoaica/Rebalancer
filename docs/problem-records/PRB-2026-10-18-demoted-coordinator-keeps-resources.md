@@ -1,14 +1,15 @@
+---
+id: PRB-2026-10-18-demoted-coordinator-keeps-resources
+status: Closed
+date: 2026-10-18
+opened: 2026-10-18
+owner: ""
+approved-by: [ ]            # closure review; set by a human only
+severity: "High (assignment safety)"
+depends-on: [ "ADR-0002", "US-005", "US-006", "US-013", "CR-2026-10-18-coordination-safety-and-provider-ownership" ]
+---
+
 # Problem record: Demoted SQL Server / Redis coordinator keeps processing its resources
-
-## Metadata
-
-| Field        | Value                                                    |
-|--------------|----------------------------------------------------------|
-| **ID**       | PRB-2026-10-18-demoted-coordinator-keeps-resources       |
-| **Status**   | Closed                                                   |
-| **Severity** | High (assignment safety)                                 |
-| **Opened**   | 2026-10-18                                               |
-| **Owner**    |                                                          |
 
 ## Summary
 

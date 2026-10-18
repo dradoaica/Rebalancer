@@ -1,14 +1,16 @@
+---
+# Required metadata (see docs/user-stories/README.md). Keep keys; fill values.
+id: US-NNNN                # NNNN = the number in this file's name
+status: Draft              # Draft | Ready | In progress | Done | Canceled
+date: YYYY-MM-DD           # date of the last status change
+owner: ""                  # who implements it; set when status becomes In progress
+approved-by: []            # readiness approval; set by a human only
+priority: ""               # e.g., Must | Should | Could
+ssdlc-phase: Planning      # Planning | Design | Coding | Testing | Release | Maintenance
+depends-on: []             # identifiers, e.g., [ADR-0003, SDP-orders]
+---
+
 # User story: {short title}
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-{number-or-key}                                 |
-| **Status**      | Draft \| Ready \| In progress \| Done \| Cancelled |
-| **Priority**    | (e.g., Must / Should / Could)                      |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Planning \| Design \| …                            |
 
 ## Story
 

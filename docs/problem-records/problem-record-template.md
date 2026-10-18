@@ -1,14 +1,16 @@
+---
+# Required metadata (see docs/problem-records/README.md). Keep keys; fill values.
+id: PRB-NNNN               # NNNN = the number in this file's name
+status: Open               # Open | Investigating | Root cause identified | Closed
+date: YYYY-MM-DD           # date of the last status change
+opened: YYYY-MM-DD
+owner: ""
+approved-by: [ ]            # closure review; set by a human only
+severity: ""               # per org
+depends-on: [ ]             # identifiers, e.g., [CR-0007, ADR-0003]
+---
+
 # Problem record: {short title}
-
-## Metadata
-
-| Field        | Value                                                    |
-|--------------|----------------------------------------------------------|
-| **ID**       | PRB-{YYYY-MM-DD-or-seq}-{slug}                           |
-| **Status**   | Open \| Investigating \| Root cause identified \| Closed |
-| **Severity** | (per org)                                                |
-| **Opened**   | YYYY-MM-DD                                               |
-| **Owner**    |                                                          |
 
 ## Summary
 

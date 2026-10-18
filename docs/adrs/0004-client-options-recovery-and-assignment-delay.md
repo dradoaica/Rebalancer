@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0004
+status: Accepted
 date: 2026-04-11
-decision-makers: []
-consulted: []
-informed: []
+decides: "client recovery and assignment-delay options (ClientOptions)"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Client options: automatic recovery, restart delay, and assignment delay

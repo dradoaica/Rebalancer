@@ -7,7 +7,7 @@ before producing any artifact that depends on it.**
 
 | Path                                      | Topic                                                           |
 |-------------------------------------------|-----------------------------------------------------------------|
-| `ssdlc.md`                                | Secure SDLC phases, OWASP SAMM, NIST SSDF                       |
+| `ssdlc.md`                                | Secure SDLC phases, threat modeling, OWASP SAMM, NIST SSDF      |
 | `agile.md`                                | Agile ceremonies, backlog, user stories in `docs/user-stories/` |
 | `togaf/architectural-decision-records.md` | Decision records, mutability, decision log                      |
 | `itil/change-records.md`                  | Change management; points to `docs/change-records/`             |

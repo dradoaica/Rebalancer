@@ -1,13 +1,15 @@
+---
+# Required metadata (see docs/sdps/README.md). Keep keys; fill values.
+id: SDP-service-name       # matches this file's name without .md
+status: Draft              # Draft | Proposed | Accepted | Retired
+date: YYYY-MM-DD           # date of the last status change
+version: "0.1"
+owner: ""                  # service owner
+approved-by: [ ]            # set by a human only
+depends-on: [ ]             # identifiers, e.g., [ADR-0003, TM-0002]
+---
+
 # Service Design Package: {service name}
-
-## Metadata
-
-| Field             | Value                                    |
-|-------------------|------------------------------------------|
-| **Version**       | e.g., 0.1                                |
-| **Status**        | Draft \| Proposed \| Accepted \| Retired |
-| **Service owner** |                                          |
-| **Last updated**  | YYYY-MM-DD                               |
 
 ## Service overview
 

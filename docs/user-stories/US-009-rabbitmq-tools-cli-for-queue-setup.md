@@ -1,14 +1,15 @@
+---
+id: US-009
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Could"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0002", "US-008" ]
+---
+
 # User story: RabbitMQ tools CLI for queue and group setup
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-009                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Could                                              |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

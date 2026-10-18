@@ -1,9 +1,16 @@
 ---
-status: accepted
-date: 2026-04-11
-decision-makers: []
-consulted: []
-informed: []
+id: ADR-0000
+status: Accepted
+date: 2026-04-10           # first committed; no later status change
+decides: "format and structure of architectural decision records in this repository"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Use Markdown Architectural Decision Records

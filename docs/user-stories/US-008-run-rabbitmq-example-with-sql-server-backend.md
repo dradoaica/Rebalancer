@@ -1,14 +1,15 @@
+---
+id: US-008
+status: Done
+date: 2026-04-11
+owner: ""
+approved-by: [ ]            # readiness approval; set by a human only
+priority: "Could"
+ssdlc-phase: Maintenance     # as-built documentation
+depends-on: [ "ADR-0002", "ADR-0004", "US-002", "US-005" ]
+---
+
 # User story: Run RabbitMQ sample with SQL Server backend
-
-## Metadata
-
-| Field           | Value                                              |
-|-----------------|----------------------------------------------------|
-| **ID**          | US-008                                             |
-| **Status**      | Done                                               |
-| **Priority**    | Could                                              |
-| **Owner**       |                                                    |
-| **SSDLC phase** | Maintenance (as-built documentation)             |
 
 ## Story
 

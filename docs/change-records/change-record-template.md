@@ -1,15 +1,18 @@
+---
+# Required metadata (see docs/change-records/README.md). Keep keys; fill values.
+id: CR-NNNN                # NNNN = the number in this file's name
+status: Draft              # Draft | Submitted | Approved | Implemented | Rolled back | Closed
+date: YYYY-MM-DD           # date of the last status change
+owner: ""                  # who executes the change
+approved-by: [ ]            # set by a human only
+risk: ""                   # Low | Medium | High
+change-type: ""            # Standard | Normal | Emergency (per org)
+requested-by: ""
+planned-window: ""         # e.g., 2026-11-02 22:00-23:00 UTC
+depends-on: [ ]             # identifiers, e.g., [ADR-0003, US-0012, TM-0002]
+---
+
 # Change record: {short title}
-
-## Metadata
-
-| Field              | Value                                                                  |
-|--------------------|------------------------------------------------------------------------|
-| **ID**             | CR-{YYYY-MM-DD-or-seq}-{slug}                                          |
-| **Status**         | Draft \| Submitted \| Approved \| Implemented \| Rolled back \| Closed |
-| **Risk**           | Low \| Medium \| High                                                  |
-| **Change type**    | Standard \| Normal \| Emergency (per org)                              |
-| **Requested by**   |                                                                        |
-| **Planned window** |                                                                        |
 
 ## Summary
 

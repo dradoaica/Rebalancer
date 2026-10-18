@@ -1,9 +1,16 @@
 ---
-status: accepted
+id: ADR-0007
+status: Accepted
 date: 2026-10-18
-decision-makers: [dradoaica]
-consulted: []
-informed: []
+decides: "blocking behavior of GetAssignedResources() in the SQL Server and Redis providers"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+decision-makers: [ "dradoaica" ]
+consulted: [ ]
+informed: [ ]
+depends-on: [ "ADR-0001", "US-003" ]
+supersedes: [ ]
+superseded-by: ""
 ---
 
 # Make `GetAssignedResources()` non-blocking in the SQL Server and Redis providers

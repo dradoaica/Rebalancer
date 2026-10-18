@@ -80,7 +80,8 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
-- [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at once)
+- [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
+  once)
 - [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, and Redis backends
 
 ### Contributors and AI agents

@@ -15,7 +15,7 @@ must surface the conflict and refuse to silently violate the rule.
 
 ## Precedence
 
-1. `.agents/AGENTS.md` (canonical agent contract)
+1. `.agents/AGENTS.md` and `.agents/protocols/*` (canonical agent contract)
 2. `.agents/rules/*` (extensions; must not contradict `AGENTS.md`)
 3. Vendor/tool-specific instructions (must not contradict the above)
 

@@ -1,14 +1,16 @@
+---
+id: TM-0001
+status: Accepted
+date: 2026-10-18
+scope: "Rebalancer.ZooKeeper provider and its znodes, including the opt-in ACLs of ADR 0006"
+owner: "dradoaica"
+approved-by: [ ]            # set by a human only
+depends-on: [ "ADR-0003", "ADR-0006", "ADR-0010", "ADR-0011", "US-007", "CR-2026-10-18-coordination-safety-and-provider-ownership" ]
+supersedes: [ ]
+superseded-by: ""
+---
+
 # Threat model: ZooKeeper coordination backend and znode ACLs
-
-## Metadata
-
-| Field            | Value                                                                                       |
-|------------------|---------------------------------------------------------------------------------------------|
-| **ID**           | TM-0001                                                                                     |
-| **Status**       | Accepted                                                                                    |
-| **Scope**        | `Rebalancer.ZooKeeper` provider and its znodes, including the opt-in ACLs of ADR 0006        |
-| **Owners**       | Maintainer (dradoaica)                                                                      |
-| **Last updated** | 2026-10-18                                                                                  |
 
 ## Summary
 

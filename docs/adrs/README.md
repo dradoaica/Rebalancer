@@ -11,8 +11,20 @@ The MADR documentation is available at <https://adr.github.io/madr/> while gener
 
 ## Naming
 
-- `NNNN-kebab-case-title.md`, where `NNNN` is the next free 4-digit number (e.g., `0001-use-postgresql.md`).
-- Numbers are never reused; a replaced decision keeps its file and number.
+- `NNNN-kebab-case-title.md` (e.g., `0001-use-postgresql.md`); front matter `id`: `ADR-NNNN`.
+- `NNNN` is the next free number on the **shared trunk**, never reused (see
+  `.agents/protocols/multi-human-collaboration.md`).
+- A replaced decision keeps its file and number.
+
+## Metadata
+
+Copy the front matter from the chosen template and keep every key.
+
+- `decides` names the one concern decided; at most one `Accepted` ADR per concern.
+- `depends-on` is the canonical dependency list (identifiers, not paths); `Sources` adds paths for readers and
+  cites nothing missing from it.
+- Only a human sets `approved-by`.
+- Binding statuses take effect only once merged to the shared trunk.
 
 ## Statuses (meaning)
 
@@ -20,7 +32,7 @@ The MADR documentation is available at <https://adr.github.io/madr/> while gener
 - **Accepted**: approved by a human; implementation may proceed.
 - **Rejected**: considered and declined; kept for the record.
 - **Deprecated**: no longer applies, with no direct replacement.
-- **Superseded by NNNN**: replaced by a newer ADR; link to it.
+- **Superseded**: replaced by a newer ADR, named in `superseded-by`; the newer ADR lists this one in `supersedes`.
 
 ## Review expectations (human vs. agent)
 

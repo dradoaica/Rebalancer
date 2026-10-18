@@ -1,14 +1,15 @@
+---
+id: PRB-2026-10-18-zookeeper-tests-ignored-their-provider
+status: Closed
+date: 2026-10-18
+opened: 2026-10-18
+owner: ""
+approved-by: [ ]            # closure review; set by a human only
+severity: "High (false confidence in assignment-safety coverage)"
+depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-010", "CR-2026-10-18-coordination-safety-and-provider-ownership" ]
+---
+
 # Problem record: ZooKeeper integration tests ran with the first test's provider
-
-## Metadata
-
-| Field        | Value                                                    |
-|--------------|----------------------------------------------------------|
-| **ID**       | PRB-2026-10-18-zookeeper-tests-ignored-their-provider    |
-| **Status**   | Closed                                                   |
-| **Severity** | High (false confidence in assignment-safety coverage)    |
-| **Opened**   | 2026-10-18                                               |
-| **Owner**    |                                                          |
 
 ## Summary
 
