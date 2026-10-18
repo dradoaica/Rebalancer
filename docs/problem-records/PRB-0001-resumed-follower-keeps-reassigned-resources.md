@@ -29,6 +29,7 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 | When       | Event                                                                                      |
 |------------|--------------------------------------------------------------------------------------------|
 | 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
+| 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                        |
 
 ## Evidence
 
@@ -39,7 +40,10 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
   continues with its old assignment.
 - The next coordinator heartbeat sees the node live again, the client set changes, and it rebalances. That bounds the
   window.
-- Not yet reproduced by a test.
+- Reproduced on 2026-10-18 by a unit test with an in-memory client table (SQL Server roles): the follower was granted
+  `r1` and its keep-alive was 5 minutes old (expiry 1 minute). The coordinator reassigned `r1` to itself. The resumed
+  follower then ran its role and invoked its stop actions 0 times (expected 1). The test was a throwaway; the
+  regression test comes with the fix (ADR-0019).
 
 ## Root cause analysis
 
