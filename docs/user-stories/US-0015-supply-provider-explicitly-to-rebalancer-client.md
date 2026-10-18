@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Must"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012" ]
+depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0002" ]
 ---
 
 # User story: Supply a provider explicitly to a Rebalancer client
@@ -30,7 +30,7 @@ This story describes the 3.0 way and succeeds US-001 for 3.0 and later.
 2. `Rebalancer.Core` has no `Providers` type and no parameterless `RebalancerClient` constructor
    (`DeprecationContractTests.StaticProviderRegistry_IsRemoved`).
 3. `AddRebalancerSqlServer`, `AddRebalancerRedis`, `AddRebalancerZooKeeper` and `AddRebalancerProvider` resolve a
-   `RebalancerClient` with a new provider per client (`DiRegistrationTests`).
+   `RebalancerClient` with a new provider per client (`DiRegistrationTests.EachResolvedClient_GetsItsOwnProvider`).
 4. The example application and the README create clients with an explicit provider.
 
 ## Non-goals
@@ -50,17 +50,24 @@ No change: connection strings and credentials are passed by the host as before, 
 
 ## Definition of ready
 
-- [ ] Governing ADR referenced (or marked "N/A - non-architectural")
-- [ ] Acceptance criteria are testable, unambiguous, and numbered
-- [ ] Security & compliance considerations addressed
-- [ ] Dependencies and non-goals are explicitly identified
+<!-- 2026-10-18: items verified by an agent against this story's text; the human readiness review is recorded by
+setting status and approved-by. Note: the implementation was authorized by ADR-0013 (Tier 1) and shipped in 3.0.0
+before this story was reviewed. -->
+
+- [x] Governing ADR referenced (or marked "N/A - non-architectural")
+- [x] Acceptance criteria are testable, unambiguous, and numbered
+- [x] Security & compliance considerations addressed
+- [x] Dependencies and non-goals are explicitly identified
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
+<!-- 2026-10-18: "Acceptance criteria met", "Docs" and change-record traceability verified by an agent against the code,
+the tests and the 3.0.0 release; "Tests / checks agreed with a team" needs a human. -->
+
+- [x] Acceptance criteria met
 - [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Docs / runbooks updated if needed
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0002-release-3-0-0.md` (3.0.0)
 
 ## Sources
 

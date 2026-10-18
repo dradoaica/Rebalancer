@@ -56,8 +56,12 @@ together: they would look at different hashes.
    its lease. Those entries belong to the stopped processes and expire later (ADR-0014).
 3. Optional: a Redis ACL user can now be limited to one group's client hash with the key patterns
    `~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` (leases and resources stay shared).
-   - **Command set:** the user also needs the commands the StackExchange.Redis connection handshake uses. Data
-     commands alone (`+@read +@write +@transaction +time`) are not enough; the minimal set has not been verified yet.
+   - **Command set (verified 2026-10-18, redis:7.0, StackExchange.Redis 3.4.5):**
+     `+@read +@write +@transaction +time +echo` with `resetchannels`, e.g.
+     `ACL SETUSER orders-user on >secret resetchannels ~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources +@read +@write +@transaction +time +echo`.
+     `ECHO` is required by the client library's connection handshake. Its other handshake commands (`CLIENT`, `CLUSTER`,
+     `CONFIG GET`, `INFO`, `SELECT`, `SUBSCRIBE`) are denied but tolerated, and appear in `ACL LOG`; grant them only to
+     silence the log. With a non-zero database index, also grant `+select`.
    - **Old entries:** a user without access to `Dictionary:RBR:Clients` cannot move the group's old entries. The
      coordinator then skips that step, and expiry still works. Run the first 3.0 start with a user that can read the
      old hash if you want the old entries cleaned up.

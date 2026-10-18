@@ -8,7 +8,7 @@ risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 3.1.0"
-depends-on: [ "ADR-0019", "ADR-0002", "ADR-0014", "PRB-0001", "US-005", "US-006", "US-013", "CR-0002" ]
+depends-on: [ "ADR-0019", "ADR-0002", "ADR-0014", "PRB-0001", "US-005", "US-006", "US-013", "CR-0002", "TM-0003" ]
 ---
 
 # Change record: Rebalancer 3.1.0 – stop unresponsive followers
@@ -33,6 +33,8 @@ resumed follower stops at its first tick. No API, configuration or data format c
 - `src/Rebalancer.SqlServer/Roles/Coordinator.cs`, `src/Rebalancer.Redis/Roles/Coordinator.cs` (identical):
   `StopUnresponsiveClientsAsync` after the stop of live clients; a non-OK result is logged, not fatal.
 - `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs`; version 3.1.0; release notes; PRB-0001 update.
+- Redis ACL documentation: verified minimal per-group command set (migration guide, TM-0003 revision 3) and an
+  end-to-end test with that user (`RedisClientRecordTests`).
 
 **Out of scope:**
 
@@ -53,9 +55,11 @@ resumed follower stops at its first tick. No API, configuration or data format c
 ## Preconditions
 
 - [x] Decision record in place: ADR-0019 (Accepted, `approved-by` set, on the shared trunk).
-- [ ] Tests / dry-run completed on the release branch: unit tests and Docker integration tests (Redis, SQL Server).
-- [ ] Rollback procedure validated / dry-run tested.
-- [ ] Pre-change test suite passing cleanly.
+- [x] Tests / dry-run completed on the release branch: unit 43/43; Redis + SQL Server integration 7/7 (`066ffae`);
+  Redis client-record tests 5/5 including the minimal-ACL end-to-end test.
+- [x] Rollback procedure validated / dry-run tested (2026-10-18): a 3.1.0 client killed while holding `r1` on Redis;
+  the released 3.0.0 then assigned `r1` after 11 s (lease expiry 5 s).
+- [x] Pre-change test suite passing cleanly (build without warnings).
 
 ## Implementation plan
 
@@ -98,3 +102,4 @@ its handlers briefly; keep the keep-alive expiry above the longest expected paus
   `docs/user-stories/US-006-coordinate-via-redis-backend.md`,
   `docs/user-stories/US-013-cross-backend-assignment-safety-tests.md`
 - Previous release: `docs/change-records/CR-0002-release-3-0-0.md`
+- Threat model: `docs/threat-models/TM-0003-redis-coordination.md` (revision 3)

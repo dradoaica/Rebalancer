@@ -1,10 +1,10 @@
 ---
 id: TM-0003
-status: Accepted
+status: Proposed
 date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
-approved-by: [ "dradoaica" ]
+approved-by: [ ]
 depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-2026-10-18-coordination-safety-and-provider-ownership", "CR-0002" ]
 supersedes: [ ]
 superseded-by: ""
@@ -30,6 +30,9 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 - Client records are per group (ADR-0015), and stale ones expire under the coordinator's fencing token (ADR-0014).
   Heartbeat reads no longer grow with other groups or with past restarts (D1 resolved).
 - A Redis ACL user can now be limited to one group's client hash. Leases and resources stay shared.
+
+**Revision 3 (3.1.0, CR-0003):** the minimal ACL command set is verified, and an end-to-end test covers it. Leases
+and resources per group are proposed in ADR-0020.
 
 ## System context and boundaries
 
@@ -149,7 +152,7 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 
 | Threat / Risk                      | Control (design or runtime)                                                                                       | Evidence / Reference                                   |
 |------------------------------------|-------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| Spoofing / tampering               | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Clients:{group} ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources`. Verified 2026-10-18: `+@read +@write +@transaction +time` alone is **not** enough, because the StackExchange.Redis connection handshake needs more commands; the minimal command set is unverified – please confirm (the test grants `+@all`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
+| Spoofing / tampering               | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Clients:{group} ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources`. Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
 | Credential and traffic disclosure  | Secret store; `ssl=true`; no connection strings in logs                                                            | US-006 Security & compliance                           |
 | Unsafe deserialization             | Newtonsoft default settings (no `TypeNameHandling`)                                                               | `src/Rebalancer.Redis/Utils/RedisHash.cs`              |
 | Clients hash growth (D1)           | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                   | ADR-0014, ADR-0015; `RedisClientRecordTests`           |
@@ -166,9 +169,10 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
     groups, not with restarts.
   - **No audit trail.**
 - Follow-ups of revision 1, both decided and implemented in 3.0.0: expiry of client entries (ADR-0014); one client hash
-  per group with a migration (ADR-0015). New, each needs a decision record: per-group keys for leases and resources.
+  per group with a migration (ADR-0015). Per-group keys for leases and resources: proposed in ADR-0020.
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
+  2026-10-18; revision 2 accepted by dradoaica on 2026-10-18. Revision 3: {Accepted by <role> on <date>} – pending
+  human review.
 
 ## Dependencies and follow-ups
 
@@ -176,8 +180,8 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
   `docs/adrs/0017-…` (all Accepted; ADR 0006 is superseded by ADR-0016 and ADR-0017 for the parts used here).
 - Required SDPs: N/A (library).
 - Change records to implement mitigations: `docs/change-records/CR-0002-release-3-0-0.md`.
-- Runbooks / monitors to add: Redis ACL user definition with a verified minimal command set (the clients-hash cleanup
-  procedure is no longer needed).
+- Runbooks / monitors to add: none for ACLs (the verified per-group user definition is in
+  `docs/release-notes/migrating-to-3.0.md`); the clients-hash cleanup procedure is no longer needed.
 
 ## Approvals
 
@@ -185,8 +189,10 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 |-------------------------|------|------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-10-18 |
+| Security / architecture (revision 2) | dradoaica | 2026-10-18 |
+| Service owner (revision 3)           |           |            |
+| Security / architecture (revision 3) |           |            |
 
 ## Sources
 
