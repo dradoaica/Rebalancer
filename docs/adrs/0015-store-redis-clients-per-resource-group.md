@@ -1,11 +1,11 @@
 ---
 id: ADR-0015
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "Redis key layout for client records"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "TM-0003", "US-006" ]
