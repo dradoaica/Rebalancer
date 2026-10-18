@@ -1,11 +1,11 @@
 ---
 id: ADR-0016
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "ownership and disposal of the provider passed to a RebalancerClient"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0006", "US-003", "US-006" ]
