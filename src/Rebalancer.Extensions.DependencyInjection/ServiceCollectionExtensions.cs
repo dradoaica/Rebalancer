@@ -5,8 +5,8 @@ using System;
 namespace Rebalancer.Extensions.DependencyInjection;
 
 /// <summary>
-///     Registers <see cref="RebalancerClient" /> and custom <see cref="IRebalancerProvider" /> factories without
-///     using <see cref="Providers" />.
+///     Registers <see cref="RebalancerClient" /> and custom <see cref="IRebalancerProvider" /> factories (ADR-0005,
+///     ADR-0013).
 /// </summary>
 public static class ServiceCollectionExtensions
 {

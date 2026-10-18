@@ -10,8 +10,7 @@ public class SingleClientTests : IDisposable
 {
     private readonly ZkHelper zkHelper = new();
 
-    // the static Providers registry keeps only the first registration per process (ADR 0001), so every test passes its
-    // own factory to RebalancerClient; otherwise later tests silently run with the first test's mode and settings
+    // each test sets the provider it needs; clients get it explicitly (see PRB-2026-10-18-zookeeper-tests-ignored-their-provider)
     private Func<IRebalancerProvider> providerFactory = null!;
 
     public void Dispose()

@@ -80,6 +80,7 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 3.0.0](docs/release-notes/3.0.0.md) and [migration guide](docs/release-notes/migrating-to-3.0.md) — breaking changes
 - [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
   once)
@@ -108,8 +109,9 @@ var client = provider.GetRequiredService<RebalancerClient>();
 Alternatively use `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or `AddRebalancerProvider(_ => new MyProvider(...))`.
 Without DI, pass the provider explicitly: `new RebalancerClient(new SqlServerProvider(connectionString))`.
 
-**Deprecated since 2.2, removed in 3.0:** the static `Providers.Register` registry and the parameterless
-`RebalancerClient()` constructor ([ADR 0013](docs/adrs/0013-explicit-providers-only-remove-static-registry.md)).
+Since 3.0 there is no static `Providers.Register` registry and no parameterless `RebalancerClient()`
+([ADR 0013](docs/adrs/0013-explicit-providers-only-remove-static-registry.md)). Upgrading from 2.x:
+[migration guide](docs/release-notes/migrating-to-3.0.md).
 
 ### Provider lifetime
 

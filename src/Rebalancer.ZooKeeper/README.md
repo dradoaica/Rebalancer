@@ -6,9 +6,9 @@ To learn more about the project check out the [wiki](https://github.com/Rebalanc
 
 ## Securing znodes with an ACL
 
-By default every znode is created with `OPEN_ACL_UNSAFE`: anyone who can reach the ensemble can read and change
-assignments. To restrict access, use the `ZooKeeperProvider` (or `AddRebalancerZooKeeper`) overload that takes an ACL
-and an auth scheme ([ADR 0006](../../docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md)):
+Since 3.0 every ZooKeeper entry point **requires credentials or an explicit ACL**
+([ADR 0011](../../docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md)); a null ACL without credentials
+throws `ArgumentException`. With credentials and a null ACL, znodes are created with `CREATOR_ALL_ACL`:
 
 ```csharp
 var provider = new ZooKeeperProvider(
@@ -19,9 +19,8 @@ var provider = new ZooKeeperProvider(
     authData: Encoding.UTF8.GetBytes(credentialsFromYourSecretStore)); // "user:password"
 ```
 
-**Since 2.2, the constructors without credentials are deprecated, and 3.0 removes them**
-([ADR 0011](../../docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md)). To keep znodes open
-deliberately, say so in code, as the integration tests do:
+To keep znodes open deliberately (anyone who can reach the ensemble can then read and change assignments), say so in
+code, as the integration tests do:
 
 ```csharp
 var provider = new ZooKeeperProvider(

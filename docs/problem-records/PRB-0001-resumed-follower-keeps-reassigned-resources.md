@@ -1,0 +1,81 @@
+---
+id: PRB-0001
+status: Root cause identified
+date: 2026-10-18
+opened: 2026-10-18
+owner: ""
+approved-by: [ ]            # closure review; set by a human only
+severity: "High (assignment safety, short window)"
+depends-on: [ "ADR-0002", "ADR-0014", "US-005", "US-006", "US-013" ]
+---
+
+# Problem record: A resumed SQL Server / Redis follower keeps processing resources that were reassigned
+
+## Summary
+
+A follower that pauses for longer than the keep-alive expiry, but shorter than the client-record retention, is
+declared dead and its resources are reassigned. When it resumes, it keeps processing its old resources until the
+coordinator's next rebalance stops it. Two nodes can process the same resource during that window.
+
+## Symptoms & impact
+
+- **Symptoms:** after a long GC pause, VM freeze, or network stall on one node, two nodes report the same resource as
+  assigned for up to about one coordinator heartbeat interval after the paused node resumes.
+- **Impact:** duplicate processing of a resource for a few seconds, which breaks the core guarantee of ADR-0002 /
+  US-013 in that window. It exists in 2.x and is unchanged by 3.0.
+
+## Timeline
+
+| When       | Event                                                                                      |
+|------------|--------------------------------------------------------------------------------------------|
+| 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
+
+## Evidence
+
+- `src/Rebalancer.SqlServer/Roles/Coordinator.cs` (identical in `src/Rebalancer.Redis/Roles/`):
+  `TriggerRebalancingAsync` sends `StopActivityAsync` only to the **live** clients from `GetLiveClientsAsync`, so the
+  paused node's record keeps `CoordinatorStatus = ResourcesGranted`, `ClientStatus = Active`.
+- `Roles/Follower.cs`: with `ResourcesGranted` and `Active` the follower only logs its state, so a resumed node
+  continues with its old assignment.
+- The next coordinator heartbeat sees the node live again, the client set changes, and it rebalances. That bounds the
+  window.
+- Not yet reproduced by a test.
+
+## Root cause analysis
+
+A follower decides whether it may keep processing only from its own record. Nothing tells it that the coordinator
+considered it dead in the meantime. The record does not carry the fencing token or epoch of the assignment it
+holds, compared with the coordinator's current one. The demoted-coordinator fix (PRB-2026-10-18) and ADR-0014's
+re-registration both cover related cases, but not this one: the record has not expired yet.
+
+### Contributing factors
+
+- Liveness is judged by the coordinator; the follower has no lease of its own.
+- The integration tests do not pause a node past the keep-alive expiry.
+
+## Corrective actions
+
+| Action                                                                                                                 | Owner | Status |
+|------------------------------------------------------------------------------------------------------------------------|-------|--------|
+| Decide the fix in a decision record; options include: the follower stops when its own keep-alive was older than the expiry (self-fencing), or `StopActivityAsync` also targets non-live clients with an assignment | | Open |
+| Integration test that pauses a follower past the keep-alive expiry and asserts no overlap                              |       | Open   |
+
+## Preventive measures
+
+- **Agent Governance:** N/A; code defect.
+- **Tests / automation:** the pause test above.
+- **Monitoring / alerts:** N/A (library).
+- **Runbooks / docs:** until fixed, set `LeaseExpirySeconds` well above the worst expected pause, as for
+  PRB-2026-10-18-demoted-coordinator-keeps-resources.
+- **Decision records:** required for the fix (Tier 1: changes the coordination protocol).
+
+## Known errors / workarounds
+
+Keep the keep-alive expiry well above the longest expected pause of a node.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
+- `docs/adrs/0014-expire-stale-client-records.md`
+- `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
+  `US-013-cross-backend-assignment-safety-tests.md`

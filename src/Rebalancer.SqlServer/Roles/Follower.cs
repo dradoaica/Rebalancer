@@ -30,7 +30,7 @@ internal class Follower
         CancellationToken token
     )
     {
-        var self = await clientService.KeepAliveAsync(followerClientId);
+        var (self, _) = await KeepAliveOrReRegisterAsync(followerClientId, clientEvent.ResourceGroup, onChangeActions);
         logger.Debug(
             followerClientId.ToString(),
             $"FOLLOWER : Keep Alive sent. Coordinator: {self.CoordinatorStatus} Client: {self.ClientStatus}"
@@ -128,6 +128,41 @@ internal class Follower
         }
         catch (TaskCanceledException)
         {
+        }
+    }
+
+    // ADR-0014: a record can expire while this node is paused. The node may still run resources that were reassigned
+    // since, so it stops them before it registers again (the same safety rule as for a demoted coordinator).
+    private async Task<(Client Self, bool ReRegistered)> KeepAliveOrReRegisterAsync(
+        Guid clientId,
+        string resourceGroup,
+        OnChangeActions onChangeActions
+    )
+    {
+        try
+        {
+            return (await clientService.KeepAliveAsync(clientId), false);
+        }
+        catch (ClientNotFoundException)
+        {
+            logger.Warn(clientId.ToString(), "Client record expired: stopping local activity and registering again");
+            if (store.GetResources().AssignmentStatus != AssignmentStatus.AssignmentInProgress)
+            {
+                foreach (var onStopAction in onChangeActions.OnStopActions)
+                {
+                    onStopAction.Invoke();
+                }
+            }
+
+            store.SetResources(
+                new SetResourcesRequest
+                {
+                    AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                    Resources = new List<string>(),
+                }
+            );
+            await clientService.CreateClientAsync(resourceGroup, clientId);
+            return (await clientService.KeepAliveAsync(clientId), true);
         }
     }
 }

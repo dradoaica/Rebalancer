@@ -11,34 +11,10 @@ using Xunit;
 
 namespace Rebalancer.UnitTests;
 
-/// <summary>Contract of ADR 0006 option B: ACLs are opt-in through new overloads; existing signatures are unchanged.</summary>
+/// <summary>Contract of the ZooKeeper ACL API (ADR-0018 in 2.x, ADR-0011 from 3.0): ACL overloads work with credentials or an explicit ACL.</summary>
 public sealed class ZooKeeperAclApiTests
 {
     private const string Hosts = "localhost:1";
-
-    [Fact]
-    public void PreAclConstructors_StillExist_ForBinaryCompatibility()
-    {
-        Assert.NotNull(typeof(ZooKeeperService).GetConstructor([typeof(string),]));
-        Assert.NotNull(
-            typeof(ZooKeeperProvider).GetConstructor(
-                [
-                    typeof(string), typeof(string), typeof(TimeSpan), typeof(TimeSpan), typeof(TimeSpan),
-                    typeof(RebalancingMode), typeof(IRebalancerLogger), typeof(IZooKeeperService),
-                ]
-            )
-        );
-        Assert.NotNull(
-            typeof(ZooKeeperRebalancerServiceCollectionExtensions).GetMethod(
-                nameof(ZooKeeperRebalancerServiceCollectionExtensions.AddRebalancerZooKeeper),
-                [
-                    typeof(IServiceCollection), typeof(string), typeof(string), typeof(RebalancingMode),
-                    typeof(TimeSpan?), typeof(TimeSpan?), typeof(TimeSpan?), typeof(IRebalancerLogger),
-                    typeof(IZooKeeperService),
-                ]
-            )
-        );
-    }
 
     [Fact]
     public void AclProviderConstructor_CanBeUsedWithRebalancerClient()
@@ -78,18 +54,6 @@ public sealed class ZooKeeperAclApiTests
         var first = serviceProvider.GetRequiredService<IRebalancerProvider>();
         var second = serviceProvider.GetRequiredService<IRebalancerProvider>();
         Assert.NotSame(first, second);
-        Assert.NotNull(serviceProvider.GetRequiredService<RebalancerClient>());
-    }
-
-    [Fact]
-    public void AddRebalancerZooKeeper_WithoutAcl_StillResolves()
-    {
-        var services = new ServiceCollection();
-#pragma warning disable CS0618 // the deprecated overload must keep working throughout 2.x (ADR-0011)
-        services.AddRebalancerZooKeeper(Hosts, "/rebalancer", RebalancingMode.GlobalBarrier);
-#pragma warning restore CS0618
-        using var serviceProvider = services.BuildServiceProvider();
-
         Assert.NotNull(serviceProvider.GetRequiredService<RebalancerClient>());
     }
 

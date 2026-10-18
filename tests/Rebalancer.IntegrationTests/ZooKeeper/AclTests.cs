@@ -136,7 +136,7 @@ public class AclTests : IDisposable
             TimeSpan.FromSeconds(1),
             mode,
             logger,
-            null,
+            credentials == null ? ZooDefs.Ids.OPEN_ACL_UNSAFE : null, // 3.0: no credentials needs an explicit ACL
             credentials == null ? null : "digest",
             credentials
         );

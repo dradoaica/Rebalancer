@@ -8,5 +8,6 @@ public class ClientEvent
     public int FencingToken { get; set; }
     public string ResourceGroup { get; set; }
     public TimeSpan KeepAliveExpiryPeriod { get; set; }
+    public TimeSpan ClientRecordRetention { get; set; }
     public CoordinatorToken CoordinatorToken { get; set; }
 }

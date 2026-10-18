@@ -29,24 +29,10 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     private CancellationToken token;
     private org.apache.zookeeper.ZooKeeper zookeeper;
 
-    /// <summary>
-    ///     Creates every znode with OPEN_ACL_UNSAFE: anyone who can reach the ensemble can change assignments. Use the
-    ///     overload with an ACL to restrict access.
-    /// </summary>
-    /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
-    [Obsolete(
-        "Deprecated by ADR-0011 and removed in 3.0. Use ZooKeeperService(hosts, acl, authScheme, authData); pass "
-        + "ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately."
-    )]
-    public ZooKeeperService(string zookeeperHosts)
-        : this(zookeeperHosts, null, null, null)
-    {
-    }
-
     /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
     /// <param name="acl">
-    ///     ACL for every znode created. When null, defaults to CREATOR_ALL_ACL if <paramref name="authScheme" />
-    ///     is set, otherwise to OPEN_ACL_UNSAFE.
+    ///     ACL for every znode created. When null, CREATOR_ALL_ACL is used, which requires credentials. To keep znodes
+    ///     open deliberately, pass ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials (ADR-0011).
     /// </param>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">
@@ -54,12 +40,22 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     ///     CREATOR_ALL_ACL every node of a resource group must use the same credentials, otherwise nodes cannot modify each
     ///     other's znodes.
     /// </param>
+    /// <exception cref="ArgumentException">Neither <paramref name="acl" /> nor <paramref name="authScheme" /> is given.</exception>
     public ZooKeeperService(string zookeeperHosts, List<ACL> acl, string authScheme, byte[] authData)
     {
+        if (acl == null && authScheme == null)
+        {
+            throw new ArgumentException(
+                "Either credentials (authScheme and authData) or an explicit ACL are required; pass ZooDefs.Ids.OPEN_ACL_UNSAFE "
+                + "without credentials to keep znodes open deliberately (ADR-0011).",
+                nameof(acl)
+            );
+        }
+
         this.zookeeperHosts = zookeeperHosts;
         this.authScheme = authScheme;
         this.authData = authData;
-        this.acl = acl ?? (authScheme != null ? ZooDefs.Ids.CREATOR_ALL_ACL : ZooDefs.Ids.OPEN_ACL_UNSAFE);
+        this.acl = acl ?? ZooDefs.Ids.CREATOR_ALL_ACL;
         clientId = "-";
         sessionExpired = false;
     }
