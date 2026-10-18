@@ -178,7 +178,16 @@ internal class ClientService : IClientService
     )
     {
         var groupKey = RedisHash.GroupKey("Clients", resourceGroup);
-        await MigrateLegacyClientsOnceAsync(resourceGroup, groupKey, coordinatorClientId, fencingToken);
+        try
+        {
+            await MigrateLegacyClientsOnceAsync(resourceGroup, groupKey, coordinatorClientId, fencingToken);
+        }
+        catch (RedisServerException)
+        {
+            // e.g. NOPERM: a Redis ACL user limited to this group's keys cannot read the 2.x hash. The migration is
+            // optional (old entries belong to stopped processes); it must not prevent the expiry below.
+            legacyMigrationDoneForFencingToken = fencingToken;
+        }
 
         for (var attempt = 0; attempt < MaxCompareAndSetAttempts; attempt++)
         {

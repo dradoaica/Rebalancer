@@ -74,6 +74,38 @@ public sealed class RedisClientRecordTests
         Assert.Empty(await new ClientService(db).GetActiveClientsAsync("invoices")); // groups do not see each other
     }
 
+    [SkippableFact]
+    public async Task ExpiryWorks_ForARedisAclUserLimitedToItsGroup()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await redis.StartAsync();
+        using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var adminDb = admin.GetDatabase();
+        const string group = "orders";
+        var coordinator = Guid.NewGuid();
+        SeedLease(adminDb, group, coordinator, fencingToken: 1);
+        var stale = Guid.NewGuid();
+        await SeedClientAsync(adminDb, RedisHash.GroupKey("Clients", group), stale, group, DateTime.UtcNow.AddHours(-1));
+
+        // the per-group key patterns from the migration guide: no access to the 2.x hash Dictionary:RBR:Clients.
+        // All commands are allowed because the client library's connection handshake needs more than data commands;
+        // this test is about the key restriction.
+        await adminDb.ExecuteAsync(
+            "ACL", "SETUSER", "orders-user", "on", ">orders-pass", "allchannels", "+@all",
+            "~RBR:Clients:orders", "~Dictionary:RBR:ResourceGroups", "~List:RBR:Resources"
+        );
+        var options = ConfigurationOptions.Parse(redis.GetConnectionString());
+        options.User = "orders-user";
+        options.Password = "orders-pass";
+        using var limited = await ConnectionMultiplexer.ConnectAsync(options);
+        var service = new ClientService(limited.GetDatabase());
+        await service.CreateClientAsync(group, coordinator);
+
+        Assert.Equal(1, await service.DeleteExpiredClientsAsync(group, coordinator, 1, Retention));
+        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().HashLengthAsync("Dictionary:RBR:Clients"));
+    }
+
     [Fact]
     public void GroupNamesAreEscapedInKeys() =>
         Assert.Equal("RBR:Clients:a%2Ab%20c%C3%A9", (string)RedisHash.GroupKey("Clients", "a*b cé")!);

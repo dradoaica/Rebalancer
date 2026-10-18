@@ -1,11 +1,11 @@
 ---
 id: TM-0002
-status: Accepted
+status: Proposed
 date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
-approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "US-005" ]
+approved-by: [ ]
+depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0002" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -20,6 +20,11 @@ library has no access control of its own: it relies entirely on the SQL Server l
 statements are parameterized. One query builds an `IN (...)` list, but it concatenates only generated `@ClientN`
 placeholder names, never values. The main risks are over-privileged or shared logins, the lack of isolation between
 resource groups, and unbounded growth of the client table.
+
+**Revision 2 (3.0.0, CR-0002):**
+- Since 3.0 the coordinator deletes stale client records, and a node deletes its own record on a clean stop
+  (ADR-0014). This resolves the unbounded growth (D1).
+- The login now needs `DELETE` on `RBR.Clients`, which brings a new availability threat (D3).
 
 ## System context and boundaries
 
@@ -50,11 +55,14 @@ resource groups, and unbounded growth of the client table.
 
 1. Node → TDS → SQL Server – opens a connection per operation (`ConnectionHelper`, up to 3 tries on transient errors).
 2. Node → `UPDATE … OUTPUT` on `ResourceGroups` (serializable transaction) – acquire or renew the lease.
-3. Node → `INSERT` / `UPDATE` on `Clients` – register, keep-alive, status changes.
+3. Node → `INSERT` / `UPDATE` on `Clients` – register, keep-alive, status changes; `DELETE` of its own row on a clean
+   stop (since 3.0).
 4. Coordinator → `UPDATE` on `Clients` (one transaction) – stop or grant resources to followers, guarded by
    `FencingToken`.
 5. Node → `SELECT` on `Resources`, `Clients` – read resources and live clients.
-6. Operator / tools → `INSERT` / `DELETE` on `ResourceGroups`, `Resources` – provisioning.
+6. Coordinator → `DELETE` on `Clients` (since 3.0) – rows of its group with `LastKeepAlive` older than the retention,
+   judged by `GETUTCDATE()`, only while `ResourceGroups` shows it as coordinator with its fencing token (ADR-0014).
+7. Operator / tools → `INSERT` / `DELETE` on `ResourceGroups`, `Resources` – provisioning.
 
 ## Threat analysis (STRIDE)
 
@@ -99,11 +107,18 @@ resource groups, and unbounded growth of the client table.
 - Threat D1: client rows are never deleted. Each process start inserts a new `ClientId`, and terminated rows stay,
   so the table grows with every restart.
 - Affected flow/asset: flows 3, 5; `GetActiveClientsAsync` filters on status but the table keeps growing.
-- Mitigation(s): none in the library today; an operator cleanup job (delete `Terminated` rows older than a threshold).
-- Risk: **Low to Medium** (slow degradation, operational).
+- Mitigation(s): since 3.0, the coordinator expires rows older than `ClientOptions.ClientRecordRetention` (default
+  10 × the keep-alive expiry), and a clean stop deletes the node's own row (ADR-0014). Cleanup is best effort: if it
+  fails (e.g. missing `DELETE`), a warning is logged and coordination continues.
+- Risk: **Low** (revision 1: Low to Medium).
 - Threat D2: lock contention or a held serializable transaction blocks lease renewal, so coordinators flap.
 - Mitigation(s): short transactions; lease expiry well above the worst expected blocking.
 - Risk: **Low**.
+- Threat D3 (revision 2): a principal with `DELETE` on `RBR.Clients` deletes live client rows. Each affected node stops
+  its activity (`OnUnassignment`) and registers again (ADR-0014); repeated deletes keep the group rebalancing.
+- Mitigation(s): `DELETE` granted on `RBR.Clients` only, to the dedicated Rebalancer login; no other principal with
+  write access to `RBR`. Safety holds: a node whose row disappears stops before it registers again.
+- Risk: **Low** with a dedicated login; **Medium** if the login is shared.
 
 ### Elevation of Privilege
 
@@ -116,40 +131,46 @@ resource groups, and unbounded growth of the client table.
 
 | Threat / Risk                         | Control (design or runtime)                                                                  | Evidence / Reference                                     |
 |---------------------------------------|----------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Spoofing / tampering                  | Dedicated login with only `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables (no `DELETE`, no DDL) | Statements in `src/Rebalancer.SqlServer/` (no `DELETE`)  |
+| Spoofing / tampering, D3              | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL) | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant) |
 | SQL injection                         | Parameterized statements                                                                     | `ClientService`, `LeaseService`, `ResourceService`       |
 | Credential and traffic disclosure     | Secret store; `Encrypt=True`; no connection strings in logs                                  | US-005 Security & compliance; deployment responsibility  |
-| Client table growth                   | Operator cleanup of old `Terminated` rows                                                    | Not provided; follow-up                                  |
+| Client table growth (D1)              | Coordinator expiry under the fencing token; own-row delete on clean stop                     | ADR-0014; `tests/Rebalancer.IntegrationTests/Sql/SqlServerClientRecordTests.cs` |
 | Cross-group tampering                 | Separate database or login per trust domain                                                  | Deployment responsibility                                |
 
 ## Residual risk and acceptance
 
 - Residual risks after mitigations:
   - **No authentication of nodes beyond the login,** and no per-group isolation.
-  - **Unbounded `Clients` growth** without an external cleanup.
+  - ~~**Unbounded `Clients` growth**~~ Resolved in 3.0 (ADR-0014).
+  - **Client-row deletes by the login holder** cause rebalancing churn (D3), not double assignment.
   - **No audit trail** unless the database provides one.
-- Proposed follow-ups (each needs a decision record before implementation): delete or expire terminated client rows
-  in the library; document a least-privilege role script next to `db/`.
-- Decision: Accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on 2026-10-18,
-  including the residual risks above.
+- Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). Still open: a
+  least-privilege role script next to `db/` (no decision record needed; documentation).
+- Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
+  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
 
 ## Dependencies and follow-ups
 
-- Required ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (Accepted).
+- Required ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
+  `docs/adrs/0014-expire-stale-client-records.md` (Accepted).
 - Required SDPs: N/A (library).
-- Change records to implement mitigations: none yet.
-- Runbooks / monitors to add: least-privilege role script; client-table cleanup procedure.
+- Change records to implement mitigations: `docs/change-records/CR-0002-release-3-0-0.md`.
+- Runbooks / monitors to add: least-privilege role script (the client-table cleanup procedure is no longer needed).
 
 ## Approvals
 
 | Role                    | Name | Date |
 |-------------------------|------|------|
-| Service owner           | dradoaica | 2026-10-18 |
-| Security / architecture | dradoaica | 2026-10-18 |
+| Service owner (revision 1)           | dradoaica | 2026-10-18 |
+| Security / architecture (revision 1) | dradoaica | 2026-10-18 |
+| Service owner (revision 2)           |           |            |
+| Security / architecture (revision 2) |           |            |
 
 ## Sources
 
-- ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
+- ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
+  `docs/adrs/0014-expire-stale-client-records.md`
+- Change records: `docs/change-records/CR-0002-release-3-0-0.md`
 - Related user stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`
 - Code: `src/Rebalancer.SqlServer/`, `db/RebalanserSchema.sql`, `db/RebalanserTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped

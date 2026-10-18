@@ -54,8 +54,13 @@ together: they would look at different hashes.
 1. Stop every node of the group.
 2. Deploy 3.0 and start the nodes. The first coordinator moves the group's old entries into the new hash, guarded by
    its lease. Those entries belong to the stopped processes and expire later (ADR-0014).
-3. Optional: a Redis ACL user can now be limited to one group's client hash, e.g.
+3. Optional: a Redis ACL user can now be limited to one group's client hash with the key patterns
    `~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` (leases and resources stay shared).
+   - **Command set:** the user also needs the commands the StackExchange.Redis connection handshake uses. Data
+     commands alone (`+@read +@write +@transaction +time`) are not enough; the minimal set has not been verified yet.
+   - **Old entries:** a user without access to `Dictionary:RBR:Clients` cannot move the group's old entries. The
+     coordinator then skips that step, and expiry still works. Run the first 3.0 start with a user that can read the
+     old hash if you want the old entries cleaned up.
 
 **Rollback to 2.x:** stop the group's nodes and start 2.x. 2.x ignores `RBR:Clients:*`; its nodes register new records
 in the shared hash at start, so nothing needs to move back. You may delete the group's `RBR:Clients:{group}` key

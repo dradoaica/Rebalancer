@@ -45,7 +45,8 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
   - coordinator expiry, best effort;
   - re-registration that stops local activity first;
   - a clean stop deletes the node's own record;
-  - Redis per-group client hash with a lease-guarded migration of the 2.x entries.
+  - Redis per-group client hash with a lease-guarded migration of the 2.x entries; the migration is skipped (expiry
+    still runs) when the Redis user may not read the 2.x hash, e.g. a per-group ACL user.
 - Tests, example, READMEs, release notes, migration guide, US-0015 (successor of US-001), version 3.0.0.
 
 **Out of scope:**
@@ -67,8 +68,8 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
 ## Preconditions
 
 - [x] Decision records in place: ADR-0011–ADR-0015 (Accepted, `approved-by` set, on the shared trunk).
-- [ ] Threat model updates reviewed: TM-0002 (`DELETE` on `RBR.Clients`), TM-0003 (per-group client keys), TM-0001
-  (ADR-0012 caller-supplied service bypasses the credentials rule; "ACLs stay opt-in" resolved).
+- [ ] Threat model updates reviewed and accepted: revision 2 of TM-0001, TM-0002 and TM-0003 is drafted (status
+  Proposed, `approved-by` cleared) on `release/3.0.0`.
 - [ ] Tests / dry-run completed on the release branch: unit tests and Docker integration tests (Redis, SQL Server,
   ZooKeeper single/multi-client/ACL).
 - [ ] Rollback procedure validated / dry-run tested (Redis rollback in the migration guide).
@@ -108,7 +109,8 @@ before publishing.
 ## Post-implementation
 
 - **Actual outcome:** {after change}
-- **Follow-ups:** PRB-0001; threat model updates if not done before release.
+- **Follow-ups:** PRB-0001; a verified minimal Redis ACL command set (TM-0003); per-group keys for Redis leases and
+  resources (TM-0003, needs a decision record).
 
 ## Sources
 
