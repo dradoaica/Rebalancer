@@ -130,6 +130,19 @@ before publishing.
   - a verified minimal Redis ACL command set (TM-0003);
   - per-group keys for Redis leases and resources (TM-0003, needs a decision record);
   - readiness approval of US-0015 (Draft).
+- **Rollback rehearsal (performed after release, 2026-10-18):** the released 3.0.0 (`f3efbcb`) and 2.2.0 (`ac6587a`)
+  were built side by side and run as single clients against shared containers (Redis `redis:7.0`, SQL Server
+  2022-CU14), with lease expiry 5 s and one resource `r1`:
+  - **Redis, clean stop:** 3.0.0 assigned `r1` after 7 s, and its clean stop left `RBR:Clients:grp` empty. 2.2.0 then
+    assigned `r1` after 7 s and registered in `Dictionary:RBR:Clients`.
+  - **Redis, 3.0.0 killed while holding `r1`:** 2.2.0 assigned `r1` after 11 s, after the lease expired. The killed
+    node's records stayed in `RBR:Clients:grp`, ignored by 2.2.0.
+  - **SQL Server, clean stop:** 3.0.0 assigned `r1` after 7 s and left 0 client rows; 2.2.0 then assigned `r1` after
+    7 s.
+  - **SQL Server, 3.0.0 killed:** 2.2.0 assigned `r1` after 11 s.
+
+  Result: the rollback plan works as written, and no data needs to move back. The harness was a throwaway console app
+  outside the repository.
 
 ## Sources
 

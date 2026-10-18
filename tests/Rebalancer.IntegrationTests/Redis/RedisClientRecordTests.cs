@@ -88,16 +88,12 @@ public sealed class RedisClientRecordTests
         var stale = Guid.NewGuid();
         await SeedClientAsync(adminDb, RedisHash.GroupKey("Clients", group), stale, group, DateTime.UtcNow.AddHours(-1));
 
-        // the per-group key patterns from the migration guide: no access to the 2.x hash Dictionary:RBR:Clients.
-        // All commands are allowed because the client library's connection handshake needs more than data commands;
-        // this test is about the key restriction.
-        await adminDb.ExecuteAsync(
-            "ACL", "SETUSER", "orders-user", "on", ">orders-pass", "allchannels", "+@all",
-            "~RBR:Clients:orders", "~Dictionary:RBR:ResourceGroups", "~List:RBR:Resources"
-        );
+        // the documented minimal per-group user: no access to the 2.x hash Dictionary:RBR:Clients
+        await CreateMinimalGroupUserAsync(adminDb, "orders");
         var options = ConfigurationOptions.Parse(redis.GetConnectionString());
         options.User = "orders-user";
         options.Password = "orders-pass";
+        options.AbortOnConnectFail = false;
         using var limited = await ConnectionMultiplexer.ConnectAsync(options);
         var service = new ClientService(limited.GetDatabase());
         await service.CreateClientAsync(group, coordinator);
@@ -105,6 +101,53 @@ public sealed class RedisClientRecordTests
         Assert.Equal(1, await service.DeleteExpiredClientsAsync(group, coordinator, 1, Retention));
         await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().HashLengthAsync("Dictionary:RBR:Clients"));
     }
+
+    [SkippableFact]
+    public async Task ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await redis.StartAsync();
+        using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var adminDb = admin.GetDatabase();
+        new RedisDictionary<string, ResourceGroup>(adminDb, "RBR:ResourceGroups")["orders"] =
+            new ResourceGroup { Name = "orders", LeaseExpirySeconds = 5, HeartbeatSeconds = 1, };
+        new RedisList<Rebalancer.Redis.Resources.Resource>(adminDb, "RBR:Resources")
+            .Add(new Rebalancer.Redis.Resources.Resource { ResourceGroup = "orders", ResourceName = "r1", });
+        await CreateMinimalGroupUserAsync(adminDb, "orders");
+
+        var connectionString = $"{redis.GetConnectionString()},user=orders-user,password=orders-pass,abortConnect=false";
+        using var client = new Rebalancer.Core.RebalancerClient(new RedisProvider(connectionString));
+        await client.StartAsync("orders", new Rebalancer.Core.ClientOptions { AutoRecoveryOnError = false, });
+        try
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(30);
+            while (client.GetCurrentState() != Rebalancer.Core.ClientState.Assigned && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(200);
+            }
+
+            Assert.Equal(new[] { "r1" }, client.GetAssignedResources().Resources);
+        }
+        finally
+        {
+            await client.StopAsync(TimeSpan.FromSeconds(15));
+        }
+
+        // a clean stop deletes the node's own record through the restricted user (ADR-0014)
+        Assert.Equal(0, await adminDb.HashLengthAsync(RedisHash.GroupKey("Clients", "orders")));
+    }
+
+    // The documented minimal Redis ACL user for one resource group (verified 2026-10-18 against redis:7.0 and
+    // StackExchange.Redis 3.4.5): data and transaction commands, TIME for the server clock, and ECHO, which the
+    // client library's connection handshake requires. Its other handshake commands (CLIENT, CLUSTER, CONFIG GET,
+    // INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
+    private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
+        adminDb.ExecuteAsync(
+            "ACL", "SETUSER", $"{group}-user", "on", $">{group}-pass", "resetchannels",
+            $"~RBR:Clients:{RedisHash.EscapeKeySegment(group)}", "~Dictionary:RBR:ResourceGroups", "~List:RBR:Resources",
+            "+@read", "+@write", "+@transaction", "+time", "+echo"
+        );
 
     [Fact]
     public void GroupNamesAreEscapedInKeys() =>

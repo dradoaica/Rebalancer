@@ -6,7 +6,7 @@ opened: 2026-10-18
 owner: ""
 approved-by: [ ]            # closure review; set by a human only
 severity: "High (assignment safety, short window)"
-depends-on: [ "ADR-0002", "ADR-0014", "US-005", "US-006", "US-013" ]
+depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013" ]
 ---
 
 # Problem record: A resumed SQL Server / Redis follower keeps processing resources that were reassigned
@@ -30,6 +30,7 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 |------------|--------------------------------------------------------------------------------------------|
 | 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
 | 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                        |
+| 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0003)                |
 
 ## Evidence
 
@@ -61,8 +62,11 @@ re-registration both cover related cases, but not this one: the record has not e
 
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
-| Decide the fix in a decision record; options include: the follower stops when its own keep-alive was older than the expiry (self-fencing), or `StopActivityAsync` also targets non-live clients with an assignment | | Open |
-| Integration test that pauses a follower past the keep-alive expiry and asserts no overlap                              |       | Open   |
+| Decide the fix in a decision record                                                                                    |       | Done: ADR-0019 (Accepted), option A |
+| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (3.1.0, unreleased) |
+| Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it)       |       | Done (3.1.0, unreleased) |
+| Integration test that pauses a real follower past the keep-alive expiry                                               |       | Open (follow-up)         |
+| Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                            |       | Open (needs its own decision record) |
 
 ## Preventive measures
 
@@ -81,5 +85,6 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
 
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
 - `docs/adrs/0014-expire-stale-client-records.md`
+- `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md`
 - `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
   `US-013-cross-backend-assignment-safety-tests.md`
