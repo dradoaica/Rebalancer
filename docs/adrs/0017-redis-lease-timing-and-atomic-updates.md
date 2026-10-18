@@ -1,11 +1,11 @@
 ---
 id: ADR-0017
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "clock source and update atomicity for Redis leases and client records"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0006", "US-006" ]
