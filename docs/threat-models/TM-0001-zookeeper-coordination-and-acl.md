@@ -1,10 +1,10 @@
 ---
 id: TM-0001
-status: Proposed
+status: Accepted
 date: 2026-10-18
 scope: "Rebalancer.ZooKeeper provider and its znodes, including its ACL and credential handling"
 owner: "dradoaica"
-approved-by: [ ]
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-2026-10-18-coordination-safety-and-provider-ownership", "CR-0002" ]
 supersedes: [ ]
 superseded-by: ""

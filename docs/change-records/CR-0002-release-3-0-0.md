@@ -1,9 +1,9 @@
 ---
 id: CR-0002
-status: Draft
+status: Approved
 date: 2026-10-18
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "High"
 change-type: "Normal"
 requested-by: "dradoaica"

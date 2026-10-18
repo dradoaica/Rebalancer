@@ -1,10 +1,10 @@
 ---
 id: TM-0002
-status: Proposed
+status: Accepted
 date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
-approved-by: [ ]
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0002" ]
 supersedes: [ ]
 superseded-by: ""
