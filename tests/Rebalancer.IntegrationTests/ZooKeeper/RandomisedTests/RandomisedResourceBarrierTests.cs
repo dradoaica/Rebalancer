@@ -1,3 +1,4 @@
+using org.apache.zookeeper;
 using Rebalancer.Core;
 using Rebalancer.IntegrationTests.ZooKeeper.Helpers;
 using Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests.TestComponents;
@@ -588,7 +589,10 @@ public class RandomisedResourceBarrierTests : IDisposable
         currentConfig.ConnectTimeout,
         currentConfig.MinimumRebalancingInterval,
         RebalancingMode.ResourceBarrier,
-        new TestOutputLogger()
+        new TestOutputLogger(),
+        ZooDefs.Ids.OPEN_ACL_UNSAFE, // open ACL on purpose (ADR-0011): AclTests covers ACLs
+        null,
+        null
     );
 
     private IRebalancerProvider GetGlobalBarrierProvider() => new ZooKeeperProvider(
@@ -598,6 +602,9 @@ public class RandomisedResourceBarrierTests : IDisposable
         currentConfig.ConnectTimeout,
         currentConfig.MinimumRebalancingInterval,
         RebalancingMode.GlobalBarrier,
-        new TestOutputLogger()
+        new TestOutputLogger(),
+        ZooDefs.Ids.OPEN_ACL_UNSAFE, // open ACL on purpose (ADR-0011): AclTests covers ACLs
+        null,
+        null
     );
 }

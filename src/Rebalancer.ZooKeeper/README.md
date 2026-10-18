@@ -19,6 +19,22 @@ var provider = new ZooKeeperProvider(
     authData: Encoding.UTF8.GetBytes(credentialsFromYourSecretStore)); // "user:password"
 ```
 
+**Since 2.2, the constructors without credentials are deprecated, and 3.0 removes them**
+([ADR 0011](../../docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md)). To keep znodes open
+deliberately, say so in code, as the integration tests do:
+
+```csharp
+var provider = new ZooKeeperProvider(
+    hosts, "/rebalancer", sessionTimeout, connectTimeout, minimumRebalancingInterval,
+    RebalancingMode.GlobalBarrier, logger,
+    acl: ZooDefs.Ids.OPEN_ACL_UNSAFE, authScheme: null, authData: null);
+```
+
+To supply your own `IZooKeeperService` (for example a test double), use
+`new ZooKeeperProvider(zooKeeperService, rootPath, sessionTimeout, connectTimeout, minimumRebalancingInterval, mode,
+logger)` ([ADR 0012](../../docs/adrs/0012-zookeeper-provider-entry-point-for-a-custom-service.md)). That service decides
+about credentials and ACLs itself; the provider does not check them.
+
 Operator notes:
 
 - **Every node in a resource group must use the same credentials.** With `CREATOR_ALL_ACL` only the identity that

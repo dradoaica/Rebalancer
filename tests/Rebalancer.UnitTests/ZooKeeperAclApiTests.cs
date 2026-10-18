@@ -85,7 +85,20 @@ public sealed class ZooKeeperAclApiTests
     public void AddRebalancerZooKeeper_WithoutAcl_StillResolves()
     {
         var services = new ServiceCollection();
+#pragma warning disable CS0618 // the deprecated overload must keep working throughout 2.x (ADR-0011)
         services.AddRebalancerZooKeeper(Hosts, "/rebalancer", RebalancingMode.GlobalBarrier);
+#pragma warning restore CS0618
+        using var serviceProvider = services.BuildServiceProvider();
+
+        Assert.NotNull(serviceProvider.GetRequiredService<RebalancerClient>());
+    }
+
+    [Fact]
+    public void AddRebalancerZooKeeper_WithExplicitOpenAcl_Resolves()
+    {
+        // the non-deprecated replacement for an open ACL: the choice is visible in code (ADR-0011)
+        var services = new ServiceCollection();
+        services.AddRebalancerZooKeeper(Hosts, "/rebalancer", RebalancingMode.GlobalBarrier, ZooDefs.Ids.OPEN_ACL_UNSAFE, null, null);
         using var serviceProvider = services.BuildServiceProvider();
 
         Assert.NotNull(serviceProvider.GetRequiredService<RebalancerClient>());

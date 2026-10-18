@@ -15,6 +15,10 @@ public class RebalancerClient : IDisposable
     private bool stopped;
 
     /// <summary>Uses the provider registered via <see cref="Providers.Register" />.</summary>
+    [Obsolete(
+        "Deprecated by ADR-0013 and removed in 3.0. Pass the provider explicitly, new RebalancerClient(provider), or "
+        + "register it with the dependency injection extensions (Rebalancer.Extensions.DependencyInjection)."
+    )]
     public RebalancerClient()
         : this(Providers.GetProvider())
     {

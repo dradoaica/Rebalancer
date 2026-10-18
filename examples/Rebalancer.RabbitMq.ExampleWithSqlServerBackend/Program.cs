@@ -23,11 +23,10 @@ internal static class Program
 
     private static async Task RunAsync()
     {
-        Providers.Register(() =>
+        clientTasks = [];
+        using RebalancerClient context = new(
             new SqlServerProvider("Server=(local);Database=RabbitMqScaling;Trusted_Connection=true;")
         );
-        clientTasks = [];
-        using RebalancerClient context = new();
         context.OnAssignment += (sender, args) =>
         {
             var queues = context.GetAssignedResources();

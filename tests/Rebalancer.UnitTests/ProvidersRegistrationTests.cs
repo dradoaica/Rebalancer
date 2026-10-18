@@ -1,4 +1,6 @@
 using Rebalancer.Core;
+
+#pragma warning disable CS0618 // tests the deprecated registry until its removal in 3.0 (ADR-0013); delete this file with the type
 using Xunit;
 
 namespace Rebalancer.UnitTests;

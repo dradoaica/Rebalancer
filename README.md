@@ -80,6 +80,7 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
   once)
 - [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, and Redis backends
@@ -105,8 +106,10 @@ var client = provider.GetRequiredService<RebalancerClient>();
 ```
 
 Alternatively use `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or `AddRebalancerProvider(_ => new MyProvider(...))`.
-The parameterless `RebalancerClient` constructor still uses static
-`Providers.Register` ([ADR 0005](docs/adrs/0005-dependency-injection-for-provider-registration-v2.md)).
+Without DI, pass the provider explicitly: `new RebalancerClient(new SqlServerProvider(connectionString))`.
+
+**Deprecated since 2.2, removed in 3.0:** the static `Providers.Register` registry and the parameterless
+`RebalancerClient()` constructor ([ADR 0013](docs/adrs/0013-explicit-providers-only-remove-static-registry.md)).
 
 ### Provider lifetime
 

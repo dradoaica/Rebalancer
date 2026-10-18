@@ -42,6 +42,15 @@ public class ZooKeeperProvider : IRebalancerProvider
     private ClientInternalState state;
     private string watchSiblingNodePath;
 
+    /// <summary>
+    ///     Creates every znode with OPEN_ACL_UNSAFE unless <paramref name="zooKeeperService" /> is given; anyone who can
+    ///     reach the ensemble can then change assignments.
+    /// </summary>
+    [Obsolete(
+        "Deprecated by ADR-0011 and removed in 3.0. Use the overload with acl/authScheme/authData (pass "
+        + "ZooDefs.Ids.OPEN_ACL_UNSAFE to keep an open ACL deliberately), or, for a caller-supplied service, "
+        + "ZooKeeperProvider(IZooKeeperService, ...) (ADR-0012)."
+    )]
     public ZooKeeperProvider(
         string zookeeperHosts,
         string zooKeeperRootPath,
@@ -52,27 +61,23 @@ public class ZooKeeperProvider : IRebalancerProvider
         IRebalancerLogger logger,
         IZooKeeperService zooKeeperService = null
     )
+        : this(
+            zooKeeperService ?? new ZooKeeperService(zookeeperHosts),
+            zooKeeperRootPath,
+            sessionTimeout,
+            connectTimeout,
+            minimumRebalancingInterval,
+            rebalancingMode,
+            logger
+        )
     {
-        this.zooKeeperRootPath = zooKeeperRootPath;
-        this.rebalancingMode = rebalancingMode;
-        this.logger = logger ?? new NullRebalancerLogger();
-        this.sessionTimeout = sessionTimeout;
-        this.connectTimeout = connectTimeout;
-        this.minimumRebalancingInterval = minimumRebalancingInterval;
-        rand = new Random(Guid.NewGuid().GetHashCode());
-
-        if (zooKeeperService == null)
-        {
-            this.zooKeeperService = new ZooKeeperService(zookeeperHosts);
-        }
-        else
-        {
-            this.zooKeeperService = zooKeeperService;
-        }
     }
 
-    /// <summary>Like the main constructor, but secures every znode this provider creates.</summary>
-    /// <param name="acl">ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null.</param>
+    /// <summary>Secures every znode this provider creates with <paramref name="acl" /> and the given credentials.</summary>
+    /// <param name="acl">
+    ///     ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null. Pass
+    ///     ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).
+    /// </param>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8.</param>
     public ZooKeeperProvider(
@@ -88,16 +93,41 @@ public class ZooKeeperProvider : IRebalancerProvider
         byte[] authData
     )
         : this(
-            zookeeperHosts,
+            new ZooKeeperService(zookeeperHosts, acl, authScheme, authData),
             zooKeeperRootPath,
             sessionTimeout,
             connectTimeout,
             minimumRebalancingInterval,
             rebalancingMode,
-            logger,
-            new ZooKeeperService(zookeeperHosts, acl, authScheme, authData)
+            logger
         )
     {
+    }
+
+    /// <summary>
+    ///     Uses a caller-supplied ZooKeeper service (ADR-0012), e.g. a test double or a service with its own connection
+    ///     handling. The service decides about credentials and ACLs; the "credentials or explicit opt-out" rule of
+    ///     ADR-0011 does not apply to it.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"><paramref name="zooKeeperService" /> is null.</exception>
+    public ZooKeeperProvider(
+        IZooKeeperService zooKeeperService,
+        string zooKeeperRootPath,
+        TimeSpan sessionTimeout,
+        TimeSpan connectTimeout,
+        TimeSpan minimumRebalancingInterval,
+        RebalancingMode rebalancingMode,
+        IRebalancerLogger logger
+    )
+    {
+        this.zooKeeperService = zooKeeperService ?? throw new ArgumentNullException(nameof(zooKeeperService));
+        this.zooKeeperRootPath = zooKeeperRootPath;
+        this.rebalancingMode = rebalancingMode;
+        this.logger = logger ?? new NullRebalancerLogger();
+        this.sessionTimeout = sessionTimeout;
+        this.connectTimeout = connectTimeout;
+        this.minimumRebalancingInterval = minimumRebalancingInterval;
+        rand = new Random(Guid.NewGuid().GetHashCode());
     }
 
     public async Task StartAsync(

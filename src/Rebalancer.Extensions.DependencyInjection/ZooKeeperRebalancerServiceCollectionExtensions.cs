@@ -22,6 +22,11 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
     ///     <c>AddRebalancerProvider(_ =&gt; new ZooKeeperProvider(..., new MyZooKeeperService()))</c>, or use the ACL
     ///     overload, which creates a service per provider.
     /// </param>
+    [Obsolete(
+        "Deprecated by ADR-0011 and removed in 3.0. Use the overload with acl/authScheme/authData (pass "
+        + "ZooDefs.Ids.OPEN_ACL_UNSAFE to keep an open ACL deliberately), or AddRebalancerProvider with "
+        + "ZooKeeperProvider(IZooKeeperService, ...) for a caller-supplied service (ADR-0012)."
+    )]
     public static IServiceCollection AddRebalancerZooKeeper(
         this IServiceCollection services,
         string zooKeeperHosts,
@@ -41,7 +46,7 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         connectTimeout,
         minimumRebalancingInterval,
         logger,
-        () => zooKeeperService
+        () => zooKeeperService ?? new ZooKeeperService(zooKeeperHosts)
     );
 
     /// <summary>
@@ -84,7 +89,7 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         TimeSpan? connectTimeout,
         TimeSpan? minimumRebalancingInterval,
         IRebalancerLogger? logger,
-        Func<IZooKeeperService?> zooKeeperServiceFactory
+        Func<IZooKeeperService> zooKeeperServiceFactory
     )
     {
         if (string.IsNullOrWhiteSpace(zooKeeperHosts))
@@ -103,14 +108,13 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         var minRebalance = minimumRebalancingInterval ?? TimeSpan.FromSeconds(1);
 
         services.AddTransient<IRebalancerProvider>(_ => new ZooKeeperProvider(
-                zooKeeperHosts,
+                zooKeeperServiceFactory(),
                 zooKeeperRootPath,
                 session,
                 connect,
                 minRebalance,
                 rebalancingMode,
-                log,
-                zooKeeperServiceFactory()
+                log
             )
         );
         services.AddTransient<RebalancerClient>();

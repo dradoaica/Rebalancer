@@ -34,6 +34,10 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     ///     overload with an ACL to restrict access.
     /// </summary>
     /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
+    [Obsolete(
+        "Deprecated by ADR-0011 and removed in 3.0. Use ZooKeeperService(hosts, acl, authScheme, authData); pass "
+        + "ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately."
+    )]
     public ZooKeeperService(string zookeeperHosts)
         : this(zookeeperHosts, null, null, null)
     {
