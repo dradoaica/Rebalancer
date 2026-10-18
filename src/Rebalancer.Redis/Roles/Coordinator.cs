@@ -50,7 +50,14 @@ internal class Coordinator
     )
     {
         currentFencingToken = clientEvent.FencingToken;
-        var self = await clientService.KeepAliveAsync(coordinatorClientId);
+        var (self, reRegistered) =
+            await KeepAliveOrReRegisterAsync(coordinatorClientId, clientEvent.ResourceGroup, onChangeActions);
+        if (reRegistered)
+        {
+            // its local activity was stopped, so the group must be rebalanced
+            stoppedDueToInternalErrorFlag = true;
+        }
+
         var resourcesNow = (await resourceService.GetResourcesAsync(clientEvent.ResourceGroup)).OrderBy(x => x)
             .ToList();
         var clientsNow = await GetLiveClientsAsync(clientEvent, coordinatorClientId);
@@ -61,6 +68,22 @@ internal class Coordinator
         {
             clientEvent.CoordinatorToken.FencingTokenViolation = true;
             return;
+        }
+
+        // ADR-0014: expire records of nodes that stopped sending keep-alives long ago (guarded by the fencing token).
+        // Housekeeping only: a failure (e.g. a SQL login without DELETE) must not stop coordination.
+        try
+        {
+            await clientService.DeleteExpiredClientsAsync(
+                clientEvent.ResourceGroup,
+                coordinatorClientId,
+                clientEvent.FencingToken,
+                clientEvent.ClientRecordRetention
+            );
+        }
+        catch (Exception e)
+        {
+            logger.Warn(coordinatorClientId.ToString(), $"COORDINATOR: Could not expire stale client records: {e.Message}");
         }
 
         if (self.ClientStatus == ClientStatus.Terminated || stoppedDueToInternalErrorFlag)
@@ -313,6 +336,41 @@ internal class Coordinator
         }
         catch (TaskCanceledException)
         {
+        }
+    }
+
+    // ADR-0014: a record can expire while this node is paused. The node may still run resources that were reassigned
+    // since, so it stops them before it registers again (the same safety rule as for a demoted coordinator).
+    private async Task<(Client Self, bool ReRegistered)> KeepAliveOrReRegisterAsync(
+        Guid clientId,
+        string resourceGroup,
+        OnChangeActions onChangeActions
+    )
+    {
+        try
+        {
+            return (await clientService.KeepAliveAsync(clientId), false);
+        }
+        catch (ClientNotFoundException)
+        {
+            logger.Warn(clientId.ToString(), "Client record expired: stopping local activity and registering again");
+            if (store.GetResources().AssignmentStatus != AssignmentStatus.AssignmentInProgress)
+            {
+                foreach (var onStopAction in onChangeActions.OnStopActions)
+                {
+                    onStopAction.Invoke();
+                }
+            }
+
+            store.SetResources(
+                new SetResourcesRequest
+                {
+                    AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                    Resources = new List<string>(),
+                }
+            );
+            await clientService.CreateClientAsync(resourceGroup, clientId);
+            return (await clientService.KeepAliveAsync(clientId), true);
         }
     }
 }

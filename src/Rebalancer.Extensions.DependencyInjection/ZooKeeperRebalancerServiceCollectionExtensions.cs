@@ -13,46 +13,11 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
 {
     /// <summary>
     ///     Registers a transient <see cref="ZooKeeperProvider" /> as <see cref="IRebalancerProvider" /> and
-    ///     <see cref="RebalancerClient" />.
+    ///     <see cref="RebalancerClient" />. Each provider gets its own <see cref="ZooKeeperService" />. Credentials or an
+    ///     explicit ACL are required (ADR-0011); for a caller-supplied service use <c>AddRebalancerProvider</c> with
+    ///     <c>ZooKeeperProvider(IZooKeeperService, ...)</c> (ADR-0012).
     /// </summary>
-    /// <param name="zooKeeperService">
-    ///     A single instance used by <b>every</b> provider this registration resolves. A service
-    ///     holds one node's session, so only pass one when the application resolves a single client; otherwise register a
-    ///     factory with <see cref="ServiceCollectionExtensions.AddRebalancerProvider" />, e.g.
-    ///     <c>AddRebalancerProvider(_ =&gt; new ZooKeeperProvider(..., new MyZooKeeperService()))</c>, or use the ACL
-    ///     overload, which creates a service per provider.
-    /// </param>
-    [Obsolete(
-        "Deprecated by ADR-0011 and removed in 3.0. Use the overload with acl/authScheme/authData (pass "
-        + "ZooDefs.Ids.OPEN_ACL_UNSAFE to keep an open ACL deliberately), or AddRebalancerProvider with "
-        + "ZooKeeperProvider(IZooKeeperService, ...) for a caller-supplied service (ADR-0012)."
-    )]
-    public static IServiceCollection AddRebalancerZooKeeper(
-        this IServiceCollection services,
-        string zooKeeperHosts,
-        string zooKeeperRootPath,
-        RebalancingMode rebalancingMode,
-        TimeSpan? sessionTimeout = null,
-        TimeSpan? connectTimeout = null,
-        TimeSpan? minimumRebalancingInterval = null,
-        IRebalancerLogger? logger = null,
-        IZooKeeperService? zooKeeperService = null
-    ) => Register(
-        services,
-        zooKeeperHosts,
-        zooKeeperRootPath,
-        rebalancingMode,
-        sessionTimeout,
-        connectTimeout,
-        minimumRebalancingInterval,
-        logger,
-        () => zooKeeperService ?? new ZooKeeperService(zooKeeperHosts)
-    );
-
-    /// <summary>
-    ///     Like the main overload, but every resolved <see cref="ZooKeeperProvider" /> secures the znodes it creates (ADR
-    ///     0006). Each provider gets its own <see cref="ZooKeeperService" />.
-    /// </summary>
+    /// <exception cref="ArgumentException">Neither <paramref name="acl" /> nor <paramref name="authScheme" /> is given.</exception>
     /// <param name="acl">ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null.</param>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8.</param>
@@ -68,7 +33,19 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         TimeSpan? connectTimeout = null,
         TimeSpan? minimumRebalancingInterval = null,
         IRebalancerLogger? logger = null
-    ) => Register(
+    )
+    {
+        // fail at registration, not at the first resolution
+        if (acl == null && authScheme == null)
+        {
+            throw new ArgumentException(
+                "Either credentials (authScheme and authData) or an explicit ACL are required; pass "
+                + "ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).",
+                nameof(acl)
+            );
+        }
+
+        return Register(
         services,
         zooKeeperHosts,
         zooKeeperRootPath,
@@ -79,6 +56,7 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         logger,
         () => new ZooKeeperService(zooKeeperHosts, acl, authScheme, authData)
     );
+    }
 
     private static IServiceCollection Register(
         IServiceCollection services,

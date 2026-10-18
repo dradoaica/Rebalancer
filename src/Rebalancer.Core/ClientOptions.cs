@@ -22,4 +22,15 @@ public class ClientOptions
     ///     can be avoided by adding an OnAssignmentDelay that is longer than the keep alive timeout.
     /// </summary>
     public TimeSpan OnAssignmentDelay { get; set; }
+
+    /// <summary>
+    ///     How long a client record may go without a keep-alive before the coordinator deletes it (ADR-0014). A node whose
+    ///     record was deleted stops its local activity and registers again. When null, 10 times the keep-alive expiry
+    ///     period of the resource group is used.
+    /// </summary>
+    public TimeSpan? ClientRecordRetention { get; set; }
+
+    /// <summary>The effective retention: <see cref="ClientRecordRetention" />, or 10 keep-alive expiry periods.</summary>
+    public static TimeSpan GetClientRecordRetention(ClientOptions clientOptions, TimeSpan keepAliveExpiryPeriod) =>
+        clientOptions?.ClientRecordRetention ?? TimeSpan.FromTicks(keepAliveExpiryPeriod.Ticks * 10);
 }

@@ -31,6 +31,7 @@ public class SqlServerProvider : IRebalancerProvider
     private Task mainTask;
     private string resourceGroup;
     private bool started;
+    private ClientOptions clientOptions;
 
     public SqlServerProvider(
         string connectionString,
@@ -103,6 +104,7 @@ public class SqlServerProvider : IRebalancerProvider
         }
 
         this.resourceGroup = resourceGroup;
+        this.clientOptions = clientOptions;
         await clientService.CreateClientAsync(this.resourceGroup, clientId);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -195,7 +197,16 @@ public class SqlServerProvider : IRebalancerProvider
                             var exMsg = roleTask.Exception?.GetBaseException().Message;
                         }
 
-                        await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
+                        if (parentToken.IsCancellationRequested)
+                        {
+                            // clean stop: this client id is never used again (ADR-0014)
+                            await clientService.DeleteClientAsync(clientId);
+                        }
+                        else
+                        {
+                            // restart after an error: the record is reused (Terminated -> Waiting)
+                            await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
+                        }
 
                         if (isCoordinator)
                         {
@@ -512,6 +523,7 @@ public class SqlServerProvider : IRebalancerProvider
             FencingToken = fencingToken,
             CoordinatorToken = coordinatorToken,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
+            ClientRecordRetention = ClientOptions.GetClientRecordRetention(clientOptions, keepAliveExpiryPeriod),
         };
         clientEvents.Add(clientEvent);
     }

@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Rebalancer.Core;
 using StackExchange.Redis;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Rebalancer.Redis.Utils;
@@ -17,6 +18,33 @@ internal static class RedisHash
     public static RedisKey DictionaryKey(string name) => $"Dictionary:{Constants.SCHEMA}:{name}";
 
     public static RedisKey ListKey(string name) => $"List:{Constants.SCHEMA}:{name}";
+
+    /// <summary>
+    ///     Key of a per-resource-group structure (ADR-0015), e.g. <c>RBR:Clients:orders</c>. The group name is escaped so
+    ///     Redis ACL key patterns can target one group safely.
+    /// </summary>
+    public static RedisKey GroupKey(string name, string resourceGroup) =>
+        $"{Constants.SCHEMA}:{name}:{EscapeKeySegment(resourceGroup)}";
+
+    /// <summary>Percent-encodes (UTF-8) every character outside A-Z, a-z, 0-9, '-', '_', '.', '~'.</summary>
+    public static string EscapeKeySegment(string value)
+    {
+        var sb = new StringBuilder();
+        foreach (var b in Encoding.UTF8.GetBytes(value))
+        {
+            var c = (char)b;
+            if (b < 128 && (char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.' || c == '~'))
+            {
+                sb.Append(c);
+            }
+            else
+            {
+                sb.Append('%').Append(b.ToString("X2"));
+            }
+        }
+
+        return sb.ToString();
+    }
 
     public static RedisValue Encode(object value) => JsonConvert.SerializeObject(value);
 

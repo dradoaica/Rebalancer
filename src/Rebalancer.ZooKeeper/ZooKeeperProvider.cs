@@ -42,42 +42,12 @@ public class ZooKeeperProvider : IRebalancerProvider
     private ClientInternalState state;
     private string watchSiblingNodePath;
 
-    /// <summary>
-    ///     Creates every znode with OPEN_ACL_UNSAFE unless <paramref name="zooKeeperService" /> is given; anyone who can
-    ///     reach the ensemble can then change assignments.
-    /// </summary>
-    [Obsolete(
-        "Deprecated by ADR-0011 and removed in 3.0. Use the overload with acl/authScheme/authData (pass "
-        + "ZooDefs.Ids.OPEN_ACL_UNSAFE to keep an open ACL deliberately), or, for a caller-supplied service, "
-        + "ZooKeeperProvider(IZooKeeperService, ...) (ADR-0012)."
-    )]
-    public ZooKeeperProvider(
-        string zookeeperHosts,
-        string zooKeeperRootPath,
-        TimeSpan sessionTimeout,
-        TimeSpan connectTimeout,
-        TimeSpan minimumRebalancingInterval,
-        RebalancingMode rebalancingMode,
-        IRebalancerLogger logger,
-        IZooKeeperService zooKeeperService = null
-    )
-        : this(
-            zooKeeperService ?? new ZooKeeperService(zookeeperHosts),
-            zooKeeperRootPath,
-            sessionTimeout,
-            connectTimeout,
-            minimumRebalancingInterval,
-            rebalancingMode,
-            logger
-        )
-    {
-    }
-
     /// <summary>Secures every znode this provider creates with <paramref name="acl" /> and the given credentials.</summary>
     /// <param name="acl">
-    ///     ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null. Pass
+    ///     ACL for every znode created; when null, CREATOR_ALL_ACL, which requires credentials. Pass
     ///     ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).
     /// </param>
+    /// <exception cref="ArgumentException">Neither <paramref name="acl" /> nor <paramref name="authScheme" /> is given.</exception>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8.</param>
     public ZooKeeperProvider(
@@ -107,7 +77,7 @@ public class ZooKeeperProvider : IRebalancerProvider
     /// <summary>
     ///     Uses a caller-supplied ZooKeeper service (ADR-0012), e.g. a test double or a service with its own connection
     ///     handling. The service decides about credentials and ACLs; the "credentials or explicit opt-out" rule of
-    ///     ADR-0011 does not apply to it.
+    ///     ADR-0011 is not checked for it.
     /// </summary>
     /// <exception cref="ArgumentNullException"><paramref name="zooKeeperService" /> is null.</exception>
     public ZooKeeperProvider(
