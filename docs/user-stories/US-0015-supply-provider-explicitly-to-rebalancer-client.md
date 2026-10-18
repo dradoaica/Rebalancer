@@ -65,7 +65,7 @@ before this story was reviewed. -->
 the tests and the 3.0.0 release; "Tests / checks agreed with a team" needs a human. -->
 
 - [x] Acceptance criteria met
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
 - [x] Traceable to change record (if released) - `docs/change-records/CR-0002-release-3-0-0.md` (3.0.0)
 
