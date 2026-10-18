@@ -1,6 +1,6 @@
 ---
 id: CR-0001
-status: Approved
+status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]          # set by a human only
@@ -90,8 +90,16 @@ Release notes `docs/release-notes/2.2.0.md`: deprecation table with replacements
 
 ## Post-implementation
 
-- **Actual outcome:** {after change}
-- **Follow-ups:** TM-0001 update for ADR-0012; 3.0 change record.
+- **Actual outcome (2026-10-18):** `ac6587a` merged into `main` (fast-forward) and pushed by dradoaica. The "Release
+  Packages" workflow ran on that push and succeeded at 18:25:46 UTC, including "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39154065063). Published package versions were not listed from
+  the agent session (the GitHub Packages API requires authentication).
+- **Test evidence (pre-merge, on the tree that was released):** unit 40/40; ZooKeeper single-client, multi-client and
+  ACL 22/22 against a 3-node ensemble; Redis and SQL Server 2/2 (Docker); build without CS0618 warnings.
+- **Deviations:** the rollback dry-run precondition was not performed. The test preconditions were not ticked in the
+  approved record (immutable once approved); their evidence is recorded here and in the commit message of `ac6587a`.
+- **Follow-ups:** TM-0001 update for ADR-0012 (caller-supplied service bypasses the credentials rule); 3.0 change
+  record (CR-0002).
 
 ## Sources
 
