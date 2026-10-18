@@ -175,6 +175,8 @@ internal class Coordinator
             }
         }
 
+        await StopUnresponsiveClientsAsync(coordinatorClientId, clientEvent);
+
         // stop all resource activity in local coordinator client, and record it like a follower would: a successor
         // coordinator's stop barrier then waits for this node too if it loses the lease before resources are granted
         foreach (var onStopAction in onChangeActions.OnStopActions)
@@ -371,6 +373,34 @@ internal class Coordinator
             );
             await clientService.CreateClientAsync(resourceGroup, clientId);
             return (await clientService.KeepAliveAsync(clientId), true);
+        }
+    }
+
+    // ADR-0019 (PRB-0001): a client whose keep-alive expired may only be paused. If its record still grants resources,
+    // a resumed follower would keep them although they are reassigned below; recording StopActivity makes it stop at
+    // its first tick through the normal follower path. A violation here is not fatal: a row can disappear between the
+    // read and the stop (e.g. a clean stop deletes it), and a real fencing violation is caught again when resources are
+    // granted with the same fencing token.
+    private async Task StopUnresponsiveClientsAsync(Guid coordinatorClientId, ClientEvent clientEvent)
+    {
+        var unresponsive = (await clientService.GetActiveClientsAsync(clientEvent.ResourceGroup))
+            .Where(x => x.ClientId != coordinatorClientId &&
+                        x.TimeNow - x.LastKeepAlive >= clientEvent.KeepAliveExpiryPeriod &&
+                        x.CoordinatorStatus == CoordinatorStatus.ResourcesGranted
+            )
+            .ToList();
+        if (!unresponsive.Any())
+        {
+            return;
+        }
+
+        var result = await clientService.StopActivityAsync(clientEvent.FencingToken, unresponsive);
+        if (result != ModifyClientResult.Ok)
+        {
+            logger.Warn(
+                coordinatorClientId.ToString(),
+                $"COORDINATOR: Could not record stop for unresponsive clients ({result})"
+            );
         }
     }
 }
