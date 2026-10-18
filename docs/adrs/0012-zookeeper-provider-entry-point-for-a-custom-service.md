@@ -1,11 +1,11 @@
 ---
 id: ADR-0012
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "entry point for constructing ZooKeeperProvider with a caller-supplied IZooKeeperService"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0011", "US-007" ]
