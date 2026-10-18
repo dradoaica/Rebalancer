@@ -1,11 +1,11 @@
 ---
 id: ADR-0020
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "Redis key layout for leases and resource lists"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]            # set by a human only
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0015", "ADR-0017", "TM-0003", "US-006" ]
