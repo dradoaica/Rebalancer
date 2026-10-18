@@ -1,9 +1,9 @@
 ---
 id: US-0015
-status: Draft
+status: Done
 date: 2026-10-18
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only
 priority: "Must"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0002" ]

@@ -1,10 +1,10 @@
 ---
 id: TM-0003
-status: Proposed
+status: Accepted
 date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
-approved-by: [ ]
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-2026-10-18-coordination-safety-and-provider-ownership", "CR-0002" ]
 supersedes: [ ]
 superseded-by: ""
