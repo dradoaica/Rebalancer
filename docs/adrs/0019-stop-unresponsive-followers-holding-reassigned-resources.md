@@ -1,11 +1,11 @@
 ---
 id: ADR-0019
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "how a SQL Server or Redis follower is stopped when its resources were reassigned while it was unresponsive"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]            # set by a human only
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0014", "PRB-0001", "US-005", "US-006", "US-013" ]
