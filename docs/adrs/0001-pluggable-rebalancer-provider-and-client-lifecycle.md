@@ -1,16 +1,16 @@
 ---
 id: ADR-0001
-status: Accepted
-date: 2026-04-11
+status: Superseded
+date: 2026-10-18
 decides: "provider abstraction and client lifecycle API for coordination backends"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: "ADR-0013"
 ---
 
 # Pluggable Rebalancer provider and client lifecycle

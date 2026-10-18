@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-04-11
 decides: "dependency-injection registration of providers and clients (v2)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]

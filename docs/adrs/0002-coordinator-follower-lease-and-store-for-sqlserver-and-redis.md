@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-04-11
 decides: "coordination pattern (coordinator, follower, lease, store) for the SQL Server and Redis backends"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]

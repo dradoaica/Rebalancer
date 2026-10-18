@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0002", "US-005" ]
 supersedes: [ ]
 superseded-by: ""

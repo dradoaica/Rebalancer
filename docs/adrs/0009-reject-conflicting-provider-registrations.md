@@ -1,16 +1,16 @@
 ---
 id: ADR-0009
-status: Accepted
+status: Superseded
 date: 2026-10-18
 decides: "handling of a conflicting second Providers.Register call"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "ADR-0005", "US-001", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: "ADR-0013"
 ---
 
 # Reject a conflicting second `Providers.Register` call instead of ignoring it

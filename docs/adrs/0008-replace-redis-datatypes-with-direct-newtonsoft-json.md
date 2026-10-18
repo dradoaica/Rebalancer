@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 decides: "JSON serialization dependency of the Redis provider"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

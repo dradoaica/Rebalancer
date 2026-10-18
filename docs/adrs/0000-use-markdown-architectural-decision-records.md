@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-04-10           # first committed; no later status change
 decides: "format and structure of architectural decision records in this repository"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

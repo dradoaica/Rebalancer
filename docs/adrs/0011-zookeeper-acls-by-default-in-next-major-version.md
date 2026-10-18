@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 decides: "default ZooKeeper ACL policy from version 3.0"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

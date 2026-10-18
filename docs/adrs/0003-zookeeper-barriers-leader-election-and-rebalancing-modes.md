@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-04-11
 decides: "leader election and rebalancing algorithms for the ZooKeeper backend"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]

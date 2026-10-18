@@ -3,7 +3,7 @@ id: CR-2026-10-18-coordination-safety-and-provider-ownership
 status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"

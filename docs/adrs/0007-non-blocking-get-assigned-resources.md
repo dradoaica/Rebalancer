@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 decides: "blocking behavior of GetAssignedResources() in the SQL Server and Redis providers"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

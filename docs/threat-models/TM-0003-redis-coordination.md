@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0002", "ADR-0006", "ADR-0008", "US-006", "CR-2026-10-18-coordination-safety-and-provider-ownership" ]
 supersedes: [ ]
 superseded-by: ""

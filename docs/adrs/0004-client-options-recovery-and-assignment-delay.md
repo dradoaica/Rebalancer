@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-04-11
 decides: "client recovery and assignment-delay options (ClientOptions)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]

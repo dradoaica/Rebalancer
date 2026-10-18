@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-10-18
 decides: "detection of open operator-created znodes when ZooKeeper ACLs are configured"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
