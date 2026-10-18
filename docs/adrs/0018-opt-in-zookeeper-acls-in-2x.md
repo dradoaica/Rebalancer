@@ -1,11 +1,11 @@
 ---
 id: ADR-0018
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "ZooKeeper ACL support in the 2.x releases"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0006", "US-007" ]
