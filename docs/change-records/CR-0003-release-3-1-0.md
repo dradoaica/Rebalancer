@@ -1,6 +1,6 @@
 ---
 id: CR-0003
-status: Approved
+status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -88,7 +88,13 @@ its handlers briefly; keep the keep-alive expiry above the longest expected paus
 
 ## Post-implementation
 
-- **Actual outcome:** {after change}
+- **Actual outcome (2026-10-18):** merged into `main` as `dd094d4` ("Release 3.1.0", with ADR-0020's acceptance
+  merged just before it) plus `7e4b94b` (US-0015 sign-off), and pushed by dradoaica. The "Release Packages" run on
+  that push succeeded at 19:25:41 UTC, including "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39158667287). Published package versions were not listed from
+  the agent session.
+- **Deviations:** none. All preconditions were met before approval (tests, rollback rehearsal 3.1.0 → 3.0.0,
+  pre-change suite), and TM-0003 revision 3 was accepted with the approval.
 - **Follow-ups:** close PRB-0001 after release (its remaining items are tracked as follow-ups); ADR-0019 option C;
   pause integration test.
 

@@ -6,7 +6,7 @@ opened: 2026-10-18
 owner: ""
 approved-by: [ ]            # closure review; set by a human only
 severity: "High (assignment safety, short window)"
-depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013" ]
+depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013", "CR-0003" ]
 ---
 
 # Problem record: A resumed SQL Server / Redis follower keeps processing resources that were reassigned
@@ -31,6 +31,7 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 | 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
 | 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                        |
 | 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0003)                |
+| 2026-10-18 | 3.1.0 released (CR-0003 Implemented); closure prepared for human review                    |
 
 ## Evidence
 
@@ -63,8 +64,8 @@ re-registration both cover related cases, but not this one: the record has not e
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
 | Decide the fix in a decision record                                                                                    |       | Done: ADR-0019 (Accepted), option A |
-| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (3.1.0, unreleased) |
-| Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it)       |       | Done (3.1.0, unreleased) |
+| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (released in 3.1.0, CR-0003) |
+| Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it)       |       | Done (released in 3.1.0) |
 | Integration test that pauses a real follower past the keep-alive expiry                                               |       | Open (follow-up)         |
 | Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                            |       | Open (needs its own decision record) |
 
@@ -81,10 +82,25 @@ re-registration both cover related cases, but not this one: the record has not e
 
 Keep the keep-alive expiry well above the longest expected pause of a node.
 
+## Closure
+
+- **Closed:** {date, set at the human closure review}
+- **Resolution summary:** fixed in 3.1.0 (CR-0003, ADR-0019). During a rebalance the coordinator records
+  `StopActivity` for unresponsive clients that still hold an assignment, so a resumed follower stops at its first tick.
+  The window is shortened, not closed: a resumed process can still run its handlers until that tick (ADR-0019,
+  release notes 3.1.0).
+- **Preventive action verification:**
+  - **Done:** regression tests `UnresponsiveFollowerTests` (both backends, mutation-checked) run in the unit suite.
+  - **Open, to be owned at closure:** (1) an integration test that pauses a real follower past the keep-alive expiry;
+    (2) ADR-0019 option C, a fencing token for resource handlers, the only full fix (needs its own decision record).
+    Closing this record requires an owner for both; until then they stay in the corrective-actions table.
+  - **Governance change:** N/A. This is a protocol defect, found by design review; no rule, skill or persona gap.
+
 ## Sources
 
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
 - `docs/adrs/0014-expire-stale-client-records.md`
 - `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md`
+- `docs/change-records/CR-0003-release-3-1-0.md`
 - `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
   `US-013-cross-backend-assignment-safety-tests.md`
