@@ -1,6 +1,6 @@
 ---
 id: CR-0002
-status: Approved
+status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -108,9 +108,28 @@ before publishing.
 
 ## Post-implementation
 
-- **Actual outcome:** {after change}
-- **Follow-ups:** PRB-0001; a verified minimal Redis ACL command set (TM-0003); per-group keys for Redis leases and
-  resources (TM-0003, needs a decision record).
+- **Actual outcome (2026-10-18):** `release/3.0.0` merged into `main` as `f3efbcb` ("Release 3.0.0", together with
+  the CR-0001 post-implementation commit `4f565cc`) and pushed by dradoaica. The "Release Packages" workflow ran on that
+  push and succeeded at 19:02:12 UTC, including "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39156837798). Published package versions were not listed from
+  the agent session (the GitHub Packages API requires authentication).
+- **Test evidence (pre-merge, on the released tree):**
+  - unit 39/39;
+  - ZooKeeper single-client, multi-client and ACL 22/22 (3-node ensemble), run on `a8b6bb0`; the later commits changed
+    no ZooKeeper code;
+  - Redis and SQL Server 7/7 (Docker) on `fc2515e`, including the per-group ACL user regression test;
+  - build without warnings.
+- **Preconditions recorded after approval** (the approved record is immutable, so they are evidenced here):
+  - threat model updates: TM-0001, TM-0002 and TM-0003 revision 2 accepted by dradoaica (`e868155`);
+  - tests: see above;
+  - rollback dry-run: **not performed**.
+- **Deviations:** the rollback dry-run was not performed. One defect was found and fixed before release while drafting
+  TM-0003: a per-group Redis ACL user blocked the expiry through the migration step (`fc2515e`).
+- **Follow-ups:**
+  - PRB-0001 (resumed follower window, needs a decision record);
+  - a verified minimal Redis ACL command set (TM-0003);
+  - per-group keys for Redis leases and resources (TM-0003, needs a decision record);
+  - readiness approval of US-0015 (Draft).
 
 ## Sources
 
