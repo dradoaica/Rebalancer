@@ -110,7 +110,7 @@ public class ResourceManager
                 }
                 catch (Exception e)
                 {
-                    logger.Error(clientId, "{role} - End user on stop actions threw an exception. Terminating. ", e);
+                    logger.Error(clientId, $"{role} - End user on stop actions threw an exception. Terminating. ", e);
                     throw new TerminateClientException("End user on stop actions threw an exception.", e);
                 }
 
@@ -181,15 +181,15 @@ public class ResourceManager
     {
         await actionsSemaphore.WaitAsync();
 
-        if (IsInStartedState())
-        {
-            throw new InconsistentStateException(
-                "An attempt to invoke on start actions occurred while already in the started state"
-            );
-        }
-
         try
         {
+            if (IsInStartedState())
+            {
+                throw new InconsistentStateException(
+                    "An attempt to invoke on start actions occurred while already in the started state"
+                );
+            }
+
             if (newResources.Any())
             {
                 if (rebalancingMode == RebalancingMode.ResourceBarrier)

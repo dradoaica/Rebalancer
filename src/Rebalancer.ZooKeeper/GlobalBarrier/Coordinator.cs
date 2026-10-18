@@ -267,6 +267,7 @@ public class Coordinator : Watcher, ICoordinator
                 events.Add(CoordinatorEvent.PotentialInconsistentState);
             }
 
+            rebalancingCts.Dispose();
             rebalancingCts = new CancellationTokenSource(); // reset cts
         }
     }
@@ -387,7 +388,7 @@ public class Coordinator : Watcher, ICoordinator
         var verifyPhaseResult = await VerifyStartedPhaseAsync(rebalancingToken, stopPhaseResult.FollowerIds);
         if (verifyPhaseResult != RebalancingResult.Complete)
         {
-            return assignPhaseResult;
+            return verifyPhaseResult;
         }
 
         return RebalancingResult.Complete;
@@ -473,7 +474,7 @@ public class Coordinator : Watcher, ICoordinator
 
             var pendingClientIds = GetMissing(followerIds, stopped);
             logger.Info(clientId, $"Coordinator - waiting for followers to stop: {string.Join(",", pendingClientIds)}");
-            await WaitFor(TimeSpan.FromSeconds(2)); // try again in 2s
+            await WaitFor(TimeSpan.FromSeconds(2), rebalancingToken); // try again in 2s
         }
 
         if (rebalancingToken.IsCancellationRequested)
@@ -582,7 +583,7 @@ public class Coordinator : Watcher, ICoordinator
                 clientId,
                 $"Coordinator - Waiting for {stoppedClientsInScope.Count} remaining in scope followers to start"
             );
-            await WaitFor(TimeSpan.FromSeconds(2)); // try again in 2s
+            await WaitFor(TimeSpan.FromSeconds(2), rebalancingToken); // try again in 2s
         }
 
         if (rebalancingToken.IsCancellationRequested)

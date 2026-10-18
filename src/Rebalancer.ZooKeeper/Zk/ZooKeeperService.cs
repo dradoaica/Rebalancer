@@ -1,4 +1,5 @@
 using org.apache.zookeeper;
+using org.apache.zookeeper.data;
 using Rebalancer.Core.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,10 @@ namespace Rebalancer.ZooKeeper.Zk;
 
 public class ZooKeeperService : Watcher, IZooKeeperService
 {
+    private static readonly TimeSpan ConnectionLossBackoff = TimeSpan.FromMilliseconds(100);
+    private readonly List<ACL> acl;
+    private readonly byte[] authData;
+    private readonly string authScheme;
     private readonly string zookeeperHosts;
     private string clientId;
     private string clientsPath;
@@ -24,9 +29,33 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     private CancellationToken token;
     private org.apache.zookeeper.ZooKeeper zookeeper;
 
+    /// <summary>
+    ///     Creates every znode with OPEN_ACL_UNSAFE: anyone who can reach the ensemble can change assignments. Use the
+    ///     overload with an ACL to restrict access.
+    /// </summary>
+    /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
     public ZooKeeperService(string zookeeperHosts)
+        : this(zookeeperHosts, null, null, null)
+    {
+    }
+
+    /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
+    /// <param name="acl">
+    ///     ACL for every znode created. When null, defaults to CREATOR_ALL_ACL if <paramref name="authScheme" />
+    ///     is set, otherwise to OPEN_ACL_UNSAFE.
+    /// </param>
+    /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
+    /// <param name="authData">
+    ///     Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8. With
+    ///     CREATOR_ALL_ACL every node of a resource group must use the same credentials, otherwise nodes cannot modify each
+    ///     other's znodes.
+    /// </param>
+    public ZooKeeperService(string zookeeperHosts, List<ACL> acl, string authScheme, byte[] authData)
     {
         this.zookeeperHosts = zookeeperHosts;
+        this.authScheme = authScheme;
+        this.authData = authData;
+        this.acl = acl ?? (authScheme != null ? ZooDefs.Ids.CREATOR_ALL_ACL : ZooDefs.Ids.OPEN_ACL_UNSAFE);
         clientId = "-";
         sessionExpired = false;
     }
@@ -84,11 +113,19 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             await zookeeper.closeAsync();
         }
 
+        // forget the state of the previous session, otherwise a stale SyncConnected ends the wait below too early
+        keeperState = Event.KeeperState.Disconnected;
         zookeeper = new org.apache.zookeeper.ZooKeeper(zookeeperHosts, (int)sessionTimeout.TotalMilliseconds, this);
-
-        while (keeperState != Event.KeeperState.SyncConnected && sw.Elapsed <= connectTimeout)
+        if (authScheme != null)
         {
-            await Task.Delay(50);
+            zookeeper.addAuthInfo(authScheme, authData);
+        }
+
+        while (keeperState != Event.KeeperState.SyncConnected &&
+               sw.Elapsed <= connectTimeout &&
+               !token.IsCancellationRequested)
+        {
+            await WaitFor(TimeSpan.FromMilliseconds(50));
         }
 
         var connected = keeperState == Event.KeeperState.SyncConnected;
@@ -119,7 +156,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                 var clientPath = await zookeeper.createAsync(
                     $"{clientsPath}/c_",
                     Encoding.UTF8.GetBytes("0"),
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                    acl,
                     CreateMode.EPHEMERAL_SEQUENTIAL
                 );
 
@@ -133,7 +170,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -165,7 +202,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, will try again in the next iteration
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -196,12 +233,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                         bytesToSet = Encoding.UTF8.GetBytes("0");
                     }
 
-                    await zookeeper.createAsync(
-                        znodePath,
-                        bytesToSet,
-                        ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                        CreateMode.PERSISTENT
-                    );
+                    await zookeeper.createAsync(znodePath, bytesToSet, acl, CreateMode.PERSISTENT);
                 }
 
                 succeeded = true;
@@ -212,7 +244,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, will try again in the next iteration
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -260,7 +292,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -291,7 +323,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -330,7 +362,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -371,7 +403,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -407,7 +439,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -433,7 +465,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                 await zookeeper.createAsync(
                     $"{stoppedPath}/{clientId}",
                     Encoding.UTF8.GetBytes("0"),
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                    acl,
                     CreateMode.EPHEMERAL
                 );
 
@@ -452,7 +484,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -484,7 +516,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -551,7 +583,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -589,7 +621,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -621,7 +653,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -649,7 +681,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
                 await zookeeper.createAsync(
                     $"{resourcesPath}/{resource}/barrier",
                     Encoding.UTF8.GetBytes(clientId),
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                    acl,
                     CreateMode.EPHEMERAL
                 );
                 succeeded = true;
@@ -686,7 +718,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -720,7 +752,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -743,6 +775,14 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             try
             {
                 var stat = await zookeeper.existsAsync(epochPath, watcher);
+                if (stat == null)
+                {
+                    // exists() returns null instead of throwing NoNodeException
+                    throw new ZkInvalidOperationException(
+                        $"Could not {actionToPerform} as the epoch node does not exist."
+                    );
+                }
+
                 return stat.getVersion();
             }
             catch (KeeperException.NoNodeException e)
@@ -754,7 +794,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -777,9 +817,15 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             try
             {
                 var dataResult = await zookeeper.getDataAsync(statusPath, watcher);
+                var status = RebalancingStatus.NotSet;
+                if (dataResult.Stat.getDataLength() > 0)
+                {
+                    status = (RebalancingStatus)BitConverter.ToInt32(dataResult.Data, 0);
+                }
+
                 return new StatusZnode
                 {
-                    RebalancingStatus = (RebalancingStatus)BitConverter.ToInt32(dataResult.Data, 0),
+                    RebalancingStatus = status,
                     Version = dataResult.Stat.getVersion(),
                 };
             }
@@ -792,7 +838,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -827,7 +873,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -861,7 +907,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -896,7 +942,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -931,7 +977,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {
@@ -944,9 +990,59 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         }
     }
 
+    /// <summary>
+    ///     ADR 0010: when credentials are configured, reports znodes (typically created by an operator) whose ACL lets
+    ///     anyone change them. Returns one message per open znode, or per znode whose ACL could not be read; never throws.
+    /// </summary>
+    internal async Task<List<string>> FindZnodesWritableByAnyoneAsync(IEnumerable<string> znodePaths)
+    {
+        List<string> findings = new();
+        if (authScheme == null)
+        {
+            return findings;
+        }
+
+        const int anyChange =
+            (int)(ZooDefs.Perms.WRITE | ZooDefs.Perms.CREATE | ZooDefs.Perms.DELETE | ZooDefs.Perms.ADMIN);
+        foreach (var znodePath in znodePaths)
+        {
+            try
+            {
+                var acls = (await zookeeper.getACLAsync(znodePath)).Acls;
+                if (acls.Any(x =>
+                        x.getId().getScheme() == "world" &&
+                        x.getId().getId() == "anyone" &&
+                        (x.getPerms() & anyChange) != 0
+                    ))
+                {
+                    findings.Add(
+                        $"ZooKeeper znode {znodePath} is writable by anyone although an ACL is configured: anyone who can " +
+                        "reach the ensemble can change this resource group's assignments. Secure it with the group's " +
+                        "credentials (see the ZooKeeper provider README)."
+                    );
+                }
+            }
+            catch (KeeperException.NoNodeException)
+            {
+                // nothing to secure
+            }
+            catch (Exception e)
+            {
+                findings.Add($"Could not verify the ACL of ZooKeeper znode {znodePath}: {e.GetType().Name}");
+            }
+        }
+
+        return findings;
+    }
+
     public override async Task process(WatchedEvent @event)
     {
         keeperState = @event.getState();
+        if (keeperState == Event.KeeperState.Expired)
+        {
+            sessionExpired = true;
+        }
+
         await Task.Yield();
     }
 
@@ -968,7 +1064,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.ConnectionLossException)
             {
-                // do nothing, the next iteration will try again
+                await WaitFor(ConnectionLossBackoff); // back off, the next iteration will try again
             }
             catch (KeeperException.SessionExpiredException e)
             {

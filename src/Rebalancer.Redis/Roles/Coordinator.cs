@@ -152,11 +152,21 @@ internal class Coordinator
             }
         }
 
-        // stop all resource activity in local coordinator client
+        // stop all resource activity in local coordinator client, and record it like a follower would: a successor
+        // coordinator's stop barrier then waits for this node too if it loses the lease before resources are granted
         foreach (var onStopAction in onChangeActions.OnStopActions)
         {
             onStopAction.Invoke();
         }
+
+        store.SetResources(
+            new SetResourcesRequest
+            {
+                AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                Resources = new List<string>(),
+            }
+        );
+        await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Waiting);
 
         // wait for all live clients to confirm stopped
         var allClientsWaiting = false;
@@ -272,6 +282,9 @@ internal class Coordinator
                     Resources = coordinatorRequest.AssignedResources,
                 }
             );
+
+            // mark the local client active so that, if this node is demoted, the next coordinator stops it
+            await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Active);
             foreach (var onStartAction in onChangeActions.OnStartActions)
             {
                 onStartAction.Invoke(coordinatorRequest.AssignedResources);

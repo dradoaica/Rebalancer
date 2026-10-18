@@ -9,6 +9,10 @@ public class SingleClientTests : IDisposable
 {
     private readonly ZkHelper zkHelper = new();
 
+    // the static Providers registry keeps only the first registration per process (ADR 0001), so every test passes its
+    // own factory to RebalancerClient; otherwise later tests silently run with the first test's mode and settings
+    private Func<IRebalancerProvider> providerFactory = null!;
+
     public void Dispose()
     {
         if (zkHelper != null)
@@ -20,14 +24,32 @@ public class SingleClientTests : IDisposable
     [Fact]
     public async Task ResourceBarrier_GivenSingleClient_ThenGetsAllResourcesAssigned()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await GivenSingleClient_ThenGetsAllResourcesAssigned();
     }
 
     [Fact]
     public async Task GlobalBarrier_GivenSingleClient_ThenGetsAllResourcesAssigned()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
+        await GivenSingleClient_ThenGetsAllResourcesAssigned();
+    }
+
+    [Theory]
+    [InlineData(RebalancingMode.GlobalBarrier)]
+    [InlineData(RebalancingMode.ResourceBarrier)]
+    public async Task GivenNoLogger_ThenGetsAllResourcesAssigned(RebalancingMode mode)
+    {
+        // like the SQL Server and Redis providers, a null logger must fall back to a no-op logger
+        providerFactory = () => new ZooKeeperProvider(
+            ZkHelper.zooKeeperHosts,
+            "/rebalancer",
+            TimeSpan.FromSeconds(20),
+            TimeSpan.FromSeconds(20),
+            TimeSpan.FromSeconds(5),
+            mode,
+            null
+        );
         await GivenSingleClient_ThenGetsAllResourcesAssigned();
     }
 
@@ -60,7 +82,7 @@ public class SingleClientTests : IDisposable
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         // ASSERT
-        Assert.Equal(1, testEvents.Count);
+        Assert.Single(testEvents);
         Assert.Equal(EventType.Assignment, testEvents[0].EventType);
         Assert.True(ResourcesMatch(expectedAssignedResources, testEvents[0].Resources.ToList()));
 
@@ -69,7 +91,7 @@ public class SingleClientTests : IDisposable
 
     private (RebalancerClient, List<TestEvent> testEvents) CreateClient()
     {
-        RebalancerClient client1 = new();
+        RebalancerClient client1 = new(providerFactory());
         List<TestEvent> testEvents = new();
         client1.OnAssignment += (sender, args) =>
         {

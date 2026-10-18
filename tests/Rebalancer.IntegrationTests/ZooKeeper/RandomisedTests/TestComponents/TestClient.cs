@@ -4,6 +4,7 @@ using Rebalancer.Core.Logging;
 namespace Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests.TestComponents;
 
 public class TestClient(
+    Func<IRebalancerProvider> providerFactory,
     ResourceMonitor resourceMonitor,
     string resourceGroup,
     ClientOptions clientOptions,
@@ -16,8 +17,8 @@ public class TestClient(
 
     private readonly Random rand = new(Guid.NewGuid().GetHashCode());
 
-    public string Id { get; set; }
-    public RebalancerClient Client { get; set; }
+    public string Id { get; set; } = string.Empty; // set when the client is (re)created
+    public RebalancerClient Client { get; set; } = null!; // set when the client is (re)created
     public IList<string> Resources { get; set; } = new List<string>();
     public bool Started { get; set; }
     public string ResourceGroup { get; } = resourceGroup;
@@ -59,7 +60,7 @@ public class TestClient(
         Id = $"Client{clientNumber}";
         clientNumber++;
         Monitor.RegisterAddClient(Id);
-        Client = new RebalancerClient();
+        Client = new RebalancerClient(providerFactory());
         Client.OnAssignment += (sender, args) =>
         {
             Resources = args.Resources;

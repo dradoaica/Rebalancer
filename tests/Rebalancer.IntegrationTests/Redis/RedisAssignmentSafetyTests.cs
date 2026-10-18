@@ -20,7 +20,7 @@ public sealed class RedisAssignmentSafetyTests
             "Docker is not available; start Docker to run integration tests."
         );
 
-        await using var redis = new RedisBuilder().Build();
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
 
         var connectionString = redis.GetConnectionString();
@@ -43,6 +43,7 @@ public sealed class RedisAssignmentSafetyTests
         await client1.StartAsync(group, options);
         await client2.StartAsync(group, options);
 
+        var assignedObservations = 0;
         try
         {
             var deadline = DateTime.UtcNow.AddSeconds(60);
@@ -54,8 +55,16 @@ public sealed class RedisAssignmentSafetyTests
                     a.Contains(resourceName) && b.Contains(resourceName),
                     "Invariant violated: both clients hold the same resource."
                 );
+                if (a.Contains(resourceName) || b.Contains(resourceName))
+                {
+                    assignedObservations++;
+                }
+
                 await Task.Delay(200);
             }
+
+            // without this the safety check passes vacuously when nothing is ever assigned
+            Assert.True(assignedObservations > 0, "Liveness violated: the resource was never assigned to any client.");
         }
         finally
         {
@@ -70,6 +79,14 @@ public sealed class RedisAssignmentSafetyTests
         try
         {
             var db = mux.GetDatabase();
+            // without a resource group no node can obtain the lease, so nothing would ever be assigned
+            new RedisDictionary<string, ResourceGroup>(db, $"{Constants.SCHEMA}:ResourceGroups")[group] =
+                new ResourceGroup
+                {
+                    Name = group,
+                    LeaseExpirySeconds = 5,
+                    HeartbeatSeconds = 1,
+                };
             var list = new RedisList<Resource>(db, $"{Constants.SCHEMA}:Resources");
             list.Add(
                 new Resource

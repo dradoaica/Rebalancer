@@ -16,7 +16,12 @@ using System.Threading.Tasks;
 
 namespace Rebalancer.Redis;
 
-public class RedisProvider : IRebalancerProvider
+/// <summary>
+///     Redis backend. Each instance opens its own Redis connection and closes it on <see cref="Dispose" />;
+///     <see cref="RebalancerClient" /> disposes the provider it was given, so use one provider instance per client (ADR
+///     0006).
+/// </summary>
+public class RedisProvider : IRebalancerProvider, IDisposable
 {
     private static readonly object startLockObj = new();
     private readonly IDatabase cache;
@@ -29,7 +34,7 @@ public class RedisProvider : IRebalancerProvider
     private readonly IResourceService resourceService;
     private readonly ResourceGroupStore store;
     private Guid clientId;
-    private bool isCoordinator;
+    private volatile bool isCoordinator;
     private Task mainTask;
     private string resourceGroup;
     private bool started;
@@ -45,15 +50,6 @@ public class RedisProvider : IRebalancerProvider
         connection = ConnectionMultiplexer.Connect(connectionString);
         cache = connection.GetDatabase();
         store = new ResourceGroupStore();
-
-        if (logger == null)
-        {
-            this.logger = new NullRebalancerLogger();
-        }
-        else
-        {
-            this.logger = logger;
-        }
 
         if (logger == null)
         {
@@ -95,6 +91,9 @@ public class RedisProvider : IRebalancerProvider
         coordinator = new Coordinator(this.logger, this.resourceService, this.clientService, store);
         follower = new Follower(this.logger, this.clientService, store);
     }
+
+    /// <summary>Closes the Redis connection owned by this provider.</summary>
+    public void Dispose() => connection.Dispose();
 
     public async Task StartAsync(
         string resourceGroup,
@@ -140,7 +139,7 @@ public class RedisProvider : IRebalancerProvider
                                !roleTask.IsCompleted &&
                                !clientEvents.IsCompleted)
                         {
-                            await Task.Delay(100);
+                            await WaitFor(TimeSpan.FromMilliseconds(100), parentToken);
                         }
 
                         // cancel child tasks
@@ -266,23 +265,18 @@ public class RedisProvider : IRebalancerProvider
         }
     }
 
+    /// <summary>
+    ///     Returns at once (ADR 0007): while assignment is pending the state is PendingAssignment and no resources are
+    ///     returned. To wait for an assignment use <see cref="GetAssignedResources(CancellationToken)" />.
+    /// </summary>
     public AssignedResources GetAssignedResources()
     {
-        while (true)
+        var response = store.GetResources();
+        return new AssignedResources
         {
-            var response = store.GetResources();
-            if (response.AssignmentStatus == AssignmentStatus.ResourcesAssigned ||
-                response.AssignmentStatus == AssignmentStatus.NoResourcesAssigned)
-            {
-                return new AssignedResources
-                {
-                    Resources = response.Resources,
-                    ClientState = GetState(response.AssignmentStatus),
-                };
-            }
-
-            Thread.Sleep(100);
-        }
+            Resources = response.Resources,
+            ClientState = GetState(response.AssignmentStatus),
+        };
     }
 
     public ClientState GetState()
@@ -622,7 +616,7 @@ public class RedisProvider : IRebalancerProvider
         {
             if (sw.Elapsed < delayPeriod)
             {
-                await Task.Delay(100);
+                await WaitFor(TimeSpan.FromMilliseconds(100), token);
             }
             else
             {

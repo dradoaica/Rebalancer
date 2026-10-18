@@ -17,7 +17,7 @@ This ADR records the **accepted v2 approach**: first-class registration via **de
 ## Decision Drivers
 
 * Testability without global mutable state.
-* Explicit lifetimes (singleton vs scoped) and named options per backend.
+* Explicit lifetimes (singleton vs. scoped) and named options per backend.
 * Consistency with `Microsoft.Extensions.DependencyInjection` in typical .NET hosts.
 * Non-breaking migration path from static `Providers` for current integrators.
 

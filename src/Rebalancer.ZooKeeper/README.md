@@ -4,6 +4,40 @@ ZooKeeper backend for .NET Rebalancer (in development). Protocol and implementat
 
 To learn more about the project check out the [wiki](https://github.com/Rebalancer/wiki/wiki).
 
+## Securing znodes with an ACL
+
+By default every znode is created with `OPEN_ACL_UNSAFE`: anyone who can reach the ensemble can read and change
+assignments. To restrict access, use the `ZooKeeperProvider` (or `AddRebalancerZooKeeper`) overload that takes an ACL
+and an auth scheme ([ADR 0006](../../docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md)):
+
+```csharp
+var provider = new ZooKeeperProvider(
+    hosts, "/rebalancer", sessionTimeout, connectTimeout, minimumRebalancingInterval,
+    RebalancingMode.GlobalBarrier, logger,
+    acl: null, // null + auth scheme = CREATOR_ALL_ACL
+    authScheme: "digest",
+    authData: Encoding.UTF8.GetBytes(credentialsFromYourSecretStore)); // "user:password"
+```
+
+Operator notes:
+
+- **Every node in a resource group must use the same credentials.** With `CREATOR_ALL_ACL` only the identity that
+  created a znode can use it; nodes with different credentials fail with `NoAuth` when they touch each other's znodes.
+- **Only znodes created by the provider are secured.** Znodes you create yourself (the root path, the resource group,
+  the `resources` znode and its children) keep the ACL you give them. **The `resources` znode's data holds the
+  assignment table**, so if you create it with an open ACL, anyone can still rewrite assignments. Create it with the
+  group's credentials (ZooKeeper CLI: `addauth digest user:password`, then `create`), or `setAcl` it, before starting
+  secured nodes. See `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md`.
+- **The provider warns about open znodes it relies on** (ADR 0010). With credentials configured, each new session
+  checks the group znode and its `resources` znode and logs a warning (`IRebalancerLogger.Warn`) for each one that
+  anyone can change, or whose ACL it cannot read. It does not change them. **Configure a logger** when you use ACLs:
+  the default `NullRebalancerLogger` discards the warning.
+- **Switching an existing resource group to an ACL** does not change znodes that already exist. Recreate the group, or
+  set the ACL on its znodes with the ZooKeeper CLI (`setAcl`), before starting secured nodes.
+- **Treat the credentials as a secret.** Load them from your secret store, not from source code or command lines.
+- Recent ZooKeeper versions (verified with 3.8) also require read permission to read a znode's ACL, so tools without
+  the credentials cannot inspect it.
+
 ## Internals
 
 Rebalancer.ZooKeeper is .NET implementation of Rebalancer that uses ZooKeeper as the coordination service.
@@ -45,9 +79,9 @@ Once coordinator, the client writes to the /chroot/group/epoch znode in order to
 
 Then the coordinator places the following watches:
 
-- getChildren() /chroot/group/clients
-- getChildren() /chroot/group/resources
-- getData() /chroot/group/epoch
+- getChildren () /chroot/group/clients
+- getChildren () /chroot/group/resources
+- getData () /chroot/group/epoch
 
 The clients and resources watches tell the leader when it needs to perform rebalancing. The epoch watch will notify the
 coordinator if a different client also got elected leader. This causes the current leader to stop, close its session and
@@ -82,8 +116,8 @@ resources).
 
 Total RPCs. No of clients=C. No of resources=R.
 
-- /clients: 1 GetChildren()
-- /resources: 1 GetChildren(), 1 SetData(), 2xR SetData()
+- /clients: 1 GetChildren ()
+- /resources: 1 GetChildren (), 1 SetData (), 2xR SetData ()
 
 Overview of all RPCs to ZooKeeper.
 ![](https://raw.githubusercontent.com/dradoaica/Rebalancer/main/wiki/images/ResourceBarrier_RPCs.png)
@@ -99,13 +133,13 @@ The steps in a rebalancing are as follows:
 2. Coordinator: Gets the current list of resources
 3. Coordinator: Gets the current list of clients
 4. Coordinator: Creates a map of resource-client key values, equally sharing out resources between clients and performs
-   a SetData() on /chroot/group/resources
+   a SetData () on /chroot/group/resources
 5. Followers: Receive the /chroot/group/resources data notification
 6. Followers: Invoke their OnStop event handlers
-7. Followers: Perform a GetData() on /chroot/group/resources to get the resource assignments map
-8. Followers: Foreach of their current resources they call Delete() on the resource barrier znode
-9. Followers: Foreach newly assigned resource they call exists(watch) on /resources/resource-x/barrier. If the znode
-   does not exist then a Create() ephemeral call is made to create the barrier znode. If the node exists then the prior
+7. Followers: Perform a GetData () on /chroot/group/resources to get the resource assignments map
+8. Followers: Foreach of their current resources they call Delete () on the resource barrier znode
+9. Followers: Foreach newly assigned resource they call exists (watch) on /resources/resource-x/barrier. If the znode
+   does not exist then a Create () ephemeral call is made to create the barrier znode. If the node exists then the prior
    owner has still not yet deleted it, as soon as the prior owner deletes it the new owner will receive the notification
    and add their own barrier. The new owner is blocked until they can place barriers on all their new resources.
 10. Followers: The OnStart event handlers
@@ -137,10 +171,10 @@ during deployments and leader changes.
 
 Total RPCs. No of clients=C. No of resources=R. Number of stopped polling=P.
 
-- /status znode: 3 SetData() and 3 notifications
-- /clients: 1 GetChildren()
-- /stopped: 2xC SetData(), P GetChildren()
-- /resources: 1 GetChildren(), 1 SetData(), C GetData()
+- /status znode: 3 SetData () and 3 notifications
+- /clients: 1 GetChildren ()
+- /stopped: 2xC SetData (), P GetChildren ()
+- /resources: 1 GetChildren (), 1 SetData (), C GetData ()
 
 Followers place a watch on /chroot/group/status which will allow them to receive rebalancing commands from the
 coordinator via zookeeper.
@@ -150,20 +184,20 @@ rebalancing takes place.
 The steps in a rebalancing are as follows:
 
 1. Coordinator: A children notification from /chroot/group/clients or /chroot/group/resources is received.
-2. Coordinator: SetData() "StopActivity" on /chroot/group/status
+2. Coordinator: SetData () "StopActivity" on /chroot/group/status
 3. Followers: Receive /chroot/group/status notification.
 4. Followers: Invoke OnStop event handlers which call user code to stop consumption/writing of resources
-5. Followers: create() ephemeral znode with ClientId (client_000000007) to /chroot/group/stopped
+5. Followers: create () ephemeral znode with ClientId (client_000000007) to /chroot/group/stopped
 6. Coordinator: Receives /chroot/group/stopped notification and all ClientIds found in /chroot/group/clients match
-   /chroot/group/stopped (excluding itself). GetChildren() /chroot/group/resources and /chroot/group/clients, then
+   /chroot/group/stopped (excluding itself). GetChildren () /chroot/group/resources and /chroot/group/clients, then
    create key/value pairs in memory with resource-client assignments.
-7. Coordinator: SetData() with resource assignments map on /chroot/group/resources
-8. Coordinator: SetData() "ResourcesAssigned" on /chroot/group/status
+7. Coordinator: SetData () with resource assignments map on /chroot/group/resources
+8. Coordinator: SetData () "ResourcesAssigned" on /chroot/group/status
 9. Followers: Notification of /chroot/group/status "ResourcesAssigned"
-10. Followers: GetData() on /chroot/group/resources to get resource assignment map.
+10. Followers: GetData () on /chroot/group/resources to get resource assignment map.
 11. Invoke OnStart event handler with resources matching its ClientId. This will execute user code to start consuming
     from/writing to these resources.
-12. Followers: Delete() ephemeral child node of /chroot/group/stopped
+12. Followers: Delete () ephemeral child node of /chroot/group/stopped
 13. Coordinator: Notifications received on /chroot/group/stopped.
 14. Coordinator: When no more child znodes exist, logs the completion of the rebalancing
 

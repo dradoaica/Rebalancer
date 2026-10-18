@@ -3,6 +3,7 @@ using Rebalancer.IntegrationTests.ZooKeeper.Helpers;
 using Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests.TestComponents;
 using Rebalancer.ZooKeeper;
 using System.Diagnostics;
+using System.Globalization;
 using Xunit;
 
 namespace Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests;
@@ -10,7 +11,11 @@ namespace Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests;
 public class RandomisedResourceBarrierTests : IDisposable
 {
     private readonly ZkHelper zkHelper = new();
-    private RandomConfig currentConfig;
+    private RandomConfig currentConfig = null!; // set by each test before it creates clients
+
+    // the static Providers registry keeps only the first registration per process (ADR 0001), so every test passes its
+    // own factory to RebalancerClient; otherwise later tests silently run with the first test's mode and settings
+    private Func<IRebalancerProvider> providerFactory = null!;
 
     public void Dispose()
     {
@@ -34,7 +39,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -53,7 +58,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -72,7 +77,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -91,7 +96,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -110,7 +115,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -129,7 +134,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -152,7 +157,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -175,7 +180,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -198,7 +203,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -221,7 +226,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -244,7 +249,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -273,7 +278,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -302,7 +307,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -325,7 +330,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -348,7 +353,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -367,7 +372,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
     }
@@ -394,9 +399,26 @@ public class RandomisedResourceBarrierTests : IDisposable
         };
 
         currentConfig = config;
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
 
         await RandomisedTest(config);
+    }
+
+    /// <summary>
+    ///     The configured durations add up to about 38 hours. Setting REBALANCER_RANDOMISED_TEST_MAX_MINUTES caps each
+    ///     test so the suite can run as a smoke test (locally or in CI); unset, the configured duration is used.
+    /// </summary>
+    private static TimeSpan GetTestDuration(RandomConfig config)
+    {
+        var maxMinutes = Environment.GetEnvironmentVariable("REBALANCER_RANDOMISED_TEST_MAX_MINUTES");
+        if (double.TryParse(maxMinutes, NumberStyles.Float, CultureInfo.InvariantCulture, out var minutes) &&
+            minutes > 0 &&
+            TimeSpan.FromMinutes(minutes) < config.TestDuration)
+        {
+            return TimeSpan.FromMinutes(minutes);
+        }
+
+        return config.TestDuration;
     }
 
     private async Task RandomisedTest(RandomConfig config)
@@ -427,6 +449,7 @@ public class RandomisedResourceBarrierTests : IDisposable
         {
             clients.Add(
                 new TestClient(
+                    providerFactory,
                     resourceMonitor,
                     groupName,
                     clientOptions,
@@ -454,7 +477,12 @@ public class RandomisedResourceBarrierTests : IDisposable
         sw.Start();
         Random rand = new(Guid.NewGuid().GetHashCode());
         var testCounter = 0;
-        while (sw.Elapsed < config.TestDuration)
+        var testDuration = GetTestDuration(config);
+
+        // the event log of each run is written here for diagnosis (previously a path on one developer's machine)
+        var eventsDirectory = Path.Combine(Path.GetTempPath(), "rebalancer-zk");
+        Directory.CreateDirectory(eventsDirectory);
+        while (sw.Elapsed < testDuration)
         {
             testLogger.Info("TEST RUNNER", "Test " + testCounter);
 
@@ -506,7 +534,7 @@ public class RandomisedResourceBarrierTests : IDisposable
 
             await Task.Delay(currentTestInterval);
 
-            resourceMonitor.PrintEvents($"/home/jack/tmp/rebalancer-zk/test-{groupName}");
+            resourceMonitor.PrintEvents(Path.Combine(eventsDirectory, $"test-{groupName}"));
 
             // check for double assignments. All test scenarios must check this. No matter
             // what happens, we can never allow double assignments - ever
@@ -514,7 +542,7 @@ public class RandomisedResourceBarrierTests : IDisposable
             {
                 foreach (var violation in resourceMonitor.GetDoubleAssignments())
                 {
-                    testLogger.Error("TEST RUNNER", violation.ToString());
+                    testLogger.Error("TEST RUNNER", $"{violation}");
                 }
             }
 

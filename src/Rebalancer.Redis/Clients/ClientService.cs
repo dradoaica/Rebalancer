@@ -1,7 +1,6 @@
-﻿using Rebalancer.Core;
+using Rebalancer.Core;
 using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
-using StackExchange.Redis.DataTypes.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +10,8 @@ namespace Rebalancer.Redis.Clients;
 
 internal class ClientService : IClientService
 {
+    private const int MaxCompareAndSetAttempts = 10;
+    private static readonly RedisKey ClientsKey = RedisHash.DictionaryKey("Clients");
     private readonly IDatabase cache;
 
     public ClientService(IDatabase cache)
@@ -18,117 +19,143 @@ internal class ClientService : IClientService
         this.cache = cache;
     }
 
-    public Task CreateClientAsync(string resourceGroup, Guid clientId)
+    public async Task CreateClientAsync(string resourceGroup, Guid clientId)
     {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        _ = new RedisDictionary<Guid, Client>(cache, cacheKey)
-        {
-            {
-                clientId, new Client
+        var now = await RedisHash.GetServerTimeAsync(cache);
+        await cache.HashSetAsync(
+            ClientsKey,
+            RedisHash.Encode(clientId),
+            RedisHash.Encode(
+                new Client
                 {
                     ClientId = clientId,
                     ResourceGroup = resourceGroup,
-                    LastKeepAlive = DateTime.UtcNow,
+                    LastKeepAlive = now,
                     ClientStatus = ClientStatus.Waiting,
                     CoordinatorStatus = CoordinatorStatus.StopActivity,
                     FencingToken = 1,
                 }
-            },
-        };
-        return Task.CompletedTask;
+            )
+        );
     }
 
-    public Task<List<Client>> GetActiveClientsAsync(string resourceGroup)
+    public async Task<List<Client>> GetActiveClientsAsync(string resourceGroup)
     {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        var clients = redisDictionary.Values.Where(x =>
-                x.ResourceGroup == resourceGroup &&
-                (x.ClientStatus == ClientStatus.Waiting || x.ClientStatus == ClientStatus.Active)
+        var values = await cache.HashValuesAsync(ClientsKey);
+        var now = await RedisHash.GetServerTimeAsync(cache);
+        var clients = values.Select(RedisHash.Decode<Client>)
+            .Where(x => x.ResourceGroup == resourceGroup &&
+                        (x.ClientStatus == ClientStatus.Waiting || x.ClientStatus == ClientStatus.Active)
             )
             .ToList();
-        clients.ForEach(x => x.TimeNow = DateTime.UtcNow);
-        return Task.FromResult(clients);
+        clients.ForEach(x => x.TimeNow = now);
+        return clients;
     }
 
-    public Task<Client> KeepAliveAsync(Guid clientId)
-    {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        Client client;
-        if (!redisDictionary.ContainsKey(clientId))
-        {
-            throw new RebalancerException($"No client exists with id {clientId}");
-        }
+    public Task<Client> KeepAliveAsync(Guid clientId) =>
+        RedisHash.CompareAndSetAsync<Client, Client>(
+            cache,
+            ClientsKey,
+            RedisHash.Encode(clientId),
+            (client, now) =>
+            {
+                if (client == null)
+                {
+                    throw new RebalancerException($"No client exists with id {clientId}");
+                }
 
-        client = redisDictionary[clientId];
-        client.LastKeepAlive = DateTime.UtcNow;
-        redisDictionary[client.ClientId] = client;
+                client.LastKeepAlive = now;
+                return (client, client);
+            }
+        );
 
-        return Task.FromResult(client);
-    }
+    public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus) =>
+        RedisHash.CompareAndSetAsync<Client, bool>(
+            cache,
+            ClientsKey,
+            RedisHash.Encode(clientId),
+            (client, _) =>
+            {
+                if (client == null)
+                {
+                    return (null, false);
+                }
 
-    public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus)
-    {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        if (redisDictionary.ContainsKey(clientId))
-        {
-            var client = redisDictionary[clientId];
-            client.ClientStatus = clientStatus;
-            redisDictionary[client.ClientId] = client;
-        }
-
-        return Task.CompletedTask;
-    }
+                client.ClientStatus = clientStatus;
+                return (client, true);
+            }
+        );
 
     public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> clientStartRequests)
     {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        foreach (var request in clientStartRequests)
-        {
-            var client =
-                redisDictionary.Values.FirstOrDefault(x =>
-                    x.ClientId == request.ClientId && x.FencingToken <= fencingToken
-                );
-            if (client == null)
-            {
-                Task.FromResult(ModifyClientResult.FencingTokenViolation);
-            }
-            else
+        var requests = clientStartRequests.ToDictionary(x => x.ClientId);
+        return ModifyClientsAsync(
+            fencingToken,
+            requests.Keys.ToList(),
+            client =>
             {
                 client.CoordinatorStatus = CoordinatorStatus.ResourcesGranted;
-                client.FencingToken = fencingToken;
-                client.AssignedResources = request.AssignedResources;
-                redisDictionary[client.ClientId] = client;
+                client.AssignedResources = requests[client.ClientId].AssignedResources;
             }
-        }
-
-        return Task.FromResult(ModifyClientResult.Ok);
+        );
     }
 
-    public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
-    {
-        var cacheKey = $"{Constants.SCHEMA}:Clients";
-        RedisDictionary<Guid, Client> redisDictionary = new(cache, cacheKey);
-        foreach (var targetedClient in clients)
-        {
-            Client client;
-            if (!redisDictionary.ContainsKey(targetedClient.ClientId))
+    public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
+        ModifyClientsAsync(
+            fencingToken,
+            clients.Select(x => x.ClientId).ToList(),
+            client =>
             {
-                Task.FromResult(ModifyClientResult.FencingTokenViolation);
-            }
-            else
-            {
-                client = redisDictionary[targetedClient.ClientId];
                 client.CoordinatorStatus = CoordinatorStatus.StopActivity;
-                client.FencingToken = fencingToken;
                 client.AssignedResources = new List<string>();
-                redisDictionary[client.ClientId] = client;
+            }
+        );
+
+    /// <summary>
+    ///     Applies <paramref name="modify" /> to all clients atomically: either every client exists and has not seen a
+    ///     newer fencing token and all are written, or nothing is written.
+    /// </summary>
+    private async Task<ModifyClientResult> ModifyClientsAsync(
+        int fencingToken,
+        List<Guid> clientIds,
+        Action<Client> modify
+    )
+    {
+        if (!clientIds.Any())
+        {
+            return ModifyClientResult.Ok;
+        }
+
+        var fields = clientIds.Select(x => RedisHash.Encode(x)).ToArray();
+        for (var attempt = 0; attempt < MaxCompareAndSetAttempts; attempt++)
+        {
+            var current = await cache.HashGetAsync(ClientsKey, fields);
+            if (current.Any(x => x.IsNull))
+            {
+                return ModifyClientResult.FencingTokenViolation;
+            }
+
+            var clients = current.Select(RedisHash.Decode<Client>).ToList();
+            if (clients.Any(x => x.FencingToken > fencingToken))
+            {
+                return ModifyClientResult.FencingTokenViolation;
+            }
+
+            var transaction = cache.CreateTransaction();
+            for (var i = 0; i < fields.Length; i++)
+            {
+                transaction.AddCondition(Condition.HashEqual(ClientsKey, fields[i], current[i]));
+                modify(clients[i]);
+                clients[i].FencingToken = fencingToken;
+                _ = transaction.HashSetAsync(ClientsKey, fields[i], RedisHash.Encode(clients[i]));
+            }
+
+            if (await transaction.ExecuteAsync())
+            {
+                return ModifyClientResult.Ok;
             }
         }
 
-        return Task.FromResult(ModifyClientResult.Ok);
+        throw new RebalancerException("Could not modify clients due to concurrent modifications");
     }
 }

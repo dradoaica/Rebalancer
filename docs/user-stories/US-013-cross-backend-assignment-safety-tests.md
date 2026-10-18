@@ -41,10 +41,20 @@ Today the ZooKeeper suite under [`tests/Rebalancer.IntegrationTests/ZooKeeper/`]
 
 Test databases and Redis instances must use disposable credentials and isolated environments; no production connection strings in repo.
 
+## Definition of ready
+
+<!-- Added 2026-10-18 to align with the user-story template (DoR section introduced in template v1.0.7). Ticked items
+were verified by an agent against this story's text on 2026-10-18; the human readiness review is still to be recorded. -->
+
+- [x] Governing ADR referenced (or marked "N/A - non-architectural")
+- [x] Acceptance criteria are testable, unambiguous, and numbered
+- [x] Security & compliance considerations addressed
+- [x] Dependencies and non-goals are explicitly identified
+
 ## Definition of done
 
 - [x] Acceptance criteria met
-- [x] Tests / checks agreed with team
+- [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
 - [ ] Traceable to change record (if released) — `docs/change-records/…`
 

@@ -10,7 +10,7 @@ informed: []
 
 ## Context and Problem Statement
 
-Nodes participating in a resource group may hit transient failures or messaging-broker quirks (e.g. connection keep-alives vs reassignment speed). The library exposes **`ClientOptions`** so hosts can tune recovery and optionally delay assignment notifications to avoid duplicate or out-of-order consumption.
+Nodes participating in a resource group may hit transient failures or messaging-broker quirks (e.g., connection keep-alives vs. reassignment speed). The library exposes **`ClientOptions`** so hosts can tune recovery and optionally delay assignment notifications to avoid duplicate or out-of-order consumption.
 
 This ADR documents the **as-built** semantics in `src/Rebalancer.Core/ClientOptions.cs` and how providers consume those options.
 

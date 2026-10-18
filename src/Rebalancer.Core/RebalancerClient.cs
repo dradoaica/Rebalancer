@@ -12,6 +12,7 @@ public class RebalancerClient : IDisposable
     private CancellationTokenSource cts;
 
     private bool disposed;
+    private bool stopped;
 
     /// <summary>Uses the provider registered via <see cref="Providers.Register" />.</summary>
     public RebalancerClient()
@@ -31,17 +32,32 @@ public class RebalancerClient : IDisposable
     ///     shutdown, which includes invoking your OnCancelAssignment event handlers For more control use the StopAsync method
     ///     where you can specify a longer and safer shutdown timeout
     /// </summary>
+    /// <remarks>
+    ///     The client owns its provider: if the provider implements <see cref="IDisposable" /> (e.g. RedisProvider, which
+    ///     holds a connection), it is disposed here, also when StopAsync was called first. Do not share one provider instance
+    ///     between clients (ADR 0006).
+    /// </remarks>
     public void Dispose()
     {
         if (!disposed)
         {
-            if (cts != null)
+            if (!stopped && cts != null)
             {
                 cts.Cancel(); // signals provider to stop
                 var completionTask = Task.Run(async () => await rebalancerProvider.WaitForCompletionAsync());
-                completionTask.Wait(5000); // waits for completion up to 5 seconds
+                try
+                {
+                    completionTask.Wait(5000); // waits for completion up to 5 seconds
+                }
+                catch (AggregateException)
+                {
+                    // a faulted provider must not make Dispose throw
+                }
             }
 
+            // stopping first and disposing later (e.g. StopAsync inside a using block) must still release the provider
+            (rebalancerProvider as IDisposable)?.Dispose();
+            stopped = true;
             disposed = true;
         }
     }
@@ -124,7 +140,7 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync()
     {
-        if (!disposed)
+        if (!stopped)
         {
             if (cts != null)
             {
@@ -132,7 +148,7 @@ public class RebalancerClient : IDisposable
                 await rebalancerProvider.WaitForCompletionAsync();
             }
 
-            disposed = true;
+            stopped = true;
         }
     }
 
@@ -143,7 +159,7 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout)
     {
-        if (!disposed)
+        if (!stopped)
         {
             if (cts != null)
             {
@@ -155,7 +171,7 @@ public class RebalancerClient : IDisposable
                 }
             }
 
-            disposed = true;
+            stopped = true;
         }
     }
 
@@ -166,7 +182,7 @@ public class RebalancerClient : IDisposable
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout, CancellationToken token)
     {
-        if (!disposed)
+        if (!stopped)
         {
             if (cts != null)
             {
@@ -178,7 +194,7 @@ public class RebalancerClient : IDisposable
                 }
             }
 
-            disposed = true;
+            stopped = true;
         }
     }
 

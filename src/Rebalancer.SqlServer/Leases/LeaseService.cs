@@ -22,33 +22,27 @@ internal class LeaseService : ILeaseService
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
-            var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
-            var command = conn.CreateCommand();
+            // disposing an uncommitted transaction rolls it back, also on the early returns below
+            using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
+            using var command = conn.CreateCommand();
             command.Transaction = transaction;
 
             try
             {
-                // obtain lock on the record blocking other nodes until the transaction is committed
-                command.CommandText =
-                    "UPDATE [RBR].[ResourceGroups] SET LockedByClient = @ClientId WHERE ResourceGroup = @ResourceGroup";
-                command.Parameters.AddWithValue("@ClientId", acquireLeaseRequest.ClientId);
-                command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
-                    acquireLeaseRequest.ResourceGroup;
-                await command.ExecuteNonQueryAsync();
-
-                // get the resource group (TODO, use OUTPUT on UPDATE query instead of another query)
-                command.Parameters.Clear();
-                command.CommandText = @"SELECT [ResourceGroup]
-      ,[CoordinatorId]
-      ,[LastCoordinatorRenewal]
-      ,[CoordinatorServer]
-      ,[LockedByClient]
-      ,[FencingToken]
-      ,[LeaseExpirySeconds]
-      ,[HeartbeatSeconds]
-	  ,GETUTCDATE() AS [TimeNow]
-FROM [RBR].[ResourceGroups]
+                // obtain lock on the record blocking other nodes until the transaction is committed, and read it
+                command.CommandText = @"UPDATE [RBR].[ResourceGroups]
+   SET LockedByClient = @ClientId
+OUTPUT inserted.[ResourceGroup]
+      ,inserted.[CoordinatorId]
+      ,inserted.[LastCoordinatorRenewal]
+      ,inserted.[CoordinatorServer]
+      ,inserted.[LockedByClient]
+      ,inserted.[FencingToken]
+      ,inserted.[LeaseExpirySeconds]
+      ,inserted.[HeartbeatSeconds]
+      ,GETUTCDATE() AS [TimeNow]
 WHERE ResourceGroup = @ResourceGroup";
+                command.Parameters.AddWithValue("@ClientId", acquireLeaseRequest.ClientId);
                 command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
                     acquireLeaseRequest.ResourceGroup;
 
@@ -129,12 +123,12 @@ WHERE ResourceGroup = @ResourceGroup";
             {
                 try
                 {
-                    logger.Error("Rolling back lease acquisition: ", ex);
+                    logger.Error(acquireLeaseRequest.ClientId.ToString(), "Rolling back lease acquisition", ex);
                     transaction.Rollback();
                 }
                 catch (Exception rex)
                 {
-                    logger.Error("Rollback of lease acquisition failed: ", rex);
+                    logger.Error(acquireLeaseRequest.ClientId.ToString(), "Rollback of lease acquisition failed", rex);
                 }
 
                 return new LeaseResponse
@@ -151,33 +145,27 @@ WHERE ResourceGroup = @ResourceGroup";
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
-            var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
-            var command = conn.CreateCommand();
+            // disposing an uncommitted transaction rolls it back, also on the early returns below
+            using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
+            using var command = conn.CreateCommand();
             command.Transaction = transaction;
 
             try
             {
-                // obtain lock on the record blocking other nodes until the transaction is committed
-                command.CommandText =
-                    "UPDATE [RBR].[ResourceGroups] SET LockedByClient = @ClientId WHERE ResourceGroup = @ResourceGroup";
-                command.Parameters.AddWithValue("@ClientId", renewLeaseRequest.ClientId);
-                command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
-                    renewLeaseRequest.ResourceGroup;
-                await command.ExecuteNonQueryAsync();
-
-                // get the resource group
-                command.Parameters.Clear();
-                command.CommandText = @"SELECT [ResourceGroup]
-      ,[CoordinatorId]
-      ,[LastCoordinatorRenewal]
-      ,[CoordinatorServer]
-      ,[LockedByClient]
-      ,[FencingToken]
-      ,[LeaseExpirySeconds]
-      ,[HeartbeatSeconds]
-	  ,GETUTCDATE() AS [TimeNow]
-FROM [RBR].[ResourceGroups]
+                // obtain lock on the record blocking other nodes until the transaction is committed, and read it
+                command.CommandText = @"UPDATE [RBR].[ResourceGroups]
+   SET LockedByClient = @ClientId
+OUTPUT inserted.[ResourceGroup]
+      ,inserted.[CoordinatorId]
+      ,inserted.[LastCoordinatorRenewal]
+      ,inserted.[CoordinatorServer]
+      ,inserted.[LockedByClient]
+      ,inserted.[FencingToken]
+      ,inserted.[LeaseExpirySeconds]
+      ,inserted.[HeartbeatSeconds]
+      ,GETUTCDATE() AS [TimeNow]
 WHERE ResourceGroup = @ResourceGroup";
+                command.Parameters.AddWithValue("@ClientId", renewLeaseRequest.ClientId);
                 command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
                     renewLeaseRequest.ResourceGroup;
 
@@ -253,12 +241,12 @@ WHERE ResourceGroup = @ResourceGroup";
             {
                 try
                 {
-                    logger.Error("Rolling back lease renewal: ", ex);
+                    logger.Error(renewLeaseRequest.ClientId.ToString(), "Rolling back lease renewal", ex);
                     transaction.Rollback();
                 }
                 catch (Exception rex)
                 {
-                    logger.Error("Rollback of lease renewal failed: ", rex);
+                    logger.Error(renewLeaseRequest.ClientId.ToString(), "Rollback of lease renewal failed", rex);
                 }
 
                 return new LeaseResponse

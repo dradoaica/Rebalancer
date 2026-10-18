@@ -27,7 +27,7 @@ public class SqlServerProvider : IRebalancerProvider
     private readonly IResourceService resourceService;
     private readonly ResourceGroupStore store;
     private Guid clientId;
-    private bool isCoordinator;
+    private volatile bool isCoordinator;
     private Task mainTask;
     private string resourceGroup;
     private bool started;
@@ -128,7 +128,7 @@ public class SqlServerProvider : IRebalancerProvider
                                !roleTask.IsCompleted &&
                                !clientEvents.IsCompleted)
                         {
-                            await Task.Delay(100);
+                            await WaitFor(TimeSpan.FromMilliseconds(100), parentToken);
                         }
 
                         // cancel child tasks
@@ -254,23 +254,18 @@ public class SqlServerProvider : IRebalancerProvider
         }
     }
 
+    /// <summary>
+    ///     Returns at once (ADR 0007): while assignment is pending the state is PendingAssignment and no resources are
+    ///     returned. To wait for an assignment use <see cref="GetAssignedResources(CancellationToken)" />.
+    /// </summary>
     public AssignedResources GetAssignedResources()
     {
-        while (true)
+        var response = store.GetResources();
+        return new AssignedResources
         {
-            var response = store.GetResources();
-            if (response.AssignmentStatus == AssignmentStatus.ResourcesAssigned ||
-                response.AssignmentStatus == AssignmentStatus.NoResourcesAssigned)
-            {
-                return new AssignedResources
-                {
-                    Resources = response.Resources,
-                    ClientState = GetState(response.AssignmentStatus),
-                };
-            }
-
-            Thread.Sleep(100);
-        }
+            Resources = response.Resources,
+            ClientState = GetState(response.AssignmentStatus),
+        };
     }
 
     public ClientState GetState()
@@ -610,7 +605,7 @@ public class SqlServerProvider : IRebalancerProvider
         {
             if (sw.Elapsed < delayPeriod)
             {
-                await Task.Delay(100);
+                await WaitFor(TimeSpan.FromMilliseconds(100), token);
             }
             else
             {

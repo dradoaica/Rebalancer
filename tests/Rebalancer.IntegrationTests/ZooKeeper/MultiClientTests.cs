@@ -9,6 +9,10 @@ public class MultiClientTests : IDisposable
 {
     private readonly ZkHelper zkHelper = new();
 
+    // the static Providers registry keeps only the first registration per process (ADR 0001), so every test passes its
+    // own factory to RebalancerClient; otherwise later tests silently run with the first test's mode and settings
+    private Func<IRebalancerProvider> providerFactory = null!;
+
     public void Dispose()
     {
         if (zkHelper != null)
@@ -21,14 +25,14 @@ public class MultiClientTests : IDisposable
     [Fact]
     public async Task ResourceBarrier_GivenSixResourcesAndThreeClients_ThenEachClientGetsTwoResources()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await GivenSixResourcesAndThreeClients_ThenEachClientGetsTwoResources();
     }
 
     [Fact]
     public async Task GlobalBarrier_GivenSixResourcesAndThreeClients_ThenEachClientGetsTwoResources()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await GivenSixResourcesAndThreeClients_ThenEachClientGetsTwoResources();
     }
 
@@ -70,9 +74,9 @@ public class MultiClientTests : IDisposable
 
         // ASSERT
         // check client 1
-        AssertAssigned(testEvents1, 2);
-        AssertAssigned(testEvents2, 2);
-        AssertAssigned(testEvents3, 2);
+        AssertSettledAssigned(testEvents1, 2);
+        AssertSettledAssigned(testEvents2, 2);
+        AssertSettledAssigned(testEvents3, 2);
 
         await client1.StopAsync();
         await client2.StopAsync();
@@ -83,7 +87,7 @@ public class MultiClientTests : IDisposable
     public async Task
         ResourceBarrier_GivenMultipleResourcesAndThreeClientsAtStartWithClientsStoppingOneByOne_ThenResourceAssignmentsReassignedAccordingly()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await
             GivenMultipleResourcesAndThreeClientsAtStartWithClientsStoppingOneByOne_ThenResourceAssignmentsReassignedAccordingly();
     }
@@ -92,7 +96,7 @@ public class MultiClientTests : IDisposable
     public async Task
         GlobalBarrier_GivenMultipleResourcesAndThreeClientsAtStartWithClientsStoppingOneByOne_ThenResourceAssignmentsReassignedAccordingly()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await
             GivenMultipleResourcesAndThreeClientsAtStartWithClientsStoppingOneByOne_ThenResourceAssignmentsReassignedAccordingly();
     }
@@ -135,9 +139,9 @@ public class MultiClientTests : IDisposable
         await Task.Delay(TimeSpan.FromSeconds(15));
 
         // ASSERT all clients have been assigned equal resources
-        AssertAssigned(testEvents1, 2);
-        AssertAssigned(testEvents2, 2);
-        AssertAssigned(testEvents3, 2);
+        AssertSettledAssigned(testEvents1, 2);
+        AssertSettledAssigned(testEvents2, 2);
+        AssertSettledAssigned(testEvents3, 2);
 
         // ACT - stop one client
         await client1.StopAsync();
@@ -169,7 +173,7 @@ public class MultiClientTests : IDisposable
     public async Task
         ResourceBarrier_GivenMultipleResourcesAndOneClientAtStartWithNewClientsStartingOneByOne_ThenResourceAssignmentsReassignedAccordingly()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await
             GivenMultipleResourcesAndOneClientAtStartWithNewClientsStartingOneByOne_ThenResourceAssignmentsReassignedAccordingly();
     }
@@ -178,7 +182,7 @@ public class MultiClientTests : IDisposable
     public async Task
         GlobalBarrier_GivenMultipleResourcesAndOneClientAtStartWithNewClientsStartingOneByOne_ThenResourceAssignmentsReassignedAccordingly()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await
             GivenMultipleResourcesAndOneClientAtStartWithNewClientsStartingOneByOne_ThenResourceAssignmentsReassignedAccordingly();
     }
@@ -254,14 +258,14 @@ public class MultiClientTests : IDisposable
     [Fact]
     public async Task ResourceBarrier_GivenOneResourceAndOneClient_ThenAdditionalClientsDoNotTriggerRebalancing()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await GivenOneResourceAndOneClient_ThenAdditionalClientsDoNotTriggerRebalancing();
     }
 
     [Fact]
     public async Task GlobalBarrier_GivenOneResourceAndOneClient_ThenAdditionalClientsDoNotTriggerRebalancing()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await GivenOneResourceAndOneClient_ThenAdditionalClientsDoNotTriggerRebalancing();
     }
 
@@ -344,7 +348,7 @@ public class MultiClientTests : IDisposable
     public async Task
         ResourceBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingUnassignedClientDoesNotTriggerRebalancing()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await GivenTwoResourcesAndThreeClients_ThenRemovingUnassignedClientDoesNotTriggerRebalancing();
     }
 
@@ -352,7 +356,7 @@ public class MultiClientTests : IDisposable
     public async Task
         GlobalBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingUnassignedClientDoesNotTriggerRebalancing()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await GivenTwoResourcesAndThreeClients_ThenRemovingUnassignedClientDoesNotTriggerRebalancing();
     }
 
@@ -434,14 +438,14 @@ public class MultiClientTests : IDisposable
     public async Task
         ResourceBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing()
     {
-        Providers.Register(GetResourceBarrierProvider);
+        providerFactory = GetResourceBarrierProvider;
         await GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing();
     }
 
     [Fact]
     public async Task GlobalBarrier_GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing()
     {
-        Providers.Register(GetGlobalBarrierProvider);
+        providerFactory = GetGlobalBarrierProvider;
         await GivenTwoResourcesAndThreeClients_ThenRemovingAssignedClientDoesTriggerRebalancing();
     }
 
@@ -519,9 +523,27 @@ public class MultiClientTests : IDisposable
         await client3.StopAsync();
     }
 
+    /// <summary>
+    ///     For clients started one after another: the first client may be assigned everything before the others join and
+    ///     then be rebalanced, so only the settled outcome is fixed. The history must still be well-formed (assignment, then
+    ///     alternating unassignment/assignment) and end with an assignment of <paramref name="count" /> resources.
+    /// </summary>
+    private void AssertSettledAssigned(List<TestEvent> testEvents, int count)
+    {
+        Assert.NotEmpty(testEvents);
+        for (var i = 0; i < testEvents.Count; i++)
+        {
+            Assert.Equal(i % 2 == 0 ? EventType.Assignment : EventType.Unassignment, testEvents[i].EventType);
+        }
+
+        Assert.Equal(EventType.Assignment, testEvents[^1].EventType);
+        Assert.Equal(count, testEvents[^1].Resources.Count);
+        testEvents.Clear();
+    }
+
     private void AssertAssigned(List<TestEvent> testEvents, int count)
     {
-        Assert.Equal(1, testEvents.Count);
+        Assert.Single(testEvents);
         Assert.Equal(EventType.Assignment, testEvents[0].EventType);
         Assert.Equal(count, testEvents[0].Resources.Count);
         testEvents.Clear();
@@ -538,20 +560,20 @@ public class MultiClientTests : IDisposable
 
     private void AssertUnassignedOnly(List<TestEvent> testEvents)
     {
-        Assert.Equal(1, testEvents.Count);
+        Assert.Single(testEvents);
         Assert.Equal(EventType.Unassignment, testEvents[0].EventType);
         testEvents.Clear();
     }
 
     private void AssertNoEvents(List<TestEvent> testEvents)
     {
-        Assert.Equal(0, testEvents.Count);
+        Assert.Empty(testEvents);
         testEvents.Clear();
     }
 
     private (RebalancerClient, List<TestEvent> testEvents) CreateClient()
     {
-        RebalancerClient client1 = new();
+        RebalancerClient client1 = new(providerFactory());
         List<TestEvent> testEvents = new();
         client1.OnAssignment += (sender, args) =>
         {

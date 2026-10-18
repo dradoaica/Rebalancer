@@ -16,7 +16,7 @@ This ADR documents the **shared structural pattern** in `src/Rebalancer.SqlServe
 
 ## Decision Drivers
 
-* Reuse the same conceptual model (coordinator vs follower) across RDBMS and Redis deployments.
+* Reuse the same conceptual model (coordinator vs. follower) across RDBMS and Redis deployments.
 * Serialize concurrent updates safely (leases + store operations).
 * Keep a per–resource-group store of clients, resources, and assignment state suitable for periodic rebalancing.
 
@@ -28,11 +28,11 @@ This ADR documents the **shared structural pattern** in `src/Rebalancer.SqlServe
 
 ## Decision Outcome
 
-Chosen option: **Parallel implementations** with the same **lease service**, **resource group store**, **coordinator/follower roles**, and **client service** concepts, differing only in data access (ADO.NET vs StackExchange.Redis).
+Chosen option: **Parallel implementations** with the same **lease service**, **resource group store**, **coordinator/follower roles**, and **client service** concepts, differing only in data access (ADO.NET vs. StackExchange.Redis).
 
 ### Consequences
 
-* Good, because each backend can use native concurrency and connection patterns (e.g., transactions vs Redis primitives).
+* Good, because each backend can use native concurrency and connection patterns (e.g., transactions vs. Redis primitives).
 * Good, because operators can pick SQL Server where they already have HA and backups, or Redis where low-latency in-memory coordination fits.
 * Bad, because behavior and bug fixes may need to be applied in two places; drift risk is mitigated only by discipline and tests.
 * Bad, because README-described “global barrier” semantics for RDBMS are implemented inside these providers’ protocols; readers must consult code for exact ordering guarantees.

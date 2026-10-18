@@ -16,7 +16,7 @@ public sealed class SqlServerAssignmentSafetyTests
             "Docker is not available; start Docker to run integration tests."
         );
 
-        await using var sql = new MsSqlBuilder().WithPassword("Tests_pass_123!").Build();
+        await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
         await sql.StartAsync();
 
         var connectionString = sql.GetConnectionString();
@@ -40,6 +40,7 @@ public sealed class SqlServerAssignmentSafetyTests
         await client1.StartAsync(group, options);
         await client2.StartAsync(group, options);
 
+        var assignedObservations = 0;
         try
         {
             var deadline = DateTime.UtcNow.AddSeconds(90);
@@ -51,8 +52,16 @@ public sealed class SqlServerAssignmentSafetyTests
                     a.Contains(resourceName) && b.Contains(resourceName),
                     "Invariant violated: both clients hold the same resource."
                 );
+                if (a.Contains(resourceName) || b.Contains(resourceName))
+                {
+                    assignedObservations++;
+                }
+
                 await Task.Delay(200);
             }
+
+            // without this the safety check passes vacuously when nothing is ever assigned
+            Assert.True(assignedObservations > 0, "Liveness violated: the resource was never assigned to any client.");
         }
         finally
         {

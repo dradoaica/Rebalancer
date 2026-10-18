@@ -33,7 +33,7 @@ Chosen option: **Expose both `ResourceBarrier` and `GlobalBarrier`** on the ZooK
 
 ### Consequences
 
-* Good, because operators can pick the algorithm that matches scale (many resources vs few) and operational tolerance for global stop phases.
+* Good, because operators can pick the algorithm that matches scale (many resources vs. few) and operational tolerance for global stop phases.
 * Good, because extensive README diagrams and step lists align with test scenarios.
 * Bad, because ZooKeeper protocol surface area is large; operational mistakes (ACLs, path layout) are outside the library.
 * Bad, because the ZK README states the protocol is still under development—callers should treat behavior as version-coupled to this codebase.
@@ -42,7 +42,7 @@ Chosen option: **Expose both `ResourceBarrier` and `GlobalBarrier`** on the ZooK
 
 * **Implementation:** `src/Rebalancer.ZooKeeper/ZooKeeperProvider.cs` switches on `RebalancingMode` for barrier behavior.
 * **Resource management:** `src/Rebalancer.ZooKeeper/ResourceManagement/ResourceManager.cs` encodes mode-specific logic.
-* **Tests:** `tests/Rebalancer.IntegrationTests/ZooKeeper/` includes single-client, multi-client, and randomized barrier tests (e.g. `RandomisedResourceBarrierTests.cs`) validating core invariants such as no double assignment under tested scenarios.
+* **Tests:** `tests/Rebalancer.IntegrationTests/ZooKeeper/` includes single-client, multi-client, and randomized barrier tests (e.g., `RandomisedResourceBarrierTests.cs`) validating core invariants such as no double assignment under tested scenarios.
 
 ## Pros and Cons of the Options
 
@@ -58,4 +58,4 @@ Chosen option: **Expose both `ResourceBarrier` and `GlobalBarrier`** on the ZooK
 
 ## More Information
 
-* Invariants stated in `src/Rebalancer.ZooKeeper/README.md` (e.g. never assign one resource to two nodes) guide test intent; formal TLA+ proofs referenced in the product README are out of scope for this ADR.
+* Invariants stated in `src/Rebalancer.ZooKeeper/README.md` (e.g., never assign one resource to two nodes) guide test intent; formal TLA+ proofs referenced in the product README are out of scope for this ADR.

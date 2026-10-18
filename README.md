@@ -12,8 +12,8 @@ a group of participating nodes.
 
 - Single Active-Consumer / Active-Backup
 
-- Create an application cluster that consumes a single resource in a highly available manner. The cluster leader (
-  Coordinator) consumes the single resource, and the slaves (Followers) remain idle in backup in case the leader dies.
+- Create an application cluster that consumes a single resource in a highly available manner. The cluster leader
+  (Coordinator) consumes the single resource, and the slaves (Followers) remain idle in backup in case the leader dies.
 
 ### Balancing assignment of multiple resources over multiples nodes
 
@@ -80,6 +80,8 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at once)
+- [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, and Redis backends
 
 ### Contributors and AI agents
 
@@ -105,6 +107,13 @@ Alternatively use `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or `AddRebalan
 The parameterless `RebalancerClient` constructor still uses static
 `Providers.Register` ([ADR 0005](docs/adrs/0005-dependency-injection-for-provider-registration-v2.md)).
 
+### Provider lifetime
+
+A `RebalancerClient` owns its provider: disposing the client (also after `StopAsync`) disposes a provider that
+implements `IDisposable`. `RedisProvider` does, and closes its Redis connection. Use one provider instance per client;
+the DI registrations above already resolve a new provider for every client
+([ADR 0006](docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md)).
+
 ### Building and testing
 
 - Solution: [Rebalancer.slnx](Rebalancer.slnx)
@@ -112,6 +121,21 @@ The parameterless `RebalancerClient` constructor still uses static
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
   unavailable). ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
+
+A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
+`docker rm -f rbr-it-zk1 rbr-it-zk2 rbr-it-zk3 && docker network rm rbr-it-zk`):
+
+```bash
+docker network create rbr-it-zk
+SERVERS="server.1=rbr-it-zk1:2888:3888;2181 server.2=rbr-it-zk2:2888:3888;2181 server.3=rbr-it-zk3:2888:3888;2181"
+for i in 1 2 3; do
+  docker run -d --name rbr-it-zk$i --hostname rbr-it-zk$i --network rbr-it-zk -p 218$i:2181 \
+    -e ZOO_MY_ID=$i -e "ZOO_SERVERS=$SERVERS" zookeeper:3.8
+done
+```
+
+The randomised ZooKeeper tests run 2–8 hours each (about 38 hours in total). Set
+`REBALANCER_RANDOMISED_TEST_MAX_MINUTES` (e.g. `2`) to cap each test and run the suite as a smoke test.
 
 ### Repository layout
 

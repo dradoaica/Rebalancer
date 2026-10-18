@@ -1,14 +1,13 @@
-﻿using Rebalancer.Redis.Utils;
+using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
-using StackExchange.Redis.DataTypes.Collections;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Rebalancer.Redis.Leases;
 
 internal class LeaseService : ILeaseService
 {
+    private static readonly RedisKey ResourceGroupsKey = RedisHash.DictionaryKey("ResourceGroups");
     private readonly IDatabase cache;
 
     public LeaseService(IDatabase cache)
@@ -16,206 +15,166 @@ internal class LeaseService : ILeaseService
         this.cache = cache;
     }
 
-    public Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest acquireLeaseRequest)
+    public async Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest acquireLeaseRequest)
     {
-        ResourceGroup resourceGroup = null;
-        RedisDictionary<string, ResourceGroup> redisDictionary = null;
         try
         {
-            var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-            redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
-            if (!redisDictionary.ContainsKey(acquireLeaseRequest.ResourceGroup))
-            {
-                return Task.FromResult(
-                    new LeaseResponse
-                    {
-                        Result = LeaseResult.NoLease,
-                        Lease = new Lease
-                        {
-                            ExpiryPeriod = TimeSpan.FromMinutes(1),
-                            HeartbeatPeriod = TimeSpan.FromSeconds(25),
-                        },
-                    }
-                );
-            }
-
-            resourceGroup = redisDictionary[acquireLeaseRequest.ResourceGroup];
-            if (resourceGroup.LockedByClientId != acquireLeaseRequest.ClientId &&
-                (DateTime.UtcNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
-                resourceGroup.LeaseExpirySeconds)
-            {
-                return Task.FromResult(
-                    new LeaseResponse
-                    {
-                        Result = LeaseResult.Denied,
-                        Lease = new Lease
-                        {
-                            ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds),
-                            HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds),
-                        },
-                    }
-                );
-            }
-
-            // obtain lock on the record blocking other nodes until the transaction is committed
-            resourceGroup.LockedByClientId = acquireLeaseRequest.ClientId;
-            resourceGroup.TimeNow = DateTime.UtcNow;
-            redisDictionary[resourceGroup.Name] = resourceGroup;
-
-            // determine the response, if the CoordinatorId is empty or expired then grant, else deny
-            LeaseResponse response = new()
-            {
-                Lease = new Lease(),
-            };
-            if (resourceGroup.CoordinatorId == Guid.Empty ||
-                (resourceGroup.TimeNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds >
-                resourceGroup.LeaseExpirySeconds)
-            {
-                response.Lease.ResourceGroup = acquireLeaseRequest.ResourceGroup;
-                response.Lease.ClientId = acquireLeaseRequest.ClientId;
-                response.Lease.ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds);
-                response.Lease.HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds);
-                response.Lease.FencingToken = ++resourceGroup.FencingToken;
-                response.Result = LeaseResult.Granted;
-                resourceGroup.CoordinatorId = acquireLeaseRequest.ClientId;
-                resourceGroup.LastCoordinatorRenewal = DateTime.UtcNow;
-                resourceGroup.CoordinatorServer = Environment.MachineName;
-                resourceGroup.FencingToken = response.Lease.FencingToken;
-                redisDictionary[resourceGroup.Name] = resourceGroup;
-            }
-            else
-            {
-                response.Lease.ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds);
-                response.Lease.HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds);
-                response.Result = LeaseResult.Denied;
-            }
-
-            return Task.FromResult(response);
+            return await RedisHash.CompareAndSetAsync<ResourceGroup, LeaseResponse>(
+                cache,
+                ResourceGroupsKey,
+                RedisHash.Encode(acquireLeaseRequest.ResourceGroup),
+                (resourceGroup, now) => DecideAcquire(resourceGroup, acquireLeaseRequest, now)
+            );
         }
         catch (Exception ex)
         {
-            if (resourceGroup != null && redisDictionary != null)
-            {
-                resourceGroup.CoordinatorId = Guid.Empty;
-                redisDictionary[resourceGroup.Name] = resourceGroup;
-            }
-
-            return Task.FromResult(
-                new LeaseResponse
-                {
-                    Result = TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
-                    Message = "Lease acquisition failure",
-                    Exception = ex,
-                }
-            );
+            // never write on failure: the stored lease may belong to another, healthy coordinator
+            return ErrorResponse(ex);
         }
     }
 
-    public Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest renewLeaseRequest)
+    public async Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest renewLeaseRequest)
     {
-        ResourceGroup resourceGroup = null;
-        RedisDictionary<string, ResourceGroup> redisDictionary = null;
         try
         {
-            var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-            redisDictionary = new RedisDictionary<string, ResourceGroup>(cache, cacheKey);
-            if (!redisDictionary.ContainsKey(renewLeaseRequest.ResourceGroup))
-            {
-                return Task.FromResult(
-                    new LeaseResponse
-                    {
-                        Result = LeaseResult.NoLease,
-                    }
-                );
-            }
-
-            resourceGroup = redisDictionary[renewLeaseRequest.ResourceGroup];
-            if (resourceGroup.LockedByClientId != renewLeaseRequest.ClientId &&
-                (DateTime.UtcNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
-                resourceGroup.LeaseExpirySeconds)
-            {
-                return Task.FromResult(
-                    new LeaseResponse
-                    {
-                        Result = LeaseResult.Denied,
-                    }
-                );
-            }
-
-            // obtain lock on the record blocking other nodes until the transaction is committed
-            resourceGroup.LockedByClientId = renewLeaseRequest.ClientId;
-            resourceGroup.TimeNow = DateTime.UtcNow;
-            redisDictionary[resourceGroup.Name] = resourceGroup;
-
-            // determine the response, if the CoordinatorId matches the current client id and the fencing token is the same then grant, else deny
-            LeaseResponse response = new()
-            {
-                Lease = new Lease(),
-            };
-            if (!resourceGroup.CoordinatorId.Equals(renewLeaseRequest.ClientId) ||
-                resourceGroup.FencingToken > renewLeaseRequest.FencingToken)
-            {
-                return Task.FromResult(
-                    new LeaseResponse
-                    {
-                        Result = LeaseResult.Denied,
-                    }
-                );
-            }
-
-            if ((resourceGroup.TimeNow - resourceGroup.LastCoordinatorRenewal).TotalSeconds <=
-                resourceGroup.LeaseExpirySeconds)
-            {
-                response.Lease.ResourceGroup = renewLeaseRequest.ResourceGroup;
-                response.Lease.ClientId = renewLeaseRequest.ClientId;
-                response.Lease.ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds);
-                response.Lease.HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds);
-                response.Lease.FencingToken = resourceGroup.FencingToken;
-                response.Result = LeaseResult.Granted;
-                resourceGroup.LastCoordinatorRenewal = DateTime.UtcNow;
-                redisDictionary[resourceGroup.Name] = resourceGroup;
-            }
-            else
-            {
-                response.Result = LeaseResult.Denied;
-            }
-
-            return Task.FromResult(response);
+            return await RedisHash.CompareAndSetAsync<ResourceGroup, LeaseResponse>(
+                cache,
+                ResourceGroupsKey,
+                RedisHash.Encode(renewLeaseRequest.ResourceGroup),
+                (resourceGroup, now) => DecideRenew(resourceGroup, renewLeaseRequest, now)
+            );
         }
         catch (Exception ex)
         {
-            if (resourceGroup != null && redisDictionary != null)
-            {
-                resourceGroup.CoordinatorId = Guid.Empty;
-                redisDictionary[resourceGroup.Name] = resourceGroup;
-            }
-
-            return Task.FromResult(
-                new LeaseResponse
-                {
-                    Result = TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
-                    Message = "Lease acquisition failure",
-                    Exception = ex,
-                }
-            );
+            return ErrorResponse(ex);
         }
     }
 
-    public Task RelinquishLeaseAsync(RelinquishLeaseRequest relinquishLeaseRequest)
-    {
-        var cacheKey = $"{Constants.SCHEMA}:ResourceGroups";
-        RedisDictionary<string, ResourceGroup> redisDictionary = new(cache, cacheKey);
-        var resourceGroup = redisDictionary.Values.FirstOrDefault(x =>
-            x.Name == relinquishLeaseRequest.ResourceGroup &&
-            x.CoordinatorId == relinquishLeaseRequest.ClientId &&
-            x.FencingToken == relinquishLeaseRequest.FencingToken
+    public Task RelinquishLeaseAsync(RelinquishLeaseRequest relinquishLeaseRequest) =>
+        RedisHash.CompareAndSetAsync<ResourceGroup, bool>(
+            cache,
+            ResourceGroupsKey,
+            RedisHash.Encode(relinquishLeaseRequest.ResourceGroup),
+            (resourceGroup, _) => DecideRelinquish(resourceGroup, relinquishLeaseRequest)
         );
-        if (resourceGroup != null)
+
+    internal static (ResourceGroup NewValue, LeaseResponse Result) DecideAcquire(
+        ResourceGroup resourceGroup,
+        AcquireLeaseRequest request,
+        DateTime now
+    )
+    {
+        if (resourceGroup == null)
         {
-            resourceGroup.CoordinatorId = Guid.Empty;
-            redisDictionary[resourceGroup.Name] = resourceGroup;
+            return (null, new LeaseResponse
+            {
+                Result = LeaseResult.NoLease,
+                Lease = new Lease
+                {
+                    ExpiryPeriod = TimeSpan.FromMinutes(1),
+                    HeartbeatPeriod = TimeSpan.FromSeconds(25),
+                },
+            });
         }
 
-        return Task.CompletedTask;
+        var lease = new Lease
+        {
+            ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds),
+            HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds),
+        };
+
+        // grant only if there is no coordinator or its lease has expired
+        if (resourceGroup.CoordinatorId != Guid.Empty && !IsExpired(resourceGroup, now))
+        {
+            return (null, new LeaseResponse
+            {
+                Result = LeaseResult.Denied,
+                Lease = lease,
+            });
+        }
+
+        resourceGroup.FencingToken++;
+        resourceGroup.CoordinatorId = request.ClientId;
+        resourceGroup.LockedByClientId = request.ClientId;
+        resourceGroup.LastCoordinatorRenewal = now;
+        resourceGroup.TimeNow = now;
+        resourceGroup.CoordinatorServer = Environment.MachineName;
+
+        lease.ResourceGroup = request.ResourceGroup;
+        lease.ClientId = request.ClientId;
+        lease.FencingToken = resourceGroup.FencingToken;
+        return (resourceGroup, new LeaseResponse
+        {
+            Result = LeaseResult.Granted,
+            Lease = lease,
+        });
     }
+
+    internal static (ResourceGroup NewValue, LeaseResponse Result) DecideRenew(
+        ResourceGroup resourceGroup,
+        RenewLeaseRequest request,
+        DateTime now
+    )
+    {
+        if (resourceGroup == null)
+        {
+            return (null, new LeaseResponse
+            {
+                Result = LeaseResult.NoLease,
+            });
+        }
+
+        if (resourceGroup.CoordinatorId != request.ClientId ||
+            resourceGroup.FencingToken > request.FencingToken ||
+            IsExpired(resourceGroup, now))
+        {
+            return (null, new LeaseResponse
+            {
+                Result = LeaseResult.Denied,
+            });
+        }
+
+        resourceGroup.LastCoordinatorRenewal = now;
+        resourceGroup.TimeNow = now;
+        return (resourceGroup, new LeaseResponse
+        {
+            Result = LeaseResult.Granted,
+            Lease = new Lease
+            {
+                ResourceGroup = request.ResourceGroup,
+                ClientId = request.ClientId,
+                FencingToken = resourceGroup.FencingToken,
+                ExpiryPeriod = TimeSpan.FromSeconds(resourceGroup.LeaseExpirySeconds),
+                HeartbeatPeriod = TimeSpan.FromSeconds(resourceGroup.HeartbeatSeconds),
+            },
+        });
+    }
+
+    internal static (ResourceGroup NewValue, bool Result) DecideRelinquish(
+        ResourceGroup resourceGroup,
+        RelinquishLeaseRequest request
+    )
+    {
+        // only the current holder of this exact lease may give it up
+        if (resourceGroup == null ||
+            resourceGroup.CoordinatorId != request.ClientId ||
+            resourceGroup.FencingToken != request.FencingToken)
+        {
+            return (null, false);
+        }
+
+        resourceGroup.CoordinatorId = Guid.Empty;
+        return (resourceGroup, true);
+    }
+
+    private static bool IsExpired(ResourceGroup resourceGroup, DateTime now) =>
+        (now - resourceGroup.LastCoordinatorRenewal).TotalSeconds > resourceGroup.LeaseExpirySeconds;
+
+    private static LeaseResponse ErrorResponse(Exception ex) =>
+        new()
+        {
+            Result = TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
+            Message = "Lease acquisition failure",
+            Exception = ex,
+        };
 }

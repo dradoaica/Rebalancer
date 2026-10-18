@@ -145,7 +145,10 @@ WHERE ClientId = @ClientId";
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
-            var command = conn.CreateCommand();
+            // all clients are started or none: disposing the uncommitted transaction rolls back earlier updates
+            using var transaction = conn.BeginTransaction();
+            using var command = conn.CreateCommand();
+            command.Transaction = transaction;
             command.CommandText = @"UPDATE [RBR].[Clients]
    SET [CoordinatorStatus] = @CoordinatorStatus
       ,[Resources] = @Resources
@@ -170,6 +173,7 @@ SELECT @@ROWCOUNT";
                 }
             }
 
+            transaction.Commit();
             return ModifyClientResult.Ok;
         }
     }

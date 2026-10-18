@@ -266,6 +266,7 @@ public class Coordinator : Watcher, ICoordinator
                 events.Add(CoordinatorEvent.PotentialInconsistentState);
             }
 
+            rebalancingCts.Dispose();
             rebalancingCts = new CancellationTokenSource(); // reset cts
         }
     }

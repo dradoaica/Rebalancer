@@ -1,8 +1,10 @@
+using org.apache.zookeeper.data;
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.ZooKeeper.ResourceManagement;
 using Rebalancer.ZooKeeper.Zk;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GB = Rebalancer.ZooKeeper.GlobalBarrier;
@@ -53,7 +55,7 @@ public class ZooKeeperProvider : IRebalancerProvider
     {
         this.zooKeeperRootPath = zooKeeperRootPath;
         this.rebalancingMode = rebalancingMode;
-        this.logger = logger;
+        this.logger = logger ?? new NullRebalancerLogger();
         this.sessionTimeout = sessionTimeout;
         this.connectTimeout = connectTimeout;
         this.minimumRebalancingInterval = minimumRebalancingInterval;
@@ -67,6 +69,35 @@ public class ZooKeeperProvider : IRebalancerProvider
         {
             this.zooKeeperService = zooKeeperService;
         }
+    }
+
+    /// <summary>Like the main constructor, but secures every znode this provider creates.</summary>
+    /// <param name="acl">ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null.</param>
+    /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
+    /// <param name="authData">Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8.</param>
+    public ZooKeeperProvider(
+        string zookeeperHosts,
+        string zooKeeperRootPath,
+        TimeSpan sessionTimeout,
+        TimeSpan connectTimeout,
+        TimeSpan minimumRebalancingInterval,
+        RebalancingMode rebalancingMode,
+        IRebalancerLogger logger,
+        List<ACL> acl,
+        string authScheme,
+        byte[] authData
+    )
+        : this(
+            zookeeperHosts,
+            zooKeeperRootPath,
+            sessionTimeout,
+            connectTimeout,
+            minimumRebalancingInterval,
+            rebalancingMode,
+            logger,
+            new ZooKeeperService(zookeeperHosts, acl, authScheme, authData)
+        )
+    {
     }
 
     public async Task StartAsync(
@@ -141,6 +172,7 @@ public class ZooKeeperProvider : IRebalancerProvider
             if (token.IsCancellationRequested)
             {
                 await TerminateAsync("cancellation", false);
+                continue;
             }
 
             try
@@ -156,7 +188,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                                 break;
                             case NewSessionResult.TimeOut:
                                 state = ClientInternalState.NoSession;
-                                await WaitRandomTime(TimeSpan.FromSeconds(5));
+                                await WaitRandomTime(TimeSpan.FromSeconds(5), token);
                                 break;
                             default:
                                 state = ClientInternalState.Error;
@@ -180,7 +212,9 @@ public class ZooKeeperProvider : IRebalancerProvider
                         var epochAttained = await CacheEpochLocallyAsync();
                         if (!epochAttained)
                         {
+                            // termination or auto recovery has set the next state already
                             await EvaluateTerminationAsync(token, clientOptions, "Couldn't read the current epoch.");
+                            break;
                         }
 
                         var (electionResult, lowerSiblingPath) = await DetermineLeadershipAsync();
@@ -359,7 +393,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                 );
             }
 
-            await Task.Delay(clientOptions.RestartDelay);
+            await WaitFor(clientOptions.RestartDelay, token);
         }
         else
         {
@@ -377,7 +411,7 @@ public class ZooKeeperProvider : IRebalancerProvider
     {
         var randomWait = rand.Next(2000);
         logger.Info(clientId, $"Will try to open a new session in {randomWait}ms");
-        await Task.Delay(randomWait);
+        await WaitFor(TimeSpan.FromMilliseconds(randomWait), token);
 
         // blocks until the session starts or timesout
         var connected = await zooKeeperService.StartSessionAsync(sessionTimeout, connectTimeout, token);
@@ -423,6 +457,21 @@ public class ZooKeeperProvider : IRebalancerProvider
             var msg = "An unexpected error occurred while intializing the rebalancer ZooKeeper paths";
             logger.Error(clientId, msg, e);
             return NewSessionResult.Error;
+        }
+
+        // ADR 0010: the operator usually creates these, and the resources znode holds the assignment table
+        if (zooKeeperService is ZooKeeperService service)
+        {
+            var findings = await service.FindZnodesWritableByAnyoneAsync(
+                new[]
+                {
+                    $"{zooKeeperRootPath}/{resourceGroup}", $"{zooKeeperRootPath}/{resourceGroup}/resources",
+                }
+            );
+            foreach (var finding in findings)
+            {
+                logger.Warn(clientId, finding);
+            }
         }
 
         return NewSessionResult.Established;
@@ -695,5 +744,18 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
     }
 
-    private async Task WaitRandomTime(TimeSpan maxWait) => await Task.Delay(rand.Next((int)maxWait.TotalMilliseconds));
+    private Task WaitRandomTime(TimeSpan maxWait, CancellationToken token) =>
+        WaitFor(TimeSpan.FromMilliseconds(rand.Next((int)maxWait.TotalMilliseconds)), token);
+
+    // cancellation ends the wait early, the state machine then terminates on its next iteration
+    private static async Task WaitFor(TimeSpan waitPeriod, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(waitPeriod, token);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
 }

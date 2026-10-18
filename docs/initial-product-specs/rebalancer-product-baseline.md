@@ -27,7 +27,7 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 ## Out of scope (explicit non-goals for this repo today)
 
 - Other language ports (README describes a future multi-language suite; this repo is .NET).
-- Etcd / Consul backends (mentioned in product vision, not implemented here).
+- etcd / Consul backends (mentioned in product vision, not implemented here).
 - Guaranteed exactly-once message processing (hosts must design idempotency).
 - Production RabbitMQ or SQL topology in the sample projects (samples are illustrative).
 

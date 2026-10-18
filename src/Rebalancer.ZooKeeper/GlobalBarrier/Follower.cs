@@ -82,7 +82,7 @@ public class Follower : Watcher, IFollower
         }
         catch (Exception e)
         {
-            logger.Error("Follower - Could not become a follower due to an error", e);
+            logger.Error(clientId, "Follower - Could not become a follower due to an error", e);
             return BecomeFollowerResult.Error;
         }
 
@@ -241,7 +241,7 @@ public class Follower : Watcher, IFollower
         }
         catch (Exception e)
         {
-            logger.Error("Follower - Could not put a watch on the status node", e);
+            logger.Error(clientId, "Follower - Could not put a watch on the status node", e);
             events.Add(FollowerEvent.PotentialInconsistentState);
         }
     }

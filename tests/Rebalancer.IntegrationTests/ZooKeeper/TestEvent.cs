@@ -10,5 +10,5 @@ public enum EventType
 public class TestEvent
 {
     public EventType EventType { get; init; }
-    public IList<string> Resources { get; init; }
+    public IList<string> Resources { get; init; } = [];
 }

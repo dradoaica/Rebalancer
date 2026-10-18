@@ -9,27 +9,31 @@ public static class ConnectionHelper
     public static async Task<SqlConnection> GetOpenConnectionAsync(string connectionString)
     {
         var tries = 0;
-        while (tries <= 3)
+        while (true)
         {
             tries++;
+            SqlConnection connection = new(connectionString);
             try
             {
-                SqlConnection connection = new(connectionString);
                 await connection.OpenAsync();
                 return connection;
             }
             catch (Exception ex) when (TransientErrorDetector.IsTransient(ex))
             {
+                connection.Dispose();
                 if (tries == 3)
                 {
                     throw;
                 }
 
-                // wait 1, 2, 4 seconds -- would be nice to not to delay cancellation here
+                // wait 2, 4 seconds -- would be nice to not to delay cancellation here
                 await Task.Delay(TimeSpan.FromSeconds(tries * 2));
             }
+            catch
+            {
+                connection.Dispose();
+                throw;
+            }
         }
-
-        return null;
     }
 }
