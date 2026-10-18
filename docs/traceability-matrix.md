@@ -23,9 +23,9 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 
 | Record | Status | Covers |
 |--------|--------|--------|
-| [CR-2026-10-18](change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md) | **Approved** (2026-10-18, with Amendment 1); rollback dry-run not performed; [release notes](release-notes/2.1.0.md) | ADR 0006–0009, PRB fixes; Redis all-nodes-at-once upgrade |
-| [PRB demoted coordinator](problem-records/PRB-2026-10-18-demoted-coordinator-keeps-resources.md) | Root cause identified | US-005, US-006, US-013 |
-| [PRB ZooKeeper tests](problem-records/PRB-2026-10-18-zookeeper-tests-ignored-their-provider.md) | Root cause identified | US-010 |
+| [CR-2026-10-18](change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md) | **Implemented** (2026-10-18, `2952de6`); rollback dry-run not performed; [release notes](release-notes/2.1.0.md) | ADR 0006–0009, PRB fixes; Redis all-nodes-at-once upgrade |
+| [PRB demoted coordinator](problem-records/PRB-2026-10-18-demoted-coordinator-keeps-resources.md) | Closed (2.1.0) | US-005, US-006, US-013 |
+| [PRB ZooKeeper tests](problem-records/PRB-2026-10-18-zookeeper-tests-ignored-their-provider.md) | Closed (2.1.0) | US-010 |
 
 ### Threat models
 

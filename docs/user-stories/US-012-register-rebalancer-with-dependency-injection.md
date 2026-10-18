@@ -55,7 +55,7 @@ were verified by an agent against this story's text on 2026-10-18; the human rea
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md` (2.1.0)
 
 ## Sources
 

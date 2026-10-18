@@ -5,7 +5,7 @@
 | Field        | Value                                                    |
 |--------------|----------------------------------------------------------|
 | **ID**       | PRB-2026-10-18-demoted-coordinator-keeps-resources       |
-| **Status**   | Root cause identified                                    |
+| **Status**   | Closed                                                   |
 | **Severity** | High (assignment safety)                                 |
 | **Opened**   | 2026-10-18                                               |
 | **Owner**    |                                                          |
@@ -54,9 +54,9 @@ actions and later started again with new resources on top of the old ones.
 
 | Action                                                                                                                           | Owner | Status              |
 |----------------------------------------------------------------------------------------------------------------------------------|-------|---------------------|
-| Coordinator records `Waiting` and clears its local store after local stop, records `Active` after local start (both backends)     |       | Done (uncommitted)  |
-| Regression tests for both backends                                                                                                |       | Done (uncommitted)  |
-| Human review and release with a change record                                                                                     |       | Open                |
+| Coordinator records `Waiting` and clears its local store after local stop, records `Active` after local start (both backends)     |       | Done (2.1.0)        |
+| Regression tests for both backends                                                                                                |       | Done (2.1.0)        |
+| Human review and release with a change record                                                                                     |       | Done (2.1.0, CR-2026-10-18) |
 
 ## Preventive measures
 
@@ -70,6 +70,12 @@ actions and later started again with new resources on top of the old ones.
 ## Known errors / workarounds
 
 Before the fix: set `LeaseExpirySeconds` well above the worst expected pause of a node.
+
+## Closure
+
+- **Closed:** 2026-10-18
+- **Resolution summary:** Fixed in 2.1.0 (`2952de6`, released through CR-2026-10-18): the SQL Server and Redis coordinators record their own `Waiting` / `Active` status and clear their local state when they stop, so a successor's stop barrier includes a demoted coordinator.
+- **Preventive action verification:** Regression tests `CoordinatorDemotionTests` (both backends) run in the unit suite. The optional integration test that stalls a coordinator past lease expiry is not implemented and is not tracked as a story yet. Governance change: N/A (code defect covered by the existing regression-test rule).
 
 ## Sources
 

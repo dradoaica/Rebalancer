@@ -5,7 +5,7 @@
 | Field        | Value                                                    |
 |--------------|----------------------------------------------------------|
 | **ID**       | PRB-2026-10-18-zookeeper-tests-ignored-their-provider    |
-| **Status**   | Root cause identified                                    |
+| **Status**   | Closed                                                   |
 | **Severity** | High (false confidence in assignment-safety coverage)    |
 | **Opened**   | 2026-10-18                                               |
 | **Owner**    |                                                          |
@@ -60,11 +60,11 @@ factory is also bound to the first test class instance, so the randomised tests 
 
 | Action                                                                                                                     | Owner | Status             |
 |----------------------------------------------------------------------------------------------------------------------------|-------|--------------------|
-| ZooKeeper tests pass their own factory: `new RebalancerClient(providerFactory())` (`SingleClientTests`, `MultiClientTests`, randomised `TestClient`) | | Done (uncommitted) |
+| ZooKeeper tests pass their own factory: `new RebalancerClient(providerFactory())` (`SingleClientTests`, `MultiClientTests`, randomised `TestClient`) | | Done (2.1.0)       |
 | Re-run the ZooKeeper suites so both modes are actually exercised                                                           |       | Done: single/multi/ACL all passed; randomised smoke (2-min cap) 6/13 passed, 0 failed, both modes, then stopped by decision of dradoaica as sufficient |
-| Startup-race assertions in 4 multi-client tests replaced by settled-outcome checks (`AssertSettledAssigned`)                |       | Done (uncommitted) |
-| Randomised tests write their event log under the OS temp directory; `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` caps runtime   |       | Done (uncommitted) |
-| Release with `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`                              |       | Open               |
+| Startup-race assertions in 4 multi-client tests replaced by settled-outcome checks (`AssertSettledAssigned`)                |       | Done (2.1.0)       |
+| Randomised tests write their event log under the OS temp directory; `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` caps runtime   |       | Done (2.1.0)       |
+| Release with `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`                              |       | Done (2.1.0)       |
 
 ## Preventive measures
 
@@ -79,6 +79,16 @@ factory is also bound to the first test class instance, so the randomised tests 
 ## Known errors / workarounds
 
 None after the fix.
+
+## Closure
+
+- **Closed:** 2026-10-18
+- **Resolution summary:** Fixed in 2.1.0 (`2952de6`): every ZooKeeper test passes its own provider to
+  `RebalancerClient`; both barrier modes verified by log evidence; the randomised tests no longer depend on a
+  developer-specific path.
+- **Preventive action verification:** ADR 0009 (implemented in 2.1.0) makes a conflicting `Providers.Register` call
+  throw, so this failure mode cannot recur silently. Governance change: N/A (test defect; root cause addressed in the
+  library).
 
 ## Sources
 

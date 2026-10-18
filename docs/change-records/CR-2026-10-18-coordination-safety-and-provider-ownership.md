@@ -5,7 +5,7 @@
 | Field              | Value                                                   |
 |--------------------|---------------------------------------------------------|
 | **ID**             | CR-2026-10-18-coordination-safety-and-provider-ownership |
-| **Status**         | Approved                                                |
+| **Status**         | Implemented                                             |
 | **Risk**           | Medium                                                  |
 | **Change type**    | Normal                                                  |
 | **Requested by**   | dradoaica                                               |
@@ -142,14 +142,18 @@ Added after this record was approved, and approved separately on 2026-10-18 for 
 
 ## Post-implementation
 
-- **Actual outcome:** {after change}
-- **Follow-ups:** close `PRB-2026-10-18-demoted-coordinator-keeps-resources` and
-  `PRB-2026-10-18-zookeeper-tests-ignored-their-provider` once released; tick "Traceable to change record" in the
-  affected stories.
+- **Actual outcome (2026-10-18):** commit `2952de6` merged into `main` (fast-forward) and pushed by dradoaica. The
+  "Release Packages" workflow ran on that push and completed successfully at 13:15:17 UTC, including the
+  "Push to GitHub Packages" step (https://github.com/dradoaica/Rebalancer/actions/runs/39130690089). The published package versions were not listed from the agent session
+  (the GitHub Packages API requires authentication).
+- **Deviations:** the rollback dry-run was not performed (see Preconditions). No consumer upgrades are recorded here;
+  they follow the implementation plan per resource group.
+- **Follow-ups (done 2026-10-18):** both problem records closed; "Traceable to change record" ticked in US-001,
+  US-003, US-005, US-006, US-007, US-010, US-011, US-012 and US-013.
 
 ## Sources
 
-- User stories: `docs/user-stories/US-003-…`, `US-005-…`, `US-006-…`, `US-007-…`, `US-010-…`, `US-011-…`, `US-012-…`,
+- User stories: `docs/user-stories/US-001-…`, `US-003-…`, `US-005-…`, `US-006-…`, `US-007-…`, `US-010-…`, `US-011-…`, `US-012-…`,
   `US-013-…`
 - ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md`,
