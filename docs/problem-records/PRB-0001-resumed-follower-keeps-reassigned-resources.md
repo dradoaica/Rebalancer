@@ -1,10 +1,10 @@
 ---
 id: PRB-0001
-status: Root cause identified
+status: Closed
 date: 2026-10-18
 opened: 2026-10-18
-owner: ""
-approved-by: [ ]            # closure review; set by a human only
+owner: "dradoaica"
+approved-by: [ "dradoaica" ]            # closure review; set by a human only
 severity: "High (assignment safety, short window)"
 depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013", "CR-0003" ]
 ---
@@ -84,7 +84,7 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
 
 ## Closure
 
-- **Closed:** {date, set at the human closure review}
+- **Closed:** 2026-10-18 (follow-ups owned by dradoaica)
 - **Resolution summary:** fixed in 3.1.0 (CR-0003, ADR-0019). During a rebalance the coordinator records
   `StopActivity` for unresponsive clients that still hold an assignment, so a resumed follower stops at its first tick.
   The window is shortened, not closed: a resumed process can still run its handlers until that tick (ADR-0019,
