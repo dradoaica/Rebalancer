@@ -1,11 +1,11 @@
 ---
 id: ADR-0013
-status: Proposed
+status: Accepted
 date: 2026-10-18
 decides: "how a RebalancerClient obtains its provider (provider registration model)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-001", "US-012", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider" ]
