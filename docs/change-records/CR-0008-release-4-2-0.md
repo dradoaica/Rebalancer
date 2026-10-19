@@ -1,9 +1,9 @@
 ---
 id: CR-0008
-status: Submitted
+status: Approved
 date: 2026-10-19
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -84,8 +84,8 @@ Release notes `docs/release-notes/4.2.0.md`.
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-10-19 |
+| Release / CAB (or org) | dradoaica | 2026-10-19 |
 
 ## Post-implementation
 
