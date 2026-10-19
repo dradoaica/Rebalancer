@@ -1,6 +1,6 @@
 ---
 id: CR-0005
-status: Approved
+status: Implemented
 date: 2026-10-19
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -93,9 +93,15 @@ Release notes `docs/release-notes/3.2.0.md`; migration guide `docs/release-notes
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled after the release}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-19):** `agent/open-topics-2026-10-19` merged into `main` as `860b3d3` ("Release 3.2.0"),
+  merged locally by the agent at dradoaica's request and pushed by dradoaica. The "Release Packages" run on that push
+  succeeded at 18:22:09 UTC, including "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39301814641). Published package versions were not listed from
+  the agent session.
+- **Deviations:** two preconditions were open at approval (recorded under Preconditions): ADR-0021 reached the shared
+  trunk with this push, and the rollback to 3.1.0 was not rehearsed.
+- **Follow-ups:** 4.0.0 (CR-0006, ADR-0020's layout change) on `agent/redis-4.0-per-group-keys`, after its approvals
+  are recorded.
 
 ## Sources
 
