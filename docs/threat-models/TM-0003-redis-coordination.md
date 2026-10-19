@@ -207,4 +207,4 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
   `docs/change-records/CR-0003-release-3-0-0.md`
 - Code: `src/Rebalancer.Redis/`
 - External standards: STRIDE; OWASP ASVS V4 (access control), V8 (data protection) – control IDs not mapped
-  (unverified – please confirm if required)
+  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

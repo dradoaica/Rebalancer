@@ -176,4 +176,4 @@ resource groups, and unbounded growth of the client table.
 - Related user stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`
 - Code: `src/Rebalancer.SqlServer/`, `db/RebalanserSchema.sql`, `db/RebalanserTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped
-  (unverified – please confirm if required)
+  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

@@ -198,4 +198,4 @@ matters most, because its data holds the assignment table.
 - Code: `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs` (`InitializeGlobalBarrierAsync`,
   `InitializeResourceBarrierAsync`, `EnsurePathAsync`, `SetResourcesAsync`)
 - External standards: STRIDE (Microsoft threat modeling); OWASP ASVS V4 (access control) – mapping to specific control
-  IDs not done (unverified – please confirm if required)
+  IDs not done (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)
