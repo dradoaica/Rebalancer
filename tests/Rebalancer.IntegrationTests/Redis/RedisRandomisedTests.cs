@@ -21,7 +21,8 @@ public sealed class RedisRandomisedTests(ITestOutputHelper output)
 
         using var connection = await ConnectionMultiplexer.ConnectAsync(connectionString);
         await new RandomisedScenario(
-            group, resources,
+            group,
+            resources,
             pause => PausableRedisServices.CreateProvider(connectionString, connection.GetDatabase(), pause),
             output.WriteLine
         ).RunAsync();

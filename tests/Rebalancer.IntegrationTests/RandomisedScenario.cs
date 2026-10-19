@@ -1,21 +1,24 @@
-using System.Globalization;
 using Rebalancer.Core;
+using System.Globalization;
 using Xunit;
 
 namespace Rebalancer.IntegrationTests;
 
 /// <summary>
-///     US-0019: N nodes of one SQL Server or Redis group (lease expiry 5 s, heartbeat 1 s) are started, stopped, paused and
-///     killed at random while a monitor samples their assignments every 100 ms. It fails when
+///     US-0019: N nodes of one SQL Server or Redis group (lease expiry 5 s, heartbeat 1 s) are started, stopped, paused
+///     and killed at random while a monitor samples their assignments every 100 ms. It fails when
 ///     <list type="bullet">
 ///         <item>two running nodes hold the same resource (safety), or</item>
-///         <item>a resource stays unassigned longer than <see cref="UnassignedBound" /> while a node is running (liveness).</item>
+///         <item>
+///             a resource stays unassigned longer than <see cref="UnassignedBound" /> while a node is running
+///             (liveness).
+///         </item>
 ///     </list>
 ///     A paused node is frozen (its store calls wait, <see cref="NodePause" />); a killed node is paused until the end.
-///     Neither takes part in the checks, and a resumed node is excluded for <see cref="ResumeGrace" />, the window ADR-0019
-///     and ADR-0021 accept before it stops at its first tick. The seed is logged; set REBALANCER_RANDOMISED_SEED to replay
-///     the same sequence of actions (timings still vary). REBALANCER_RANDOMISED_TEST_MAX_MINUTES caps the duration, as for
-///     the ZooKeeper suite.
+///     Neither takes part in the checks, and a resumed node is excluded for <see cref="ResumeGrace" />, the window
+///     ADR-0019 and ADR-0021 accept before it stops at its first tick. The seed is logged; set REBALANCER_RANDOMISED_SEED
+///     to replay the same sequence of actions (timings still vary). REBALANCER_RANDOMISED_TEST_MAX_MINUTES caps the
+///     duration, as for the ZooKeeper suite.
 /// </summary>
 internal sealed class RandomisedScenario
 {
@@ -57,7 +60,8 @@ internal sealed class RandomisedScenario
         this.resources = resources;
         this.createProvider = createProvider;
         this.log = log;
-        seed = int.TryParse(Environment.GetEnvironmentVariable("REBALANCER_RANDOMISED_SEED"), out var s) ? s : Random.Shared.Next();
+        seed = int.TryParse(Environment.GetEnvironmentVariable("REBALANCER_RANDOMISED_SEED"), out var s) ? s
+            : Random.Shared.Next();
         random = new Random(seed);
     }
 
@@ -167,7 +171,8 @@ internal sealed class RandomisedScenario
     private void Check()
     {
         var now = DateTime.UtcNow;
-        var checkedNodes = nodes.Where(n => n.State == NodeState.Running && !(now - n.ResumedAt < ResumeGrace)).ToList();
+        var checkedNodes = nodes.Where(n => n.State == NodeState.Running && !(now - n.ResumedAt < ResumeGrace))
+            .ToList();
         var holders = new Dictionary<string, int>();
         foreach (var node in checkedNodes)
         {
@@ -199,15 +204,15 @@ internal sealed class RandomisedScenario
     }
 
     private TimeSpan NextInterval() =>
-        MinActionInterval + TimeSpan.FromMilliseconds(random.Next((int)(MaxActionInterval - MinActionInterval).TotalMilliseconds));
+        MinActionInterval +
+        TimeSpan.FromMilliseconds(random.Next((int)(MaxActionInterval - MinActionInterval).TotalMilliseconds));
 
     private static TimeSpan Duration()
     {
         var maxMinutes = Environment.GetEnvironmentVariable("REBALANCER_RANDOMISED_TEST_MAX_MINUTES");
         return double.TryParse(maxMinutes, NumberStyles.Float, CultureInfo.InvariantCulture, out var minutes) &&
-               minutes > 0 && TimeSpan.FromMinutes(minutes) < DefaultDuration
-            ? TimeSpan.FromMinutes(minutes)
-            : DefaultDuration;
+               minutes > 0 &&
+               TimeSpan.FromMinutes(minutes) < DefaultDuration ? TimeSpan.FromMinutes(minutes) : DefaultDuration;
     }
 
     private static string Now() => DateTime.UtcNow.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);

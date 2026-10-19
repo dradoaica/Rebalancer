@@ -18,7 +18,10 @@ public sealed class RedisTelemetryTests
         await RedisSeed.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources);
 
         await TelemetryScenarios.TwoNodes_EmitElectionRebalanceAndAssignments(
-            group, "redis", PausedNodeScenarios.Resources, () => new RedisProvider(connectionString)
+            group,
+            "redis",
+            PausedNodeScenarios.Resources,
+            () => new RedisProvider(connectionString)
         );
     }
 }

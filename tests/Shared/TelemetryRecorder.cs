@@ -1,13 +1,13 @@
+using Rebalancer.Core;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using Rebalancer.Core;
 
 namespace Rebalancer.Tests.Shared;
 
 /// <summary>
-///     Collects Rebalancer measurements and activities (ADR-0022) for one resource group. Listeners are process-wide and
-///     tests run in parallel, so everything is filtered by the <c>rebalancer.group</c> tag.
+///     Collects Rebalancer measurements and activities (ADR-0022) for one resource group. Listeners are process-wide
+///     and tests run in parallel, so everything is filtered by the <c>rebalancer.group</c> tag.
 /// </summary>
 internal sealed class TelemetryRecorder : IDisposable
 {
@@ -35,7 +35,7 @@ internal sealed class TelemetryRecorder : IDisposable
         activityListener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == RebalancerTelemetry.ActivitySourceName,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
                 if (Equals(activity.GetTagItem("rebalancer.group"), group))
@@ -57,7 +57,10 @@ internal sealed class TelemetryRecorder : IDisposable
     }
 
     public double Sum(string instrument, string? outcome = null) =>
-        Measurements.Where(m => m.Instrument == instrument && (outcome == null || Equals(m.Tags.GetValueOrDefault("rebalancer.outcome"), outcome)))
+        Measurements.Where(m =>
+                m.Instrument == instrument &&
+                (outcome == null || Equals(m.Tags.GetValueOrDefault("rebalancer.outcome"), outcome))
+            )
             .Sum(m => m.Value);
 
     /// <summary>Every tag value of every measurement and activity, to check that no resource name leaks.</summary>

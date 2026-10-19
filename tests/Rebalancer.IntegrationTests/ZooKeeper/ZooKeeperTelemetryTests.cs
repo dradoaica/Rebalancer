@@ -28,13 +28,18 @@ public sealed class ZooKeeperTelemetryTests : IDisposable
         using var recorder = new TelemetryRecorder(group);
         using var first = new RebalancerClient(CreateProvider(mode));
         using var second = new RebalancerClient(CreateProvider(mode));
-        var options = new ClientOptions { AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(1), };
+        var options = new ClientOptions
+        {
+            AutoRecoveryOnError = true,
+            RestartDelay = TimeSpan.FromSeconds(1),
+        };
         try
         {
             await first.StartAsync(group, options);
             await second.StartAsync(group, options);
             var deadline = DateTime.UtcNow.AddSeconds(60);
-            while (DateTime.UtcNow < deadline && !(Held(first) > 0 && Held(second) > 0 && Held(first) + Held(second) == 4))
+            while (DateTime.UtcNow < deadline &&
+                   !(Held(first) > 0 && Held(second) > 0 && Held(first) + Held(second) == 4))
             {
                 await Task.Delay(200);
             }
@@ -52,7 +57,10 @@ public sealed class ZooKeeperTelemetryTests : IDisposable
         var rebalance = recorder.Activities.FirstOrDefault(a => a.OperationName == "rebalancer.rebalance");
         Assert.NotNull(rebalance);
         Assert.NotNull(rebalance.GetTagItem("rebalancer.epoch"));
-        Assert.DoesNotContain(recorder.AllTagValues(), v => v != null && v.StartsWith("secret-res", StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            recorder.AllTagValues(),
+            v => v != null && v.StartsWith("secret-res", StringComparison.Ordinal)
+        );
     }
 
     private static int Held(RebalancerClient client) => client.GetAssignedResources().Resources?.Count ?? 0;

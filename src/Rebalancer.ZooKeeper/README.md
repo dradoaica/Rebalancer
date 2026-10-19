@@ -83,6 +83,7 @@ nodes with the same credentials; the provider's open-znode warning (ADR 0010) mu
 
 **Rollback:** `setAcl -R /rebalancer/orders world:anyone:cdrwa` (with the credentials added) makes the group open again;
 the nodes then need the explicit open-ACL overload shown above.
+
 - Recent ZooKeeper versions (verified with 3.8) also require read permission to read a znode's ACL, so tools without
   the credentials cannot inspect it.
 

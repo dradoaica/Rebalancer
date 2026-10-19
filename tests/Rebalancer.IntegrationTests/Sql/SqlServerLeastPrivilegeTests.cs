@@ -6,9 +6,9 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.Sql;
 
 /// <summary>
-///     Requires Docker. <c>db/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two
-///     nodes whose login holds only that role coordinate, survive a paused follower, and delete their records on a clean
-///     stop (ADR-0014).
+///     Requires Docker. <c>db/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up):
+///     two nodes whose login holds only that role coordinate, survive a paused follower, and delete their records on a
+///     clean stop (ADR-0014).
 /// </summary>
 public sealed class SqlServerLeastPrivilegeTests
 {
@@ -22,15 +22,17 @@ public sealed class SqlServerLeastPrivilegeTests
         await SchemaSetup.ApplyRbrSchemaAsync(adminConnectionString);
         await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserLeastPrivilege.sql");
         var group = "it-sql-role-" + Guid.NewGuid().ToString("N");
-        await SchemaSetup.SeedResourceGroupAsync(adminConnectionString, group, PausedNodeScenarios.Resources,
-            leaseExpirySeconds: 5, heartbeatSeconds: 1);
+        await SchemaSetup.SeedResourceGroupAsync(adminConnectionString, group, PausedNodeScenarios.Resources, 5, 1);
 
         const string password = "Node_pass_123!";
-        await ExecAsync(adminConnectionString, $"""
-            CREATE LOGIN [rebalancer_node_login] WITH PASSWORD = '{password}', CHECK_POLICY = OFF;
-            CREATE USER [rebalancer_node_user] FOR LOGIN [rebalancer_node_login];
-            ALTER ROLE [rebalancer_node] ADD MEMBER [rebalancer_node_user];
-            """);
+        await ExecAsync(
+            adminConnectionString,
+            $"""
+             CREATE LOGIN [rebalancer_node_login] WITH PASSWORD = '{password}', CHECK_POLICY = OFF;
+             CREATE USER [rebalancer_node_user] FOR LOGIN [rebalancer_node_login];
+             ALTER ROLE [rebalancer_node] ADD MEMBER [rebalancer_node_user];
+             """
+        );
         var nodeConnectionString = new SqlConnectionStringBuilder(adminConnectionString)
         {
             UserID = "rebalancer_node_login",

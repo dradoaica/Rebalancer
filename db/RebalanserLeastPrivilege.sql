@@ -11,7 +11,18 @@
 
 CREATE ROLE [rebalancer_node];
 GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON [RBR].[Clients] TO [rebalancer_node];
-GRANT SELECT, UPDATE ON [RBR].[ResourceGroups] TO [rebalancer_node];
-GRANT SELECT ON [RBR].[Resources] TO [rebalancer_node];
+GRANT
+SELECT,
+INSERT
+,
+UPDATE,
+DELETE
+ON [RBR].[Clients] TO [rebalancer_node];
+GRANT
+SELECT,
+UPDATE
+    ON [RBR].[ResourceGroups] TO [rebalancer_node];
+GRANT
+SELECT
+ON [RBR].[Resources] TO [rebalancer_node];
 GO

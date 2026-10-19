@@ -1,5 +1,5 @@
-using Rebalancer.Core;
 using org.apache.zookeeper;
+using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.ZooKeeper.ResourceManagement;
 using Rebalancer.ZooKeeper.Zk;
@@ -30,6 +30,9 @@ public class Coordinator : Watcher, ICoordinator
 
     // services
     private readonly IZooKeeperService zooKeeperService;
+
+    // telemetry (ADR-0022): the epoch this coordinator holds, and its group (set by the provider; not public API)
+    private int coordinatorEpoch;
     private bool ignoreWatches;
     private RebalancingResult? lastRebalancingResult;
     private CancellationTokenSource rebalancingCts;
@@ -37,10 +40,6 @@ public class Coordinator : Watcher, ICoordinator
     // mutable state
     private Task rebalancingTask;
     private int resourcesVersion;
-
-    // telemetry (ADR-0022): the epoch this coordinator holds, and its group (set by the provider; not public API)
-    private int coordinatorEpoch;
-    internal string ResourceGroup { get; set; }
 
     public Coordinator(
         IZooKeeperService zooKeeperService,
@@ -66,6 +65,8 @@ public class Coordinator : Watcher, ICoordinator
         events = new BlockingCollection<CoordinatorEvent>();
         disconnectedTimer = new Stopwatch();
     }
+
+    internal string ResourceGroup { get; set; }
 
     public async Task<BecomeCoordinatorResult> BecomeCoordinatorAsync(int currentEpoch)
     {
@@ -301,7 +302,10 @@ public class Coordinator : Watcher, ICoordinator
     private async Task TriggerRebalancing(CancellationToken rebalancingToken)
     {
         using var activity = RebalancerTelemetry.StartRebalance(
-            "zookeeper", ResourceGroup, RebalancerTelemetry.EpochTag, coordinatorEpoch
+            "zookeeper",
+            ResourceGroup,
+            RebalancerTelemetry.EpochTag,
+            coordinatorEpoch
         );
         try
         {
@@ -371,7 +375,9 @@ public class Coordinator : Watcher, ICoordinator
         if (lastRebalancingResult != RebalancingResult.NotRequired)
         {
             RebalancerTelemetry.RecordRebalance(
-                "zookeeper", ResourceGroup, lastRebalancingResult == RebalancingResult.Complete
+                "zookeeper",
+                ResourceGroup,
+                lastRebalancingResult == RebalancingResult.Complete
             );
         }
     }

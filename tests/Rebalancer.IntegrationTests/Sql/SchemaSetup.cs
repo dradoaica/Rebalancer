@@ -48,7 +48,7 @@ internal static class SchemaSetup
         string resourceGroup,
         string resourceName,
         CancellationToken cancellationToken = default
-    ) => SeedResourceGroupAsync(connectionString, resourceGroup, [resourceName], 300, 25, cancellationToken);
+    ) => SeedResourceGroupAsync(connectionString, resourceGroup, [resourceName,], 300, 25, cancellationToken);
 
     public static async Task SeedResourceGroupAsync(
         string connectionString,

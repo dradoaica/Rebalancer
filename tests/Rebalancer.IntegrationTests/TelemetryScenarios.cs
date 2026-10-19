@@ -17,7 +17,11 @@ internal static class TelemetryScenarios
         using var recorder = new TelemetryRecorder(group);
         using var first = new RebalancerClient(createProvider());
         using var second = new RebalancerClient(createProvider());
-        var options = new ClientOptions { AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(1), };
+        var options = new ClientOptions
+        {
+            AutoRecoveryOnError = true,
+            RestartDelay = TimeSpan.FromSeconds(1),
+        };
         try
         {
             await first.StartAsync(group, options);

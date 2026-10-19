@@ -5,8 +5,8 @@ using Xunit;
 namespace Rebalancer.UnitTests;
 
 /// <summary>
-///     ADR-0022 / US-0017: a client counts assignments and unassignments and measures the time in between, tagged with
-///     its backend and group, never with resource names.
+///     ADR-0022 / US-0017: a client counts assignments and unassignments and measures the time in between, tagged
+///     with its backend and group, never with resource names.
 /// </summary>
 public sealed class RebalancerClientTelemetryTests
 {
@@ -19,10 +19,10 @@ public sealed class RebalancerClientTelemetryTests
         using var client = new RebalancerClient(provider);
         await client.StartAsync(group, new ClientOptions());
 
-        provider.Actions!.OnStartActions[0](["secret-resource"]);
+        provider.Actions!.OnStartActions[0](["secret-resource",]);
         provider.Actions.OnStopActions[0]();
         await Task.Delay(50);
-        provider.Actions.OnStartActions[0](["secret-resource"]);
+        provider.Actions.OnStartActions[0](["secret-resource",]);
 
         Assert.Equal(2, recorder.Sum("rebalancer.assignments"));
         Assert.Equal(1, recorder.Sum("rebalancer.unassignments"));
@@ -36,7 +36,12 @@ public sealed class RebalancerClientTelemetryTests
     {
         public OnChangeActions? Actions { get; private set; }
 
-        public Task StartAsync(string group, OnChangeActions onChangeActions, CancellationToken token, ClientOptions clientOptions)
+        public Task StartAsync(
+            string group,
+            OnChangeActions onChangeActions,
+            CancellationToken token,
+            ClientOptions clientOptions
+        )
         {
             Actions = onChangeActions;
             return Task.CompletedTask;
@@ -44,7 +49,13 @@ public sealed class RebalancerClientTelemetryTests
 
         public Task RecreateClientAsync() => Task.CompletedTask;
         public Task WaitForCompletionAsync() => Task.CompletedTask;
-        public AssignedResources GetAssignedResources() => new() { ClientState = ClientState.Assigned, Resources = [], };
+
+        public AssignedResources GetAssignedResources() => new()
+        {
+            ClientState = ClientState.Assigned,
+            Resources = [],
+        };
+
         public ClientState GetState() => ClientState.Assigned;
     }
 }

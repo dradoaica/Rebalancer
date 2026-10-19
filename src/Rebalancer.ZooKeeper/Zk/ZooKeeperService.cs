@@ -31,8 +31,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
     /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
     /// <param name="acl">
-    ///     ACL for every znode created. When null, CREATOR_ALL_ACL is used, which requires credentials. To keep znodes
-    ///     open deliberately, pass ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials (ADR-0011).
+    ///     ACL for every znode created. When null, CREATOR_ALL_ACL is used, which requires credentials. To keep
+    ///     znodes open deliberately, pass ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials (ADR-0011).
     /// </param>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">
@@ -46,8 +46,8 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         if (acl == null && authScheme == null)
         {
             throw new ArgumentException(
-                "Either credentials (authScheme and authData) or an explicit ACL are required; pass ZooDefs.Ids.OPEN_ACL_UNSAFE "
-                + "without credentials to keep znodes open deliberately (ADR-0011).",
+                "Either credentials (authScheme and authData) or an explicit ACL are required; pass ZooDefs.Ids.OPEN_ACL_UNSAFE " +
+                "without credentials to keep znodes open deliberately (ADR-0011).",
                 nameof(acl)
             );
         }

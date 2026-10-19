@@ -3,8 +3,8 @@
 namespace Rebalancer.Core;
 
 /// <summary>
-///     EventArgs that describe the error behind <see cref="RebalancerClient.OnAborted" />; the client may recover from it
-///     (see the remarks there).
+///     EventArgs that describe the error behind <see cref="RebalancerClient.OnAborted" />; the client may recover
+///     from it (see the remarks there).
 /// </summary>
 public sealed class OnAbortedArgs : EventArgs
 {

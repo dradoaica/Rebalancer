@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 namespace Rebalancer.Redis.Utils;
 
 /// <summary>
-///     ADR-0020: 3.x kept every group's settings / lease and resources in two shared keys; 4.0 keeps them per group. The
-///     first 4.0 node of a group moves its entries in one guarded transaction, so at most one node moves them.
+///     ADR-0020: 3.x kept every group's settings / lease and resources in two shared keys; 4.0 keeps them per group.
+///     The first 4.0 node of a group moves its entries in one guarded transaction, so at most one node moves them.
 /// </summary>
 internal static class PerGroupKeyMigration
 {
@@ -18,7 +18,12 @@ internal static class PerGroupKeyMigration
     private static readonly RedisKey SharedResourceGroupsKey = RedisHash.DictionaryKey("ResourceGroups");
     private static readonly RedisKey SharedResourcesKey = RedisHash.ListKey("Resources");
 
-    public static async Task MoveToPerGroupKeysAsync(IDatabase db, string resourceGroup, IRebalancerLogger logger, string clientId)
+    public static async Task MoveToPerGroupKeysAsync(
+        IDatabase db,
+        string resourceGroup,
+        IRebalancerLogger logger,
+        string clientId
+    )
     {
         var leaseKey = RedisHash.LeaseKey(resourceGroup);
         var resourcesKey = RedisHash.ResourcesKey(resourceGroup);

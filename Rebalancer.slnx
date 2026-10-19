@@ -24,7 +24,8 @@
     <Folder Name="/src/">
         <Project Path="src/Rebalancer.Core/Rebalancer.Core.csproj"/>
         <Project Path="src/Rebalancer.Extensions.DependencyInjection/Rebalancer.Extensions.DependencyInjection.csproj"/>
-        <Project Path="src/Rebalancer.Extensions.Diagnostics.HealthChecks/Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
+        <Project
+                Path="src/Rebalancer.Extensions.Diagnostics.HealthChecks/Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
         <Project Path="src/Rebalancer.Redis/Rebalancer.Redis.csproj"/>
         <Project Path="src/Rebalancer.SqlServer/Rebalancer.SqlServer.csproj"/>
         <Project Path="src/Rebalancer.ZooKeeper/Rebalancer.ZooKeeper.csproj"/>

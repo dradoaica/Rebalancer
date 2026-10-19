@@ -84,11 +84,13 @@ will be available.
 - [Release notes 4.1.0](docs/release-notes/4.1.0.md) — metrics and traces, health check package, randomised tests
 - [Release notes 4.0.0](docs/release-notes/4.0.0.md) and [migration guide](docs/release-notes/migrating-to-4.0.md) —
   Redis: each resource group in its own keys (breaking for Redis provisioning). **Known issue:** upgrade to 4.1.0 or
-  later before rolling a Redis group back to 3.x ([details](docs/release-notes/4.0.0.md#known-issue-resources-doubled-after-a-rollback-fixed-in-410))
+  later before rolling a Redis group back to 3.x
+  ([details](docs/release-notes/4.0.0.md#known-issue-resources-doubled-after-a-rollback-fixed-in-410))
 - [Release notes 3.2.0](docs/release-notes/3.2.0.md) — Redis warning ahead of 4.0, SQL Server least-privilege role,
   ZooKeeper znode runbook
 - [Release notes 3.1.0](docs/release-notes/3.1.0.md) — unresponsive followers are told to stop (PRB-0003)
-- [Release notes 3.0.0](docs/release-notes/3.0.0.md) and [migration guide](docs/release-notes/migrating-to-3.0.md) — breaking changes
+- [Release notes 3.0.0](docs/release-notes/3.0.0.md) and [migration guide](docs/release-notes/migrating-to-3.0.md) —
+  breaking changes
 - [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
   once)
@@ -158,7 +160,8 @@ this for you.
 
 - **SQL Server:** create the schema from [`db/`](db/) and give the nodes' login only the role `rebalancer_node`
   ([`db/RebalanserLeastPrivilege.sql`](db/RebalanserLeastPrivilege.sql)).
-- **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first 4.0
+- **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first
+  4.0
   node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
   [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once.
 - **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
@@ -177,7 +180,8 @@ this for you.
   unavailable): assignment safety, paused follower and stalled coordinator (`*PausedNodeTests`), client-record expiry,
   the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, and randomised runs
   (`*RandomisedTests`, 3 minutes each; replay a run with `REBALANCER_RANDOMISED_SEED`, cap it with
-  `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
+  `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live under `ZooKeeper/` and require a running
+  **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
@@ -197,8 +201,8 @@ The randomised ZooKeeper tests run 2–8 hours each (about 38 hours in total). S
 
 ### Repository layout
 
-| Folder                   | Contents                                                                                                    |
-|--------------------------|-------------------------------------------------------------------------------------------------------------|
+| Folder                   | Contents                                                                                                                                       |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`). |
-| [`examples/`](examples/) | Sample host and CLI tools (`Rebalancer.RabbitMq.ExampleWithSqlServerBackend`, `Rebalancer.RabbitMq.Tools`). |
-| [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                      |
+| [`examples/`](examples/) | Sample host and CLI tools (`Rebalancer.RabbitMq.ExampleWithSqlServerBackend`, `Rebalancer.RabbitMq.Tools`).                                    |
+| [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                                                         |

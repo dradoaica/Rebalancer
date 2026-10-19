@@ -50,8 +50,11 @@ internal class Coordinator
     )
     {
         currentFencingToken = clientEvent.FencingToken;
-        var (self, reRegistered) =
-            await KeepAliveOrReRegisterAsync(coordinatorClientId, clientEvent.ResourceGroup, onChangeActions);
+        var (self, reRegistered) = await KeepAliveOrReRegisterAsync(
+            coordinatorClientId,
+            clientEvent.ResourceGroup,
+            onChangeActions
+        );
         if (reRegistered)
         {
             // its local activity was stopped, so the group must be rebalanced
@@ -83,7 +86,10 @@ internal class Coordinator
         }
         catch (Exception e)
         {
-            logger.Warn(coordinatorClientId.ToString(), $"COORDINATOR: Could not expire stale client records: {e.Message}");
+            logger.Warn(
+                coordinatorClientId.ToString(),
+                $"COORDINATOR: Could not expire stale client records: {e.Message}"
+            );
         }
 
         if (self.ClientStatus == ClientStatus.Terminated || stoppedDueToInternalErrorFlag)
@@ -157,12 +163,22 @@ internal class Coordinator
     )
     {
         using var activity = RebalancerTelemetry.StartRebalance(
-            "redis", clientEvent.ResourceGroup, RebalancerTelemetry.FencingTokenTag, clientEvent.FencingToken
+            "redis",
+            clientEvent.ResourceGroup,
+            RebalancerTelemetry.FencingTokenTag,
+            clientEvent.FencingToken
         );
         var completed = false;
         try
         {
-            completed = await RebalanceAsync(coordinatorClientId, clientEvent, clients, resources, onChangeActions, token);
+            completed = await RebalanceAsync(
+                coordinatorClientId,
+                clientEvent,
+                clients,
+                resources,
+                onChangeActions,
+                token
+            );
         }
         finally
         {
@@ -408,10 +424,10 @@ internal class Coordinator
     // granted with the same fencing token.
     private async Task StopUnresponsiveClientsAsync(Guid coordinatorClientId, ClientEvent clientEvent)
     {
-        var unresponsive = (await clientService.GetActiveClientsAsync(clientEvent.ResourceGroup))
-            .Where(x => x.ClientId != coordinatorClientId &&
-                        x.TimeNow - x.LastKeepAlive >= clientEvent.KeepAliveExpiryPeriod &&
-                        x.CoordinatorStatus == CoordinatorStatus.ResourcesGranted
+        var unresponsive = (await clientService.GetActiveClientsAsync(clientEvent.ResourceGroup)).Where(x =>
+                x.ClientId != coordinatorClientId &&
+                x.TimeNow - x.LastKeepAlive >= clientEvent.KeepAliveExpiryPeriod &&
+                x.CoordinatorStatus == CoordinatorStatus.ResourcesGranted
             )
             .ToList();
         if (!unresponsive.Any())

@@ -23,7 +23,7 @@ public sealed class RedisAssignmentSafetyTests
         var group = "it-redis-" + Guid.NewGuid().ToString("N");
         const string resourceName = "only-resource";
 
-        await RedisSeed.SeedResourceGroupAsync(connectionString, group, [resourceName]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, group, [resourceName,]);
 
         var options = new ClientOptions
         {

@@ -1,3 +1,4 @@
+using Rebalancer.Core;
 using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
@@ -19,7 +20,7 @@ public sealed class SqlServerPausedNodeTests
         RunAsync(PausedNodeScenarios.CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume);
 
     private static async Task RunAsync(
-        Func<string, Func<Core.IRebalancerProvider>, Func<NodePause, Core.IRebalancerProvider>, Task> scenario
+        Func<string, Func<IRebalancerProvider>, Func<NodePause, IRebalancerProvider>, Task> scenario
     )
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
@@ -28,8 +29,7 @@ public sealed class SqlServerPausedNodeTests
         var connectionString = sql.GetConnectionString();
         await SchemaSetup.ApplyRbrSchemaAsync(connectionString);
         var group = "it-sql-pause-" + Guid.NewGuid().ToString("N");
-        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources,
-            leaseExpirySeconds: 5, heartbeatSeconds: 1);
+        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources, 5, 1);
 
         await scenario(
             group,

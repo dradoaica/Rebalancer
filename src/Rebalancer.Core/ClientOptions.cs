@@ -24,8 +24,8 @@ public class ClientOptions
     public TimeSpan OnAssignmentDelay { get; set; }
 
     /// <summary>
-    ///     How long a client record may go without a keep-alive before the coordinator deletes it (ADR-0014). A node whose
-    ///     record was deleted stops its local activity and registers again. When null, 10 times the keep-alive expiry
+    ///     How long a client record may go without a keep-alive before the coordinator deletes it (ADR-0014). A node
+    ///     whose record was deleted stops its local activity and registers again. When null, 10 times the keep-alive expiry
     ///     period of the resource group is used.
     /// </summary>
     public TimeSpan? ClientRecordRetention { get; set; }

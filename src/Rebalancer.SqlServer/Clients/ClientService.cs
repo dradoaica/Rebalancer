@@ -1,5 +1,4 @@
-﻿using Rebalancer.Core;
-using Rebalancer.SqlServer.Connections;
+﻿using Rebalancer.SqlServer.Connections;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -203,6 +202,48 @@ SELECT @@ROWCOUNT";
         }
     }
 
+    public async Task<int> DeleteExpiredClientsAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        TimeSpan retention
+    )
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            // age is judged by the database clock; the EXISTS clause is the fencing guard (ADR-0014)
+            command.CommandText = @"DELETE FROM [RBR].[Clients]
+WHERE ResourceGroup = @ResourceGroup
+  AND ClientId <> @CoordinatorId
+  AND LastKeepAlive < DATEADD(SECOND, -@RetentionSeconds, GETUTCDATE())
+  AND EXISTS (SELECT 1 FROM [RBR].[ResourceGroups]
+              WHERE ResourceGroup = @ResourceGroup
+                AND CoordinatorId = @CoordinatorId
+                AND FencingToken = @FencingToken)
+SELECT @@ROWCOUNT";
+            command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
+            command.Parameters.Add("@CoordinatorId", SqlDbType.UniqueIdentifier).Value = coordinatorClientId;
+            command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
+            command.Parameters.Add("@RetentionSeconds", SqlDbType.Int).Value = (int)Math.Min(
+                int.MaxValue,
+                Math.Ceiling(retention.TotalSeconds)
+            );
+            return (int)await command.ExecuteScalarAsync();
+        }
+    }
+
+    public async Task DeleteClientAsync(Guid clientId)
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            command.CommandText = "DELETE FROM [RBR].[Clients] WHERE ClientId = @ClientId";
+            command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = clientId;
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
     private string GetSetStatusQuery(List<Client> clients)
     {
         StringBuilder sb = new();
@@ -231,45 +272,5 @@ SELECT @@ROWCOUNT"
         );
 
         return sb.ToString();
-    }
-
-    public async Task<int> DeleteExpiredClientsAsync(
-        string resourceGroup,
-        Guid coordinatorClientId,
-        int fencingToken,
-        TimeSpan retention
-    )
-    {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
-        {
-            using var command = conn.CreateCommand();
-            // age is judged by the database clock; the EXISTS clause is the fencing guard (ADR-0014)
-            command.CommandText = @"DELETE FROM [RBR].[Clients]
-WHERE ResourceGroup = @ResourceGroup
-  AND ClientId <> @CoordinatorId
-  AND LastKeepAlive < DATEADD(SECOND, -@RetentionSeconds, GETUTCDATE())
-  AND EXISTS (SELECT 1 FROM [RBR].[ResourceGroups]
-              WHERE ResourceGroup = @ResourceGroup
-                AND CoordinatorId = @CoordinatorId
-                AND FencingToken = @FencingToken)
-SELECT @@ROWCOUNT";
-            command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
-            command.Parameters.Add("@CoordinatorId", SqlDbType.UniqueIdentifier).Value = coordinatorClientId;
-            command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
-            command.Parameters.Add("@RetentionSeconds", SqlDbType.Int).Value =
-                (int)Math.Min(int.MaxValue, Math.Ceiling(retention.TotalSeconds));
-            return (int)await command.ExecuteScalarAsync();
-        }
-    }
-
-    public async Task DeleteClientAsync(Guid clientId)
-    {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
-        {
-            using var command = conn.CreateCommand();
-            command.CommandText = "DELETE FROM [RBR].[Clients] WHERE ClientId = @ClientId";
-            command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = clientId;
-            await command.ExecuteNonQueryAsync();
-        }
     }
 }

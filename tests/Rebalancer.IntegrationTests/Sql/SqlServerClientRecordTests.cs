@@ -21,24 +21,52 @@ public sealed class SqlServerClientRecordTests
         var coordinator = Guid.NewGuid();
         var live = Guid.NewGuid();
         var stale = Guid.NewGuid();
-        await ExecAsync(cs, "UPDATE RBR.ResourceGroups SET CoordinatorId = @c, FencingToken = 3 WHERE ResourceGroup = @g",
-            ("@c", coordinator), ("@g", group));
-        foreach (var (id, minutesAgo) in new[] { (coordinator, 120), (live, 1), (stale, 60) })
+        await ExecAsync(
+            cs,
+            "UPDATE RBR.ResourceGroups SET CoordinatorId = @c, FencingToken = 3 WHERE ResourceGroup = @g",
+            ("@c", coordinator),
+            ("@g", group)
+        );
+        foreach (var (id, minutesAgo) in new[]
+                 {
+                     (coordinator, 120), (live, 1), (stale, 60),
+                 })
         {
-            await ExecAsync(cs, """
+            await ExecAsync(
+                cs,
+                """
                 INSERT INTO RBR.Clients (ClientId, ResourceGroup, LastKeepAlive, ClientStatus, CoordinatorStatus, Resources, FencingToken)
                 VALUES (@id, @g, DATEADD(MINUTE, -@m, GETUTCDATE()), 1, 1, '', 1)
-                """, ("@id", id), ("@g", group), ("@m", minutesAgo));
+                """,
+                ("@id", id),
+                ("@g", group),
+                ("@m", minutesAgo)
+            );
         }
 
         var service = new ClientService(cs);
-        Assert.Equal(0, await service.DeleteExpiredClientsAsync(group, coordinator, 2, TimeSpan.FromMinutes(10))); // stale token
+        Assert.Equal(
+            0,
+            await service.DeleteExpiredClientsAsync(group, coordinator, 2, TimeSpan.FromMinutes(10))
+        ); // stale token
         Assert.Equal(1, await service.DeleteExpiredClientsAsync(group, coordinator, 3, TimeSpan.FromMinutes(10)));
 
         var remaining = await QueryIdsAsync(cs, group);
-        Assert.Equal(new[] { coordinator, live }.OrderBy(x => x), remaining.OrderBy(x => x)); // own record is never deleted
+        Assert.Equal(
+            new[]
+            {
+                coordinator, live,
+            }.OrderBy(x => x),
+            remaining.OrderBy(x => x)
+        ); // own record is never deleted
         await service.DeleteClientAsync(live);
-        Assert.Equal(new[] { coordinator }, await QueryIdsAsync(cs, group));
+        Assert.Equal(
+            new[]
+            {
+                coordinator,
+            },
+            await QueryIdsAsync(cs, group)
+        );
     }
 
     private static async Task ExecAsync(string cs, string sql, params (string Name, object Value)[] parameters)

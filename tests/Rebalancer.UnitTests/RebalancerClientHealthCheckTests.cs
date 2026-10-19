@@ -48,7 +48,7 @@ public sealed class RebalancerClientHealthCheckTests
         provider.Actions!.OnAbortActions[0]("recovered", new InvalidOperationException());
         Assert.Equal(HealthStatus.Unhealthy, (await CheckAsync(check)).Status);
 
-        provider.Actions.OnStartActions[0](["r1"]);
+        provider.Actions.OnStartActions[0](["r1",]);
         Assert.Equal(HealthStatus.Healthy, (await CheckAsync(check)).Status);
     }
 
@@ -65,7 +65,7 @@ public sealed class RebalancerClientHealthCheckTests
         Assert.Equal(HealthStatus.Degraded, (await CheckAsync(check)).Status);
 
         provider.State = ClientState.Assigned;
-        provider.Actions.OnStartActions[0](["r1"]);
+        provider.Actions.OnStartActions[0](["r1",]);
         Assert.Equal(HealthStatus.Healthy, (await CheckAsync(check)).Status);
     }
 
@@ -80,7 +80,12 @@ public sealed class RebalancerClientHealthCheckTests
     [Fact]
     public async Task AddRebalancerClient_RegistersTheCheckForTheGivenClient()
     {
-        var client = new RebalancerClient(new ScriptedProvider { State = ClientState.Assigned, });
+        var client = new RebalancerClient(
+            new ScriptedProvider
+            {
+                State = ClientState.Assigned,
+            }
+        );
         await client.StartAsync("g", new ClientOptions());
         var services = new ServiceCollection();
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>)); // the check service logs
@@ -92,9 +97,14 @@ public sealed class RebalancerClientHealthCheckTests
         Assert.Equal(HealthStatus.Healthy, report.Entries["rebalancer"].Status);
     }
 
-    private async Task<(RebalancerClientHealthCheck, ScriptedProvider, RebalancerClient)> StartedAsync(ClientState state)
+    private async Task<(RebalancerClientHealthCheck, ScriptedProvider, RebalancerClient)> StartedAsync(
+        ClientState state
+    )
     {
-        var provider = new ScriptedProvider { State = state, };
+        var provider = new ScriptedProvider
+        {
+            State = state,
+        };
         var client = new RebalancerClient(provider);
         var check = new RebalancerClientHealthCheck(client, Threshold, () => now);
         await client.StartAsync("g", new ClientOptions());
@@ -111,7 +121,12 @@ public sealed class RebalancerClientHealthCheckTests
         public OnChangeActions? Actions { get; private set; }
         public int AssignedResourcesCalls { get; private set; }
 
-        public Task StartAsync(string group, OnChangeActions onChangeActions, CancellationToken token, ClientOptions clientOptions)
+        public Task StartAsync(
+            string group,
+            OnChangeActions onChangeActions,
+            CancellationToken token,
+            ClientOptions clientOptions
+        )
         {
             Actions = onChangeActions;
             return Task.CompletedTask;
@@ -123,7 +138,11 @@ public sealed class RebalancerClientHealthCheckTests
         public AssignedResources GetAssignedResources()
         {
             AssignedResourcesCalls++;
-            return new AssignedResources { ClientState = State, Resources = [], };
+            return new AssignedResources
+            {
+                ClientState = State,
+                Resources = [],
+            };
         }
 
         public ClientState GetState() => State;

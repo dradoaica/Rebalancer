@@ -10,14 +10,14 @@ namespace Rebalancer.Core;
 public class RebalancerClient : IDisposable
 {
     private readonly IRebalancerProvider rebalancerProvider;
-    private CancellationTokenSource cts;
-
-    private bool disposed;
-    private bool stopped;
 
     // telemetry (ADR-0022): set by StartAsync; unassignedSince is a Stopwatch timestamp, 0 while assigned
     private string backend;
+    private CancellationTokenSource cts;
+
+    private bool disposed;
     private string resourceGroup;
+    private bool stopped;
     private long unassignedSince;
 
     /// <summary>Uses the supplied provider, created directly or by the dependency injection extensions (ADR-0013).</summary>
@@ -79,8 +79,8 @@ public class RebalancerClient : IDisposable
     ///         </item>
     ///         <item>
     ///             SQL Server and Redis raise it for every error. With auto-recovery the client restarts after
-    ///             <see cref="ClientOptions.RestartDelay" /> and takes part again (<see cref="OnAssignment" /> follows); without
-    ///             it the client gives up and, since 4.2.0, reports <see cref="ClientState.Aborted" />.
+    ///             <see cref="ClientOptions.RestartDelay" /> and takes part again (<see cref="OnAssignment" /> follows);
+    ///             without it the client gives up and, since 4.2.0, reports <see cref="ClientState.Aborted" />.
     ///         </item>
     ///     </list>
     ///     To know whether the client still takes part, check <see cref="GetCurrentState" /> rather than this event.
@@ -236,7 +236,8 @@ public class RebalancerClient : IDisposable
         if (since != 0)
         {
             RebalancerTelemetry.RecordUnassignedDuration(
-                backend, resourceGroup,
+                backend,
+                resourceGroup,
                 TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - since) / (double)Stopwatch.Frequency)
             );
         }

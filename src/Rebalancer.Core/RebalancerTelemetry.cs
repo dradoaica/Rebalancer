@@ -27,21 +27,34 @@ public static class RebalancerTelemetry
     private static readonly Meter Meter = new(MeterName, Version);
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version);
 
-    private static readonly Counter<long> Rebalances =
-        Meter.CreateCounter<long>("rebalancer.rebalances", "{rebalance}", "Rebalances run by this node as coordinator");
-
-    private static readonly Counter<long> Elections = Meter.CreateCounter<long>(
-        "rebalancer.coordinator.elections", "{election}", "Times this node became coordinator"
+    private static readonly Counter<long> Rebalances = Meter.CreateCounter<long>(
+        "rebalancer.rebalances",
+        "{rebalance}",
+        "Rebalances run by this node as coordinator"
     );
 
-    private static readonly Counter<long> Assignments =
-        Meter.CreateCounter<long>("rebalancer.assignments", "{event}", "OnAssignment raised on this node");
+    private static readonly Counter<long> Elections = Meter.CreateCounter<long>(
+        "rebalancer.coordinator.elections",
+        "{election}",
+        "Times this node became coordinator"
+    );
 
-    private static readonly Counter<long> Unassignments =
-        Meter.CreateCounter<long>("rebalancer.unassignments", "{event}", "OnUnassignment raised on this node");
+    private static readonly Counter<long> Assignments = Meter.CreateCounter<long>(
+        "rebalancer.assignments",
+        "{event}",
+        "OnAssignment raised on this node"
+    );
+
+    private static readonly Counter<long> Unassignments = Meter.CreateCounter<long>(
+        "rebalancer.unassignments",
+        "{event}",
+        "OnUnassignment raised on this node"
+    );
 
     private static readonly Histogram<double> UnassignedDuration = Meter.CreateHistogram<double>(
-        "rebalancer.unassigned.duration", "s", "Time from an unassignment to the next assignment on this node"
+        "rebalancer.unassigned.duration",
+        "s",
+        "Time from an unassignment to the next assignment on this node"
     );
 
     /// <summary>Starts the activity of one rebalance on the coordinator; null when nobody listens.</summary>
@@ -81,5 +94,13 @@ public static class RebalancerTelemetry
         };
 
     private static TagList Tags(string backend, string group) =>
-        new() { { BackendTag, backend }, { GroupTag, group } };
+        new()
+        {
+            {
+                BackendTag, backend
+            },
+            {
+                GroupTag, group
+            },
+        };
 }

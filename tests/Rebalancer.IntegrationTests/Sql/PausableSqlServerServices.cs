@@ -12,7 +12,8 @@ internal static class PausableSqlServerServices
     public static SqlServerProvider CreateProvider(string connectionString, NodePause pause) =>
         new(
             connectionString,
-            leaseService: new PausableLeaseService(new LeaseService(connectionString, new NullRebalancerLogger()), pause),
+            leaseService:
+            new PausableLeaseService(new LeaseService(connectionString, new NullRebalancerLogger()), pause),
             resourceService: new PausableResourceService(new ResourceService(connectionString), pause),
             clientService: new PausableClientService(new ClientService(connectionString), pause)
         );

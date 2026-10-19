@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace Rebalancer.Extensions.Diagnostics.HealthChecks;
 
 /// <summary>
-///     Reports whether a <see cref="RebalancerClient" /> takes part in its resource group (ADR-0023). Pass the host's own,
-///     started client: the dependency injection extensions register clients as transient, so the check cannot resolve it.
-///     The check reads state only and never calls the backend.
+///     Reports whether a <see cref="RebalancerClient" /> takes part in its resource group (ADR-0023). Pass the host's
+///     own, started client: the dependency injection extensions register clients as transient, so the check cannot resolve
+///     it. The check reads state only and never calls the backend.
 /// </summary>
 /// <remarks>
-///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> until the client is assigned again (SQL Server and
-///     Redis raise it also for errors they recover from), and in the states Aborted, Stopped, NotStarted and NoProvider. <c>Degraded</c>
-///     while PendingAssignment lasts longer than the threshold. <c>Healthy</c> otherwise.
+///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> until the client is assigned again (SQL
+///     Server and Redis raise it also for errors they recover from), and in the states Aborted, Stopped, NotStarted and
+///     NoProvider. <c>Degraded</c> while PendingAssignment lasts longer than the threshold. <c>Healthy</c> otherwise.
 /// </remarks>
 public sealed class RebalancerClientHealthCheck : IHealthCheck
 {
@@ -48,7 +48,10 @@ public sealed class RebalancerClientHealthCheck : IHealthCheck
         };
     }
 
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    public Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         if (Volatile.Read(ref aborted) == 1)
         {
@@ -69,8 +72,9 @@ public sealed class RebalancerClientHealthCheck : IHealthCheck
                 var waiting = utcNow() - new DateTime(Interlocked.Read(ref pendingSinceTicks), DateTimeKind.Utc);
                 return Task.FromResult(
                     waiting > pendingThreshold
-                        ? HealthCheckResult.Degraded($"Rebalancer client waiting for an assignment for {waiting.TotalSeconds:F0} s")
-                        : HealthCheckResult.Healthy($"Rebalancer client state: {state}")
+                        ? HealthCheckResult.Degraded(
+                            $"Rebalancer client waiting for an assignment for {waiting.TotalSeconds:F0} s"
+                        ) : HealthCheckResult.Healthy($"Rebalancer client state: {state}")
                 );
             default:
                 Interlocked.Exchange(ref pendingSinceTicks, 0);

@@ -16,11 +16,13 @@ public sealed class SqlServerTelemetryTests
         var connectionString = sql.GetConnectionString();
         await SchemaSetup.ApplyRbrSchemaAsync(connectionString);
         var group = "it-sql-otel-" + Guid.NewGuid().ToString("N");
-        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources,
-            leaseExpirySeconds: 5, heartbeatSeconds: 1);
+        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources, 5, 1);
 
         await TelemetryScenarios.TwoNodes_EmitElectionRebalanceAndAssignments(
-            group, "sqlserver", PausedNodeScenarios.Resources, () => new SqlServerProvider(connectionString)
+            group,
+            "sqlserver",
+            PausedNodeScenarios.Resources,
+            () => new SqlServerProvider(connectionString)
         );
     }
 }

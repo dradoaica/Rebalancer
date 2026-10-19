@@ -4,12 +4,12 @@ using Xunit;
 namespace Rebalancer.IntegrationTests;
 
 /// <summary>
-///     Backend-independent scenarios for a SQL Server or Redis node that stops responding longer than the lease / keep-alive
-///     expiry and then resumes. The group must hold exactly <see cref="Resources" /> with a short lease expiry.
+///     Backend-independent scenarios for a SQL Server or Redis node that stops responding longer than the lease /
+///     keep-alive expiry and then resumes. The group must hold exactly <see cref="Resources" /> with a short lease expiry.
 /// </summary>
 internal static class PausedNodeScenarios
 {
-    public static readonly string[] Resources = ["r1", "r2"];
+    public static readonly string[] Resources = ["r1", "r2",];
 
     // after resuming, a node stops at its first follower tick (heartbeat / 2.5); the margin absorbs slow CI hosts
     private static readonly TimeSpan ReleaseAfterResume = TimeSpan.FromSeconds(10);
@@ -23,8 +23,8 @@ internal static class PausedNodeScenarios
     };
 
     /// <summary>
-    ///     PRB-0003 / ADR-0019: the coordinator reassigns the resource of a follower paused past the keep-alive expiry and
-    ///     records "stop" for it, so the follower's first keep-alive after resuming already says "stop".
+    ///     PRB-0003 / ADR-0019: the coordinator reassigns the resource of a follower paused past the keep-alive expiry
+    ///     and records "stop" for it, so the follower's first keep-alive after resuming already says "stop".
     /// </summary>
     public static async Task FollowerPausedPastExpiry_StopsAtFirstTickAfterResume(
         string group,
@@ -41,18 +41,27 @@ internal static class PausedNodeScenarios
             await coordinator.StartAsync(group, Options);
             await WaitUntilAsync(() => Holds(coordinator, Resources), "the first node never held both resources");
             await follower.StartAsync(group, Options);
-            await WaitUntilAsync(() => Held(follower).Count == 1 && Held(coordinator).Count == 1,
-                "the resources were never split between the two nodes");
+            await WaitUntilAsync(
+                () => Held(follower).Count == 1 && Held(coordinator).Count == 1,
+                "the resources were never split between the two nodes"
+            );
 
             pause.Pause();
-            await WaitUntilAsync(() => Holds(coordinator, Resources),
-                "the coordinator never reassigned the paused follower's resource");
+            await WaitUntilAsync(
+                () => Holds(coordinator, Resources),
+                "the coordinator never reassigned the paused follower's resource"
+            );
             pause.Resume();
 
-            await WaitUntilAsync(() => !Overlaps(coordinator, follower), "the resumed follower kept the reassigned resource",
-                ReleaseAfterResume);
-            Assert.True(pause.FirstKeepAliveAfterResumeWasStop,
-                "the resumed follower's first keep-alive did not say stop (ADR-0019)");
+            await WaitUntilAsync(
+                () => !Overlaps(coordinator, follower),
+                "the resumed follower kept the reassigned resource",
+                ReleaseAfterResume
+            );
+            Assert.True(
+                pause.FirstKeepAliveAfterResumeWasStop,
+                "the resumed follower's first keep-alive did not say stop (ADR-0019)"
+            );
             Assert.True(followerStops.StoppedAfterResume, "the resumed follower did not invoke its stop actions");
 
             await AssertNeverBothHoldAResourceAsync(coordinator, follower);
@@ -66,8 +75,8 @@ internal static class PausedNodeScenarios
     }
 
     /// <summary>
-    ///     PRB-0001: a coordinator stalled past its lease expiry loses the lease;
-    ///     the successor takes all resources, and the demoted node gives up its own as soon as it resumes.
+    ///     PRB-0001: a coordinator stalled past its lease expiry loses the lease; the successor takes all resources, and
+    ///     the demoted node gives up its own as soon as it resumes.
     /// </summary>
     public static async Task CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume(
         string group,
@@ -84,16 +93,23 @@ internal static class PausedNodeScenarios
             await stalled.StartAsync(group, Options);
             await WaitUntilAsync(() => Holds(stalled, Resources), "the first node never held both resources");
             await successor.StartAsync(group, Options);
-            await WaitUntilAsync(() => Held(stalled).Count == 1 && Held(successor).Count == 1,
-                "the resources were never split between the two nodes");
+            await WaitUntilAsync(
+                () => Held(stalled).Count == 1 && Held(successor).Count == 1,
+                "the resources were never split between the two nodes"
+            );
 
             pause.Pause();
-            await WaitUntilAsync(() => Holds(successor, Resources),
-                "the successor never took over the stalled coordinator's resources");
+            await WaitUntilAsync(
+                () => Holds(successor, Resources),
+                "the successor never took over the stalled coordinator's resources"
+            );
             pause.Resume();
 
-            await WaitUntilAsync(() => !Overlaps(stalled, successor), "the demoted coordinator kept its resource",
-                ReleaseAfterResume);
+            await WaitUntilAsync(
+                () => !Overlaps(stalled, successor),
+                "the demoted coordinator kept its resource",
+                ReleaseAfterResume
+            );
             Assert.True(stalledStops.StoppedAfterResume, "the demoted coordinator did not invoke its stop actions");
 
             await AssertNeverBothHoldAResourceAsync(stalled, successor);
@@ -138,7 +154,8 @@ internal static class PausedNodeScenarios
     {
         private volatile bool stoppedAfterResume;
 
-        public StopRecorder(RebalancerClient client, NodePause pause) =>
+        public StopRecorder(RebalancerClient client, NodePause pause)
+        {
             client.OnUnassignment += (_, _) =>
             {
                 if (pause.HasResumed)
@@ -146,6 +163,7 @@ internal static class PausedNodeScenarios
                     stoppedAfterResume = true;
                 }
             };
+        }
 
         public bool StoppedAfterResume => stoppedAfterResume;
     }

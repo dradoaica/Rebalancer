@@ -1,3 +1,4 @@
+using Rebalancer.Core;
 using Rebalancer.Redis;
 using Rebalancer.Redis.Clients;
 using Rebalancer.Redis.Utils;
@@ -9,8 +10,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.Redis;
 
 /// <summary>
-///     Requires Docker. ADR-0014 (stale client records expire, guarded by the coordinator's fencing token) and ADR-0015
-///     (one client hash per resource group; 2.x entries move over, groups are isolated) against a real Redis.
+///     Requires Docker. ADR-0014 (stale client records expire, guarded by the coordinator's fencing token) and
+///     ADR-0015 (one client hash per resource group; 2.x entries move over, groups are isolated) against a real Redis.
 /// </summary>
 public sealed class RedisClientRecordTests
 {
@@ -26,7 +27,7 @@ public sealed class RedisClientRecordTests
         var db = mux.GetDatabase();
         const string group = "orders";
         var coordinator = Guid.NewGuid();
-        SeedLease(db, group, coordinator, fencingToken: 3);
+        SeedLease(db, group, coordinator, 3);
 
         var coordinatorService = new ClientService(db);
         await coordinatorService.CreateClientAsync(group, coordinator);
@@ -35,11 +36,21 @@ public sealed class RedisClientRecordTests
         var stale = Guid.NewGuid();
         await SeedClientAsync(db, RedisHash.GroupKey("Clients", group), stale, group, DateTime.UtcNow.AddHours(-1));
 
-        Assert.Equal(0, await coordinatorService.DeleteExpiredClientsAsync(group, coordinator, 2, Retention)); // stale token
+        Assert.Equal(
+            0,
+            await coordinatorService.DeleteExpiredClientsAsync(group, coordinator, 2, Retention)
+        ); // stale token
         Assert.Equal(1, await coordinatorService.DeleteExpiredClientsAsync(group, coordinator, 3, Retention));
 
-        var remaining = (await db.HashKeysAsync(RedisHash.GroupKey("Clients", group))).Select(x => RedisHash.Decode<Guid>(x));
-        Assert.Equal(new[] { coordinator, live }.OrderBy(x => x), remaining.OrderBy(x => x));
+        var remaining =
+            (await db.HashKeysAsync(RedisHash.GroupKey("Clients", group))).Select(x => RedisHash.Decode<Guid>(x));
+        Assert.Equal(
+            new[]
+            {
+                coordinator, live,
+            }.OrderBy(x => x),
+            remaining.OrderBy(x => x)
+        );
     }
 
     [SkippableFact]
@@ -51,16 +62,24 @@ public sealed class RedisClientRecordTests
         using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var db = mux.GetDatabase();
         var coordinator = Guid.NewGuid();
-        SeedLease(db, "orders", coordinator, fencingToken: 1);
+        SeedLease(db, "orders", coordinator, 1);
 
         // 2.x layout: every group's clients in one hash, written by the same library 2.x used
         var legacy = new RedisDictionary<Guid, Client>(db, "RBR:Clients");
         var orders1 = Guid.NewGuid();
         var orders2 = Guid.NewGuid();
         var invoices = Guid.NewGuid();
-        foreach (var (id, group) in new[] { (orders1, "orders"), (orders2, "orders"), (invoices, "invoices") })
+        foreach (var (id, group) in new[]
+                 {
+                     (orders1, "orders"), (orders2, "orders"), (invoices, "invoices"),
+                 })
         {
-            legacy[id] = new Client { ClientId = id, ResourceGroup = group, LastKeepAlive = DateTime.UtcNow, };
+            legacy[id] = new Client
+            {
+                ClientId = id,
+                ResourceGroup = group,
+                LastKeepAlive = DateTime.UtcNow,
+            };
         }
 
         var service = new ClientService(db);
@@ -68,8 +87,22 @@ public sealed class RedisClientRecordTests
         await service.DeleteExpiredClientsAsync("orders", coordinator, 1, Retention);
 
         var orders = (await db.HashKeysAsync("RBR:Clients:orders")).Select(x => RedisHash.Decode<Guid>(x)).ToHashSet();
-        Assert.Superset(new HashSet<Guid> { orders1, orders2, coordinator }, orders);
-        Assert.Equal(new[] { invoices }, legacy.Keys); // the other group's legacy entry is untouched
+        Assert.Superset(
+            new HashSet<Guid>
+            {
+                orders1,
+                orders2,
+                coordinator,
+            },
+            orders
+        );
+        Assert.Equal(
+            new[]
+            {
+                invoices,
+            },
+            legacy.Keys
+        ); // the other group's legacy entry is untouched
         Assert.False(await db.KeyExistsAsync("RBR:Clients:invoices"));
         Assert.Empty(await new ClientService(db).GetActiveClientsAsync("invoices")); // groups do not see each other
     }
@@ -84,9 +117,15 @@ public sealed class RedisClientRecordTests
         var adminDb = admin.GetDatabase();
         const string group = "orders";
         var coordinator = Guid.NewGuid();
-        SeedLease(adminDb, group, coordinator, fencingToken: 1);
+        SeedLease(adminDb, group, coordinator, 1);
         var stale = Guid.NewGuid();
-        await SeedClientAsync(adminDb, RedisHash.GroupKey("Clients", group), stale, group, DateTime.UtcNow.AddHours(-1));
+        await SeedClientAsync(
+            adminDb,
+            RedisHash.GroupKey("Clients", group),
+            stale,
+            group,
+            DateTime.UtcNow.AddHours(-1)
+        );
 
         // the documented minimal per-group user: no access to the 2.x hash Dictionary:RBR:Clients
         await CreateMinimalGroupUserAsync(adminDb, "orders");
@@ -99,7 +138,9 @@ public sealed class RedisClientRecordTests
         await service.CreateClientAsync(group, coordinator);
 
         Assert.Equal(1, await service.DeleteExpiredClientsAsync(group, coordinator, 1, Retention));
-        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().HashLengthAsync("Dictionary:RBR:Clients"));
+        await Assert.ThrowsAsync<RedisServerException>(() =>
+            limited.GetDatabase().HashLengthAsync("Dictionary:RBR:Clients")
+        );
     }
 
     [SkippableFact]
@@ -111,23 +152,44 @@ public sealed class RedisClientRecordTests
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var adminDb = admin.GetDatabase();
         // provisioned exactly as docs/release-notes/migrating-to-4.0.md shows (4.0 layout, ADR-0020)
-        await adminDb.ExecuteAsync("HSET", "RBR:Lease:orders", "\"orders\"",
-            "{\"Name\":\"orders\",\"LeaseExpirySeconds\":5,\"HeartbeatSeconds\":1,\"FencingToken\":0}");
-        await adminDb.ExecuteAsync("RPUSH", "RBR:Resources:orders", "{\"ResourceGroup\":\"orders\",\"ResourceName\":\"r1\"}");
+        await adminDb.ExecuteAsync(
+            "HSET",
+            "RBR:Lease:orders",
+            "\"orders\"",
+            "{\"Name\":\"orders\",\"LeaseExpirySeconds\":5,\"HeartbeatSeconds\":1,\"FencingToken\":0}"
+        );
+        await adminDb.ExecuteAsync(
+            "RPUSH",
+            "RBR:Resources:orders",
+            "{\"ResourceGroup\":\"orders\",\"ResourceName\":\"r1\"}"
+        );
         await CreateMinimalGroupUserAsync(adminDb, "orders");
 
-        var connectionString = $"{redis.GetConnectionString()},user=orders-user,password=orders-pass,abortConnect=false";
-        using var client = new Rebalancer.Core.RebalancerClient(new RedisProvider(connectionString));
-        await client.StartAsync("orders", new Rebalancer.Core.ClientOptions { AutoRecoveryOnError = false, });
+        var connectionString =
+            $"{redis.GetConnectionString()},user=orders-user,password=orders-pass,abortConnect=false";
+        using var client = new RebalancerClient(new RedisProvider(connectionString));
+        await client.StartAsync(
+            "orders",
+            new ClientOptions
+            {
+                AutoRecoveryOnError = false,
+            }
+        );
         try
         {
             var deadline = DateTime.UtcNow.AddSeconds(30);
-            while (client.GetCurrentState() != Rebalancer.Core.ClientState.Assigned && DateTime.UtcNow < deadline)
+            while (client.GetCurrentState() != ClientState.Assigned && DateTime.UtcNow < deadline)
             {
                 await Task.Delay(200);
             }
 
-            Assert.Equal(new[] { "r1" }, client.GetAssignedResources().Resources);
+            Assert.Equal(
+                new[]
+                {
+                    "r1",
+                },
+                client.GetAssignedResources().Resources
+            );
         }
         finally
         {
@@ -139,8 +201,11 @@ public sealed class RedisClientRecordTests
 
         // and the user has no access to any shared key (ADR-0020 confirmation)
         using var limited = await ConnectionMultiplexer.ConnectAsync(connectionString);
-        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().HashLengthAsync("Dictionary:RBR:ResourceGroups"));
-        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().ListLengthAsync("List:RBR:Resources"));
+        await Assert.ThrowsAsync<RedisServerException>(() =>
+            limited.GetDatabase().HashLengthAsync("Dictionary:RBR:ResourceGroups")
+        );
+        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().ListLengthAsync("List:RBR:Resources")
+        );
     }
 
     // The documented minimal Redis ACL user for one resource group in 4.0, with no shared keys (ADR-0020; command set
@@ -150,10 +215,20 @@ public sealed class RedisClientRecordTests
     // INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
     private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
         adminDb.ExecuteAsync(
-            "ACL", "SETUSER", $"{group}-user", "on", $">{group}-pass", "resetchannels",
-            $"~RBR:Clients:{RedisHash.EscapeKeySegment(group)}", $"~RBR:Lease:{RedisHash.EscapeKeySegment(group)}",
+            "ACL",
+            "SETUSER",
+            $"{group}-user",
+            "on",
+            $">{group}-pass",
+            "resetchannels",
+            $"~RBR:Clients:{RedisHash.EscapeKeySegment(group)}",
+            $"~RBR:Lease:{RedisHash.EscapeKeySegment(group)}",
             $"~RBR:Resources:{RedisHash.EscapeKeySegment(group)}",
-            "+@read", "+@write", "+@transaction", "+time", "+echo"
+            "+@read",
+            "+@write",
+            "+@transaction",
+            "+time",
+            "+echo"
         );
 
     [Fact]
@@ -161,20 +236,33 @@ public sealed class RedisClientRecordTests
         Assert.Equal("RBR:Clients:a%2Ab%20c%C3%A9", (string)RedisHash.GroupKey("Clients", "a*b cé")!);
 
     private static void SeedLease(IDatabase db, string group, Guid coordinator, int fencingToken) =>
-        db.HashSet(RedisHash.LeaseKey(group), RedisHash.Encode(group), RedisHash.Encode(new ResourceGroup
-        {
-            Name = group,
-            CoordinatorId = coordinator,
-            FencingToken = fencingToken,
-            LastCoordinatorRenewal = DateTime.UtcNow,
-            LeaseExpirySeconds = 60,
-            HeartbeatSeconds = 25,
-        }));
+        db.HashSet(
+            RedisHash.LeaseKey(group),
+            RedisHash.Encode(group),
+            RedisHash.Encode(
+                new ResourceGroup
+                {
+                    Name = group,
+                    CoordinatorId = coordinator,
+                    FencingToken = fencingToken,
+                    LastCoordinatorRenewal = DateTime.UtcNow,
+                    LeaseExpirySeconds = 60,
+                    HeartbeatSeconds = 25,
+                }
+            )
+        );
 
     private static Task SeedClientAsync(IDatabase db, RedisKey key, Guid id, string group, DateTime lastKeepAlive) =>
         db.HashSetAsync(
             key,
             RedisHash.Encode(id),
-            RedisHash.Encode(new Client { ClientId = id, ResourceGroup = group, LastKeepAlive = lastKeepAlive, })
+            RedisHash.Encode(
+                new Client
+                {
+                    ClientId = id,
+                    ResourceGroup = group,
+                    LastKeepAlive = lastKeepAlive,
+                }
+            )
         );
 }

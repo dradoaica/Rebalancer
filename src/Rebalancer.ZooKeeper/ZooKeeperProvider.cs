@@ -76,8 +76,8 @@ public class ZooKeeperProvider : IRebalancerProvider
 
     /// <summary>
     ///     Uses a caller-supplied ZooKeeper service (ADR-0012), e.g. a test double or a service with its own connection
-    ///     handling. The service decides about credentials and ACLs; the "credentials or explicit opt-out" rule of
-    ///     ADR-0011 is not checked for it.
+    ///     handling. The service decides about credentials and ACLs; the "credentials or explicit opt-out" rule of ADR-0011 is
+    ///     not checked for it.
     /// </summary>
     /// <exception cref="ArgumentNullException"><paramref name="zooKeeperService" /> is null.</exception>
     public ZooKeeperProvider(

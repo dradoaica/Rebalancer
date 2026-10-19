@@ -57,8 +57,8 @@ internal static class RedisHash
     public static T Decode<T>(RedisValue value) => JsonConvert.DeserializeObject<T>(value);
 
     /// <summary>
-    ///     Like <see cref="Decode{T}" />, but null for a value that is not valid JSON of <typeparamref name="T" /> (e.g. an
-    ///     operator's typo in a resource list), so one bad entry cannot stop a whole group.
+    ///     Like <see cref="Decode{T}" />, but null for a value that is not valid JSON of <typeparamref name="T" /> (e.g.
+    ///     an operator's typo in a resource list), so one bad entry cannot stop a whole group.
     /// </summary>
     public static T TryDecode<T>(RedisValue value)
         where T : class

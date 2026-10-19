@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Rebalancer.Core;
 using Rebalancer.Extensions.Diagnostics.HealthChecks;
 using System;

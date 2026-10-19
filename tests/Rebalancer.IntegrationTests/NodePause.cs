@@ -9,8 +9,8 @@ namespace Rebalancer.IntegrationTests;
 internal sealed class NodePause
 {
     private readonly object sync = new();
-    private TaskCompletionSource running = Completed();
     private bool resumed;
+    private TaskCompletionSource running = Completed();
 
     public bool HasResumed
     {

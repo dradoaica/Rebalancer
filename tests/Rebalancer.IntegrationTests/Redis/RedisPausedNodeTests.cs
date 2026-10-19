@@ -1,3 +1,4 @@
+using Rebalancer.Core;
 using Rebalancer.Redis;
 using StackExchange.Redis;
 using Testcontainers.Redis;
@@ -20,7 +21,7 @@ public sealed class RedisPausedNodeTests
         RunAsync(PausedNodeScenarios.CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume);
 
     private static async Task RunAsync(
-        Func<string, Func<Core.IRebalancerProvider>, Func<NodePause, Core.IRebalancerProvider>, Task> scenario
+        Func<string, Func<IRebalancerProvider>, Func<NodePause, IRebalancerProvider>, Task> scenario
     )
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");

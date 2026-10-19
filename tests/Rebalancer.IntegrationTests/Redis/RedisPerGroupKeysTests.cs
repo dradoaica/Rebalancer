@@ -9,8 +9,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.Redis;
 
 /// <summary>
-///     Requires Docker. ADR-0020 confirmation: a group provisioned in the 3.x shared keys moves to its own keys on the
-///     first 4.0 start, exactly once even when nodes start together, and other groups stay in the shared keys.
+///     Requires Docker. ADR-0020 confirmation: a group provisioned in the 3.x shared keys moves to its own keys on
+///     the first 4.0 start, exactly once even when nodes start together, and other groups stay in the shared keys.
 /// </summary>
 public sealed class RedisPerGroupKeysTests
 {
@@ -24,8 +24,8 @@ public sealed class RedisPerGroupKeysTests
         await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
-        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2"]);
-        await RedisSeed.SeedResourceGroupAsync(connectionString, OtherGroup, ["i1"]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2",]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, OtherGroup, ["i1",]);
 
         using var client = new RebalancerClient(new RedisProvider(connectionString));
         await client.StartAsync(Group, new ClientOptions());
@@ -41,10 +41,10 @@ public sealed class RedisPerGroupKeysTests
         using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
         var db = mux.GetDatabase();
         Assert.True(await db.HashExistsAsync(RedisHash.LeaseKey(Group), RedisHash.Encode(Group)));
-        Assert.Equal(["r1", "r2"], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
+        Assert.Equal(["r1", "r2",], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
         Assert.False(await db.HashExistsAsync("Dictionary:RBR:ResourceGroups", RedisHash.Encode(Group)));
         Assert.True(await db.HashExistsAsync("Dictionary:RBR:ResourceGroups", RedisHash.Encode(OtherGroup)));
-        Assert.Equal(["i1"], await ResourceNamesAsync(db, "List:RBR:Resources"));
+        Assert.Equal(["i1",], await ResourceNamesAsync(db, "List:RBR:Resources"));
     }
 
     [SkippableFact]
@@ -54,9 +54,11 @@ public sealed class RedisPerGroupKeysTests
         await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
-        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2", "r3"]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2", "r3",]);
 
-        var clients = Enumerable.Range(0, 4).Select(_ => new RebalancerClient(new RedisProvider(connectionString))).ToList();
+        var clients = Enumerable.Range(0, 4)
+            .Select(_ => new RebalancerClient(new RedisProvider(connectionString)))
+            .ToList();
         try
         {
             await Task.WhenAll(clients.Select(c => c.StartAsync(Group, new ClientOptions())));
@@ -72,7 +74,7 @@ public sealed class RedisPerGroupKeysTests
 
         using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
         var db = mux.GetDatabase();
-        Assert.Equal(["r1", "r2", "r3"], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
+        Assert.Equal(["r1", "r2", "r3",], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
         Assert.Equal(0, await db.ListLengthAsync("List:RBR:Resources"));
     }
 
@@ -85,24 +87,33 @@ public sealed class RedisPerGroupKeysTests
         await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
-        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1"]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1",]);
         using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
         var db = mux.GetDatabase();
-        await db.ListRightPushAsync(RedisHash.ResourcesKey(Group), RedisHash.Encode(new Resource { ResourceGroup = Group, ResourceName = "r1", }));
+        await db.ListRightPushAsync(
+            RedisHash.ResourcesKey(Group),
+            RedisHash.Encode(
+                new Resource
+                {
+                    ResourceGroup = Group,
+                    ResourceName = "r1",
+                }
+            )
+        );
 
         using var client = new RebalancerClient(new RedisProvider(connectionString));
         await client.StartAsync(Group, new ClientOptions());
         try
         {
             await WaitUntilAsync(() => client.GetAssignedResources().Resources?.Count > 0);
-            Assert.Equal(["r1"], client.GetAssignedResources().Resources);
+            Assert.Equal(["r1",], client.GetAssignedResources().Resources);
         }
         finally
         {
             await client.StopAsync(TimeSpan.FromSeconds(15));
         }
 
-        Assert.Equal(["r1"], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
+        Assert.Equal(["r1",], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
     }
 
     // seen in the rollback rehearsal (2026-10-19): one malformed entry in a resource list crashed StartAsync
@@ -113,10 +124,10 @@ public sealed class RedisPerGroupKeysTests
         await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
-        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1"]);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1",]);
         using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
         var db = mux.GetDatabase();
-        await db.ListRightPushAsync("List:RBR:Resources", ["", "not json"]);
+        await db.ListRightPushAsync("List:RBR:Resources", ["", "not json",]);
 
         using var client = new RebalancerClient(new RedisProvider(connectionString));
         await client.StartAsync(Group, new ClientOptions());
@@ -126,14 +137,14 @@ public sealed class RedisPerGroupKeysTests
             await WaitUntilAsync(() => client.GetAssignedResources().Resources?.Count > 0);
             await db.ListRightPushAsync(RedisHash.ResourcesKey(Group), "{broken");
             await Task.Delay(3000);
-            Assert.Equal(["r1"], client.GetAssignedResources().Resources);
+            Assert.Equal(["r1",], client.GetAssignedResources().Resources);
         }
         finally
         {
             await client.StopAsync(TimeSpan.FromSeconds(15));
         }
 
-        Assert.Equal(["", "not json"], (await db.ListRangeAsync("List:RBR:Resources")).Select(x => x.ToString()));
+        Assert.Equal(["", "not json",], (await db.ListRangeAsync("List:RBR:Resources")).Select(x => x.ToString()));
     }
 
     [SkippableFact]
@@ -142,19 +153,36 @@ public sealed class RedisPerGroupKeysTests
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
         await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
         await redis.StartAsync();
-        await RedisSeed.SeedResourceGroupAsync(redis.GetConnectionString(), Group, ["r1"]);
+        await RedisSeed.SeedResourceGroupAsync(redis.GetConnectionString(), Group, ["r1",]);
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
-        await admin.GetDatabase().ExecuteAsync(
-            "ACL", "SETUSER", "orders-user", "on", ">orders-pass", "resetchannels",
-            "~RBR:Lease:orders", "~RBR:Resources:orders", "~RBR:Clients:orders",
-            "+@read", "+@write", "+@transaction", "+time", "+echo"
-        );
+        await admin.GetDatabase()
+            .ExecuteAsync(
+                "ACL",
+                "SETUSER",
+                "orders-user",
+                "on",
+                ">orders-pass",
+                "resetchannels",
+                "~RBR:Lease:orders",
+                "~RBR:Resources:orders",
+                "~RBR:Clients:orders",
+                "+@read",
+                "+@write",
+                "+@transaction",
+                "+time",
+                "+echo"
+            );
 
         using var provider = new RedisProvider(
             $"{redis.GetConnectionString()},user=orders-user,password=orders-pass,abortConnect=false"
         );
-        var error = await Assert.ThrowsAsync<RebalancerException>(() =>
-            provider.StartAsync(Group, new OnChangeActions(), CancellationToken.None, new ClientOptions()));
+        var error = await Assert.ThrowsAsync<RebalancerException>(() => provider.StartAsync(
+                Group,
+                new OnChangeActions(),
+                CancellationToken.None,
+                new ClientOptions()
+            )
+        );
         Assert.Contains("migrating-to-4.0.md", error.Message);
     }
 

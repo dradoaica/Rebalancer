@@ -17,11 +17,19 @@ public sealed class SqlServerRandomisedTests(ITestOutputHelper output)
         await SchemaSetup.ApplyRbrSchemaAsync(connectionString);
         var group = "it-sql-random-" + Guid.NewGuid().ToString("N");
         var resources = RandomisedScenario.ResourceNames(10);
-        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, resources,
-            RandomisedScenario.LeaseExpirySeconds, RandomisedScenario.HeartbeatSeconds);
+        await SchemaSetup.SeedResourceGroupAsync(
+            connectionString,
+            group,
+            resources,
+            RandomisedScenario.LeaseExpirySeconds,
+            RandomisedScenario.HeartbeatSeconds
+        );
 
         await new RandomisedScenario(
-            group, resources, pause => PausableSqlServerServices.CreateProvider(connectionString, pause), output.WriteLine
+            group,
+            resources,
+            pause => PausableSqlServerServices.CreateProvider(connectionString, pause),
+            output.WriteLine
         ).RunAsync();
     }
 }

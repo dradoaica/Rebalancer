@@ -1,6 +1,8 @@
 using Rebalancer.Core;
+using Rebalancer.SqlServer;
+using Rebalancer.SqlServer.Clients;
+using Rebalancer.SqlServer.Leases;
 using Xunit;
-using SqlServer = Rebalancer.SqlServer;
 
 namespace Rebalancer.UnitTests;
 
@@ -12,7 +14,10 @@ public sealed class AbortedStateTests
 {
     // Redis needs a server since 4.0 (the provider checks the per-group key move at start): see
     // tests/Rebalancer.IntegrationTests/Redis/RedisAbortedStateTests.cs
-    public static TheoryData<string> Backends => new() { "SqlServer", };
+    public static TheoryData<string> Backends => new()
+    {
+        "SqlServer",
+    };
 
     [Theory]
     [MemberData(nameof(Backends))]
@@ -23,7 +28,13 @@ public sealed class AbortedStateTests
         var aborts = 0;
         client.OnAborted += (_, _) => Interlocked.Increment(ref aborts);
 
-        await client.StartAsync("orders", new ClientOptions { AutoRecoveryOnError = false, });
+        await client.StartAsync(
+            "orders",
+            new ClientOptions
+            {
+                AutoRecoveryOnError = false,
+            }
+        );
         await WaitUntilAsync(() => client.GetCurrentState() == ClientState.Aborted);
 
         Assert.Equal(1, calls());
@@ -42,7 +53,12 @@ public sealed class AbortedStateTests
         var (provider, calls) = Create(backend);
         using var client = new RebalancerClient(provider);
         await client.StartAsync(
-            "orders", new ClientOptions { AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromMilliseconds(10), }
+            "orders",
+            new ClientOptions
+            {
+                AutoRecoveryOnError = true,
+                RestartDelay = TimeSpan.FromMilliseconds(10),
+            }
         );
         await WaitUntilAsync(() => calls() >= 3);
 
@@ -53,8 +69,14 @@ public sealed class AbortedStateTests
     private static (IRebalancerProvider, Func<int>) Create(string backend)
     {
         var sqlLeases = new SqlServerFailingLeases();
-        return (new SqlServer.SqlServerProvider("Server=tcp:127.0.0.1,1;Connect Timeout=1;Trust Server Certificate=true;", null,
-            sqlLeases, null, new SqlServerClients()), () => sqlLeases.Calls);
+        return (
+            new SqlServerProvider(
+                "Server=tcp:127.0.0.1,1;Connect Timeout=1;Trust Server Certificate=true;",
+                null,
+                sqlLeases,
+                null,
+                new SqlServerClients()
+            ), () => sqlLeases.Calls);
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition)
@@ -67,39 +89,40 @@ public sealed class AbortedStateTests
         }
     }
 
-    private sealed class SqlServerFailingLeases : SqlServer.Leases.ILeaseService
+    private sealed class SqlServerFailingLeases : ILeaseService
     {
         private int calls;
         public int Calls => Volatile.Read(ref calls);
 
-        public Task<SqlServer.Leases.LeaseResponse> TryAcquireLeaseAsync(SqlServer.Leases.AcquireLeaseRequest request)
+        public Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest request)
         {
             Interlocked.Increment(ref calls);
-            return Task.FromResult(new SqlServer.Leases.LeaseResponse { Result = SqlServer.Leases.LeaseResult.Error });
+            return Task.FromResult(
+                new LeaseResponse
+                {
+                    Result = LeaseResult.Error,
+                }
+            );
         }
 
-        public Task<SqlServer.Leases.LeaseResponse> TryRenewLeaseAsync(SqlServer.Leases.RenewLeaseRequest request) =>
+        public Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest request) =>
             throw new NotSupportedException();
 
-        public Task RelinquishLeaseAsync(SqlServer.Leases.RelinquishLeaseRequest request) => Task.CompletedTask;
+        public Task RelinquishLeaseAsync(RelinquishLeaseRequest request) => Task.CompletedTask;
     }
 
-    private sealed class SqlServerClients : SqlServer.Clients.IClientService
+    private sealed class SqlServerClients : IClientService
     {
         public Task CreateClientAsync(string resourceGroup, Guid clientId) => Task.CompletedTask;
-        public Task SetClientStatusAsync(Guid clientId, SqlServer.Clients.ClientStatus clientStatus) => Task.CompletedTask;
+        public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus) => Task.CompletedTask;
         public Task DeleteClientAsync(Guid clientId) => Task.CompletedTask;
-        public Task<List<SqlServer.Clients.Client>> GetActiveClientsAsync(string resourceGroup) => throw new NotSupportedException();
-        public Task<SqlServer.Clients.Client> KeepAliveAsync(Guid clientId) => throw new NotSupportedException();
+        public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) => throw new NotSupportedException();
+        public Task<Client> KeepAliveAsync(Guid clientId) => throw new NotSupportedException();
 
-        public Task<SqlServer.Clients.ModifyClientResult> StopActivityAsync(
-            int fencingToken,
-            List<SqlServer.Clients.Client> clients
-        ) => throw new NotSupportedException();
+        public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
+            throw new NotSupportedException();
 
-        public Task<SqlServer.Clients.ModifyClientResult> StartActivityAsync(
-            int fencingToken,
-            List<SqlServer.Clients.ClientStartRequest> requests
-        ) => throw new NotSupportedException();
+        public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests) =>
+            throw new NotSupportedException();
     }
 }

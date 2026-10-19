@@ -39,23 +39,23 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         if (acl == null && authScheme == null)
         {
             throw new ArgumentException(
-                "Either credentials (authScheme and authData) or an explicit ACL are required; pass "
-                + "ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).",
+                "Either credentials (authScheme and authData) or an explicit ACL are required; pass " +
+                "ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).",
                 nameof(acl)
             );
         }
 
         return Register(
-        services,
-        zooKeeperHosts,
-        zooKeeperRootPath,
-        rebalancingMode,
-        sessionTimeout,
-        connectTimeout,
-        minimumRebalancingInterval,
-        logger,
-        () => new ZooKeeperService(zooKeeperHosts, acl, authScheme, authData)
-    );
+            services,
+            zooKeeperHosts,
+            zooKeeperRootPath,
+            rebalancingMode,
+            sessionTimeout,
+            connectTimeout,
+            minimumRebalancingInterval,
+            logger,
+            () => new ZooKeeperService(zooKeeperHosts, acl, authScheme, authData)
+        );
     }
 
     private static IServiceCollection Register(

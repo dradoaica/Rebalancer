@@ -26,13 +26,13 @@ public class SqlServerProvider : IRebalancerProvider
     private readonly IRebalancerLogger logger;
     private readonly IResourceService resourceService;
     private readonly ResourceGroupStore store;
-    private Guid clientId;
-    private volatile bool isCoordinator;
     private volatile bool aborted;
+    private Guid clientId;
+    private ClientOptions clientOptions;
+    private volatile bool isCoordinator;
     private Task mainTask;
     private string resourceGroup;
     private bool started;
-    private ClientOptions clientOptions;
 
     public SqlServerProvider(
         string connectionString,
@@ -276,7 +276,11 @@ public class SqlServerProvider : IRebalancerProvider
     {
         if (aborted)
         {
-            return new AssignedResources { Resources = new List<string>(), ClientState = ClientState.Aborted, };
+            return new AssignedResources
+            {
+                Resources = new List<string>(),
+                ClientState = ClientState.Aborted,
+            };
         }
 
         var response = store.GetResources();

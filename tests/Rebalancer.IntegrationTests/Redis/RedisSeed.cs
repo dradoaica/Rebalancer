@@ -9,7 +9,11 @@ namespace Rebalancer.IntegrationTests.Redis;
 internal static class RedisSeed
 {
     /// <summary>Provisions a group (lease expiry 5 s, heartbeat 1 s) and its resources in the shared 3.x keys.</summary>
-    public static async Task SeedResourceGroupAsync(string connectionString, string group, IEnumerable<string> resourceNames)
+    public static async Task SeedResourceGroupAsync(
+        string connectionString,
+        string group,
+        IEnumerable<string> resourceNames
+    )
     {
         var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
         try

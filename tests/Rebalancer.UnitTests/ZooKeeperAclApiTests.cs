@@ -5,13 +5,15 @@ using Rebalancer.Core;
 using Rebalancer.Core.Logging;
 using Rebalancer.Extensions.DependencyInjection;
 using Rebalancer.ZooKeeper;
-using Rebalancer.ZooKeeper.Zk;
 using System.Text;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
 
-/// <summary>Contract of the ZooKeeper ACL API (ADR-0018 in 2.x, ADR-0011 from 3.0): ACL overloads work with credentials or an explicit ACL.</summary>
+/// <summary>
+///     Contract of the ZooKeeper ACL API (ADR-0018 in 2.x, ADR-0011 from 3.0): ACL overloads work with credentials or
+///     an explicit ACL.
+/// </summary>
 public sealed class ZooKeeperAclApiTests
 {
     private const string Hosts = "localhost:1";
@@ -62,7 +64,14 @@ public sealed class ZooKeeperAclApiTests
     {
         // the non-deprecated replacement for an open ACL: the choice is visible in code (ADR-0011)
         var services = new ServiceCollection();
-        services.AddRebalancerZooKeeper(Hosts, "/rebalancer", RebalancingMode.GlobalBarrier, ZooDefs.Ids.OPEN_ACL_UNSAFE, null, null);
+        services.AddRebalancerZooKeeper(
+            Hosts,
+            "/rebalancer",
+            RebalancingMode.GlobalBarrier,
+            ZooDefs.Ids.OPEN_ACL_UNSAFE,
+            null,
+            null
+        );
         using var serviceProvider = services.BuildServiceProvider();
 
         Assert.NotNull(serviceProvider.GetRequiredService<RebalancerClient>());
