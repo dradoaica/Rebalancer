@@ -46,7 +46,7 @@ see revision 4.]
   Mitigation: run the first start with a temporary user that has shared-key access, or provision the per-group keys as
   an operator (`docs/release-notes/migrating-to-4.0.md`).
 
-**Revision 5 (4.1.0, CR-0007; Proposed, pending human review):** telemetry and health checks (ADR-0022, ADR-0023).
+**Revision 5 (4.1.0, CR-0007; accepted by dradoaica, 2026-10-19):** telemetry and health checks (ADR-0022, ADR-0023).
 - **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
   the rebalance activity, `rebalancer.fencing_token`. Resource names, node identifiers, connection strings and credentials are never
   emitted (verified by the Redis telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
@@ -184,7 +184,7 @@ see revision 4.]
 ## Residual risk and acceptance
 
 - Residual risks after mitigations:
-  - **Telemetry exports group names** (revision 5, pending): accepted as Low; filter in the collector if needed.
+  - **Telemetry exports group names** (revision 5): accepted as Low; filter in the collector if needed.
   - **Partial per-group isolation** inside one Redis database: client records can be isolated (3.0), leases and
     resources cannot. Revision 4: resolved in 4.0 for groups that have moved (ADR-0020).
   - ~~**Unbounded growth of the clients hash**~~ Resolved in 3.0 (ADR-0014, ADR-0015).
@@ -219,8 +219,8 @@ see revision 4.]
 | Security / architecture (revision 3) | dradoaica | 2026-10-19 |
 | Service owner (revision 4)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 4) | dradoaica | 2026-10-19 |
-| Service owner (revision 5)           |           |            |
-| Security / architecture (revision 5) |           |            |
+| Service owner (revision 5)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 5) | dradoaica | 2026-10-19 |
 
 ## Sources
 

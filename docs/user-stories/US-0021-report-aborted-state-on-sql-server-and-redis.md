@@ -3,7 +3,7 @@ id: US-0021
 status: In progress
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Should"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0002", "ADR-0023", "US-003", "US-005", "US-006", "US-0018" ]
@@ -65,7 +65,7 @@ None: state reporting only.
 - [x] Acceptance criteria met – `SqlServerProvider.cs`, `RedisProvider.cs` (`aborted`), `RebalancerClientHealthCheck.cs`;
   tests `AbortedStateTests` (unit, SQL Server), `RedisAbortedStateTests` (integration, Redis),
   `RebalancerClientHealthCheckTests.AnAbortFollowedByANewAssignment_IsHealthyAgain` (fails without the fix)
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [ ] Docs / runbooks updated if needed
 - [ ] Traceable to change record (if released) - `docs/change-records/…`
 

@@ -55,9 +55,9 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 
 | Threat model | Status | Scope |
 |--------------|--------|-------|
-| [TM-0001](threat-models/TM-0001-zookeeper-coordination-and-acl.md) | **Accepted** revisions 1–2 | ZooKeeper coordination and ACLs |
-| [TM-0002](threat-models/TM-0002-sql-server-coordination.md) | **Accepted** revisions 1–2 | SQL Server coordination (`RBR` schema) |
-| [TM-0003](threat-models/TM-0003-redis-coordination.md) | **Accepted** revisions 1–4 | Redis coordination (`RBR` keys) |
+| [TM-0001](threat-models/TM-0001-zookeeper-coordination-and-acl.md) | **Accepted** revisions 1–3 | ZooKeeper coordination and ACLs |
+| [TM-0002](threat-models/TM-0002-sql-server-coordination.md) | **Accepted** revisions 1–3 | SQL Server coordination (`RBR` schema) |
+| [TM-0003](threat-models/TM-0003-redis-coordination.md) | **Accepted** revisions 1–5 | Redis coordination (`RBR` keys) |
 
 ### Stories without a single ADR (tooling / quality)
 
