@@ -1,10 +1,10 @@
 ---
 id: ADR-0024
-status: Accepted
-date: 2026-10-19
+status: Proposed
+date: 2026-10-20
 decides: "the third-party package dependencies of the RabbitMQ example projects under examples/"
 owner: "dradoaica"
-approved-by: [ "dradoaica" ]            # set by a human only
+approved-by: [ ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -13,7 +13,7 @@ supersedes: [ ]
 superseded-by: ""
 ---
 
-# Dependencies of the RabbitMQ example projects
+# Dependencies of the RabbitMQ example projects: add a super-streams example, remove Consul
 
 ## Context and Problem Statement
 
@@ -25,62 +25,68 @@ Tier 1 by default (`.agents/AGENTS.md`, triage rules), also in an example that i
 
 This record decides which packages the example projects may reference.
 
-**Facts (verified 2026-10-19, NuGet):**
+**Facts (verified 2026-10-19/20):**
 
-* `RabbitMQ.Stream.Client` 1.12.2 is the latest stable release; it targets net8.0, net9.0 and net10.0 (the examples
-  target net10.0). Its license is **Apache-2.0 AND MPL-2.0** (both apply), whereas `RabbitMQ.Client` 7.2.2, used today,
-  is **Apache-2.0 OR MPL-2.0** (either may be chosen).
-* `examples/Rebalancer.RabbitMq.Tools` references `Consul` 1.8.0, but no example source file uses it.
-* Super-stream support and single active consumer in `RabbitMQ.Stream.Client`: unverified – please confirm against the
-  client's documentation before implementation.
+* `RabbitMQ.Stream.Client` 1.12.2 (NuGet, latest stable) targets net8.0, net9.0 and net10.0 (the examples target
+  net10.0). Its license is **Apache-2.0 AND MPL-2.0** (both apply), whereas `RabbitMQ.Client` 7.2.2, used today, is
+  **Apache-2.0 OR MPL-2.0** (either may be chosen).
+* Its documentation shows super streams (`StreamSystem.CreateSuperStream`, `PartitionsSuperStreamSpec`), a routed
+  producer (`ProducerConfig.SuperStreamConfig.Routing`) and a consumer group with single active consumer
+  (`ConsumerConfig.IsSuperStream`, `IsSingleActiveConsumer`, `Reference`, `ConsumerUpdateListener`, `StoreOffset`).
+  Super streams need RabbitMQ 3.11 or later with the `rabbitmq_stream` plugin.
+* `examples/Rebalancer.RabbitMq.Tools` referenced `Consul` 1.8.0, but no example source file used it (it only supplied
+  `Newtonsoft.Json` transitively).
 
 ## Decision Drivers
 
-* The repository's purpose is Rebalancer; examples should show how to use it, or when not to.
+* Readers can run and compare both options with the same scenario (US-0023).
 * No unused or unreviewed dependencies, also in examples (they are copied into real projects).
-* License obligations stay understood.
+* License obligations stay explicit.
 
 ## Considered Options
 
-* **A. Add `RabbitMQ.Stream.Client` 1.12.2 to a new example project for super streams (US-0023 as code), and remove the
-  unused `Consul` reference.**
-* **B. Document super streams instead of coding them:** a "RabbitMQ: Rebalancer or super streams?" guide that compares
-  A and B and links RabbitMQ's own super-stream documentation; no new dependency. Remove `Consul`.
+* **A. Runnable example:** add `RabbitMQ.Stream.Client` 1.12.2 to a new project
+  `examples/Rebalancer.RabbitMq.SuperStreamsExample` only; keep the guide; remove `Consul`.
+* **B. Guide only:** document super streams in a guide that links RabbitMQ's own examples; no new dependency; remove
+  `Consul`.
 * **C. Keep the dependencies as they are:** no super-streams material, `Consul` stays.
 
 ## Decision Outcome
 
-Chosen option: **B** (accepted by dradoaica, 2026-10-19).
+Proposed option: **A**, as requested by the maintainer on 2026-10-20 (this record first proposed B and was revised in
+place before reaching the shared trunk).
 
-The strongest argument against B is that a guide cannot be run: a working super-streams example next to the option A
-example would let readers compare both on their own machine, which is what US-0023 asks for, and a code example is
-more convincing than prose. Given that, B is still proposed because the example would contain no Rebalancer code at
-all, so the repository would maintain, upgrade and license-review a client it does not otherwise use, purely to
-document an alternative to itself. RabbitMQ publishes and maintains super-stream examples; a guide that links them
-and states the trade-offs (ordering, dead-lettering, scaling pauses, replay) gives readers the decision they need
-without that cost. A remains the right choice if the maintainers want runnable side-by-side examples; then the
-license difference above must be accepted explicitly. C keeps an unused dependency.
+The strongest argument against A is B: the super-streams example contains no Rebalancer code, so the repository
+maintains, upgrades and license-reviews a client it does not otherwise use, to show an alternative to itself; and the
+stream client's "AND" license adds MPL-2.0 obligations that `RabbitMQ.Client` lets you avoid. Given that, A is still
+proposed because the maintainer wants both setups runnable side by side, and the cost is contained: one example
+project, not a library package; nothing that ships to NuGet references the stream client. C keeps an unused
+dependency.
 
-Under either A or B, `Consul` is removed from `Rebalancer.RabbitMq.Tools`.
+Under every option, `Consul` is removed from `Rebalancer.RabbitMq.Tools` (its transitive `Newtonsoft.Json` use is
+replaced by `System.Text.Json`).
 
 ### Consequences
 
-* Good, because no new package enters the repository, and an unused one leaves.
-* Good, because readers still get a clear answer to "Rebalancer or super streams?".
-* Bad, because option B cannot be tried from this repository; readers follow RabbitMQ's own examples.
-* Bad, because the guide must be kept current with RabbitMQ (feature versions are cited, not tested here).
+* Good, because both options of the guide can be run and compared (conversations, turns, a failing turn, a node
+  stopped or killed).
+* Good, because an unused dependency leaves the repository.
+* Bad, because the repository carries a stream client to keep current, under Apache-2.0 AND MPL-2.0.
+* Neutral: only the example project references it; library packages and their dependency graphs are unchanged.
 
 ### Confirmation
 
-* `dotnet list package` for both example projects shows no `Consul` and (B) no stream client.
-* The guide is linked from the README and the example README (US-0022).
+* `dotnet list package` shows `RabbitMQ.Stream.Client` only in `examples/Rebalancer.RabbitMq.SuperStreamsExample`, and
+  no `Consul` anywhere.
+* The super-streams example is verified manually like US-0022 (RabbitMQ 4.x with the stream plugin): order per
+  conversation holds when a consumer is stopped or killed.
 
 ## Pros and Cons of the Options
 
-### A. Code example with the stream client
+### A. Runnable example
 
 * Good, because both options can be run and compared.
-* Bad, because of a new dependency with an "AND" license, and example code that does not use Rebalancer.
+* Bad, because of a new dependency with an "AND" license, in example code that does not use Rebalancer.
 
 ### B. Guide only
 
@@ -95,8 +101,8 @@ Under either A or B, `Consul` is removed from `Rebalancer.RabbitMq.Tools`.
 
 * Stories: [US-0022](../user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md) (option A example,
   existing packages), [US-0023](../user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md)
-  (option B, shape depends on this record).
+  (guide and super-streams example).
 * Existing examples: [US-008](../user-stories/US-008-run-rabbitmq-example-with-sql-server-backend.md),
   [US-009](../user-stories/US-009-rabbitmq-tools-cli-for-queue-setup.md).
-* RabbitMQ feature versions (single active consumer 3.8, super streams 3.11) are from memory: unverified – please
-  confirm when writing the guide.
+* Client documentation: https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
+* Guide: [RabbitMQ: ordered consumer groups](../guides/rabbitmq-ordered-consumer-groups.md).
