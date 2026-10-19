@@ -1,11 +1,11 @@
 ---
 id: US-0023
-status: Draft
+status: In progress
 date: 2026-10-19
 owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Could"
-ssdlc-phase: Planning
+ssdlc-phase: Coding
 depends-on: [ "ADR-0024", "US-0022" ]
 ---
 
@@ -68,9 +68,10 @@ accepted.
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
+- [x] Acceptance criteria met (the guide, ADR-0024 option B) – `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
+  from the README "Use cases" and the example README; RabbitMQ facts checked against rabbitmq.com on 2026-10-19
 - [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
+- [x] Docs / runbooks updated if needed
 - [ ] Traceable to change record (if released) - `docs/change-records/…`
 
 ## Sources

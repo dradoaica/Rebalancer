@@ -11,14 +11,12 @@ internal static class Program
         if (args.Length == 0)
         {
             LogError("Invalid command");
-            Environment.ExitCode = 1;
+            return 1;
         }
 
         var builder = new ConfigurationBuilder().AddCommandLine(args);
         var configuration = builder.Build();
         var command = GetMandatoryArg(configuration, "Command");
-        var backend = GetMandatoryArg(configuration, "Backend");
-        var connection = GetMandatoryArg(configuration, "ConnString");
         RabbitConnection rabbitConn = new()
         {
             Host = GetOptionalArg(configuration, "RabbitHost", "localhost"),
@@ -28,28 +26,46 @@ internal static class Program
             Port = int.Parse(GetOptionalArg(configuration, "RabbitPort", "5672")),
             ManagementPort = int.Parse(GetOptionalArg(configuration, "RabbitMgmtPort", "15672")),
         };
-        QueueInventory queueInventory = new()
-        {
-            ConsumerGroup = GetMandatoryArg(configuration, "ConsumerGroup"),
-            ExchangeName = GetMandatoryArg(configuration, "ExchangeName"),
-            QueueCount = int.Parse(GetMandatoryArg(configuration, "QueueCount")),
-            QueuePrefix = GetMandatoryArg(configuration, "QueuePrefix"),
-            LeaseExpirySeconds = int.Parse(GetMandatoryArg(configuration, "LeaseExpirySeconds")),
-        };
         if (command.Equals("create", StringComparison.OrdinalIgnoreCase))
         {
+            var backend = GetMandatoryArg(configuration, "Backend");
+            QueueInventory queueInventory = new()
+            {
+                ConsumerGroup = GetMandatoryArg(configuration, "ConsumerGroup"),
+                ExchangeName = GetMandatoryArg(configuration, "ExchangeName"),
+                QueueCount = int.Parse(GetMandatoryArg(configuration, "QueueCount")),
+                QueuePrefix = GetMandatoryArg(configuration, "QueuePrefix"),
+                LeaseExpirySeconds = int.Parse(GetMandatoryArg(configuration, "LeaseExpirySeconds")),
+                HeartbeatSeconds = int.Parse(GetOptionalArg(configuration, "HeartbeatSeconds", "25")),
+                DeliveryLimit = int.Parse(GetOptionalArg(configuration, "DeliveryLimit", "5")),
+            };
             if (backend.Equals("mssql", StringComparison.OrdinalIgnoreCase))
             {
-                await DeployQueuesWithSqlBackend(connection, rabbitConn, queueInventory).ConfigureAwait(false);
+                await DeployQueuesWithSqlBackend(GetMandatoryArg(configuration, "ConnString"), rabbitConn, queueInventory)
+                    .ConfigureAwait(false);
             }
             else
             {
                 LogWarn("Only mssql backend is supported");
             }
         }
+        else if (command.Equals("publish", StringComparison.OrdinalIgnoreCase))
+        {
+            await MessageManager.PublishConversationsAsync(
+                rabbitConn,
+                GetMandatoryArg(configuration, "ExchangeName"),
+                int.Parse(GetOptionalArg(configuration, "Conversations", "20")),
+                int.Parse(GetOptionalArg(configuration, "Turns", "10"))
+            );
+        }
+        else if (command.Equals("unblock", StringComparison.OrdinalIgnoreCase))
+        {
+            QueueManager.Initialize(GetMandatoryArg(configuration, "ConnString"), rabbitConn);
+            QueueManager.Unblock(GetMandatoryArg(configuration, "Conversation"));
+        }
         else
         {
-            LogWarn("Only create command is supported");
+            LogWarn("Commands: create, publish, unblock");
         }
 
         return 0;
@@ -64,7 +80,9 @@ internal static class Program
         try
         {
             QueueManager.Initialize(connection, rabbitConn);
-            QueueManager.EnsureResourceGroup(queueInventory.ConsumerGroup, queueInventory.LeaseExpirySeconds);
+            QueueManager.EnsureResourceGroup(queueInventory.ConsumerGroup, queueInventory.LeaseExpirySeconds, queueInventory.HeartbeatSeconds);
+            QueueManager.EnsureConversationTable();
+            await QueueManager.EnsureDeadLetteringAsync(queueInventory);
             LogInfo("Phase 1 - Reconcile Backend with existing RabbitMQ queues ---------");
             QueueManager.ReconcileQueuesSqlAsync(queueInventory.ConsumerGroup, queueInventory.QueuePrefix).Wait();
             LogInfo("Phase 2 - Ensure supplied queue count is deployed ---------");
@@ -83,11 +101,7 @@ internal static class Program
                 var queuesToAdd = queueInventory.QueueCount - existingQueues.Count;
                 for (var i = 0; i < queuesToAdd; i++)
                 {
-                    await QueueManager.AddQueueSqlAsync(
-                            queueInventory.ConsumerGroup,
-                            queueInventory.ExchangeName,
-                            queueInventory.QueuePrefix
-                        )
+                    await QueueManager.AddQueueSqlAsync(queueInventory.ConsumerGroup, queueInventory)
                         .ConfigureAwait(false);
                 }
             }

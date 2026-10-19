@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Rebalancer.RabbitMq.Tools;
@@ -28,7 +28,7 @@ public static class QueueManager
             new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
     }
 
-    public static void EnsureResourceGroup(string resourceGroup, int leaseExpirySeconds)
+    public static void EnsureResourceGroup(string resourceGroup, int leaseExpirySeconds, int heartbeatSeconds)
     {
         var rgExists = false;
         using SqlConnection conn = new(connStr);
@@ -42,9 +42,10 @@ public static class QueueManager
         {
             command.Parameters.Clear();
             command.CommandText =
-                "INSERT INTO RBR.ResourceGroups(ResourceGroup, FencingToken, LeaseExpirySeconds) VALUES(@ResourceGroup, 1, @LeaseExpirySeconds)";
+                "INSERT INTO RBR.ResourceGroups(ResourceGroup, FencingToken, LeaseExpirySeconds, HeartbeatSeconds) VALUES(@ResourceGroup, 1, @LeaseExpirySeconds, @HeartbeatSeconds)";
             command.Parameters.Add("ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
             command.Parameters.Add("LeaseExpirySeconds", SqlDbType.Int).Value = leaseExpirySeconds;
+            command.Parameters.Add("HeartbeatSeconds", SqlDbType.Int).Value = heartbeatSeconds;
             command.ExecuteNonQuery();
             Console.WriteLine("Created consumer group");
         }
@@ -52,9 +53,10 @@ public static class QueueManager
         {
             command.Parameters.Clear();
             command.CommandText =
-                "UPDATE RBR.ResourceGroups SET LeaseExpirySeconds = @LeaseExpirySeconds WHERE ResourceGroup = @ResourceGroup";
+                "UPDATE RBR.ResourceGroups SET LeaseExpirySeconds = @LeaseExpirySeconds, HeartbeatSeconds = @HeartbeatSeconds WHERE ResourceGroup = @ResourceGroup";
             command.Parameters.Add("ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
             command.Parameters.Add("LeaseExpirySeconds", SqlDbType.Int).Value = leaseExpirySeconds;
+            command.Parameters.Add("HeartbeatSeconds", SqlDbType.Int).Value = heartbeatSeconds;
             command.ExecuteNonQuery();
             Console.WriteLine("Consumer group exists");
         }
@@ -85,13 +87,55 @@ public static class QueueManager
         }
     }
 
-    public static async Task AddQueueSqlAsync(string resourceGroup, string exchangeName, string queuePrefix)
+    /// <summary>
+    ///     The conversation table of the example consumer: the last processed turn per conversation, and whether the
+    ///     conversation is blocked after a failed turn (US-0022).
+    /// </summary>
+    public static void EnsureConversationTable()
     {
+        using SqlConnection conn = new(connStr);
+        conn.Open();
+        var command = conn.CreateCommand();
+        command.CommandText = """
+                              IF SCHEMA_ID('Example') IS NULL EXEC('CREATE SCHEMA Example');
+                              IF OBJECT_ID('Example.ConversationTurns') IS NULL
+                                  CREATE TABLE Example.ConversationTurns (
+                                      ConversationId varchar(200) NOT NULL PRIMARY KEY,
+                                      LastTurn int NOT NULL,
+                                      Blocked bit NOT NULL);
+                              """;
+        command.ExecuteNonQuery();
+    }
+
+    public static void Unblock(string conversationId)
+    {
+        using SqlConnection conn = new(connStr);
+        conn.Open();
+        var command = conn.CreateCommand();
+        command.CommandText = "UPDATE Example.ConversationTurns SET Blocked = 0 WHERE ConversationId = @ConversationId";
+        command.Parameters.Add("ConversationId", SqlDbType.VarChar, 200).Value = conversationId;
+        Console.WriteLine(command.ExecuteNonQuery() == 1 ? $"Unblocked {conversationId}" : $"{conversationId} not found");
+    }
+
+    /// <summary>The fanout dead-letter exchange and its quorum queue; failed and parked messages end here.</summary>
+    public static async Task EnsureDeadLetteringAsync(QueueInventory inventory, string vhost = "%2f")
+    {
+        await PutAsync($"exchanges/{vhost}/{inventory.DeadLetterExchange}",
+            "{\"type\":\"fanout\",\"durable\":true,\"auto_delete\":false,\"internal\":false,\"arguments\":{}}");
+        await PutAsync($"queues/{vhost}/{inventory.DeadLetterQueue}",
+            "{\"durable\":true,\"arguments\":{\"x-queue-type\":\"quorum\"}}");
+        await PostAsync($"bindings/{vhost}/e/{inventory.DeadLetterExchange}/q/{inventory.DeadLetterQueue}",
+            "{\"routing_key\":\"\",\"arguments\":{}}");
+    }
+
+    public static async Task AddQueueSqlAsync(string resourceGroup, QueueInventory inventory)
+    {
+        var queuePrefix = inventory.QueuePrefix;
         var lastQueue = await GetMaxQueueAsync(queuePrefix);
         if (lastQueue == null)
         {
             var queueName = queuePrefix + "_0001";
-            await PutQueueRabbitMqAsync(exchangeName, queueName);
+            await PutQueueRabbitMqAsync(inventory, queueName);
             InsertQueueSql(resourceGroup, queueName);
             Console.WriteLine($"Queue {queueName} added to consumer group {resourceGroup}");
         }
@@ -100,7 +144,7 @@ public static class QueueManager
             var qNumber = lastQueue[(lastQueue.IndexOf("_") + 1)..];
             var nextNumber = int.Parse(qNumber) + 1;
             var queueName = queuePrefix + "_" + nextNumber.ToString().PadLeft(4, '0');
-            await PutQueueRabbitMqAsync(exchangeName, queueName);
+            await PutQueueRabbitMqAsync(inventory, queueName);
             InsertQueueSql(resourceGroup, queueName);
             Console.WriteLine($"Queue {queueName} added to consumer group {resourceGroup}");
         }
@@ -127,13 +171,16 @@ public static class QueueManager
         return queuesRabbit.MaxBy(x => x);
     }
 
+    // "{prefix}_" so the group's dead-letter queue ("{exchange}.dlq") never counts as a partition queue
     private static async Task<List<string>> GetQueuesFromRabbitMqAsync(string queuePrefix)
     {
         var response = await client.GetAsync("queues");
-        var json = await response.Content.ReadAsStringAsync();
-        var queues = JArray.Parse(json);
-        var queueNames = queues.Select(x => x["name"].Value<string>()).Where(x => x.StartsWith(queuePrefix)).ToList();
-        return queueNames;
+        response.EnsureSuccessStatusCode();
+        using var queues = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return queues.RootElement.EnumerateArray()
+            .Select(x => x.GetProperty("name").GetString())
+            .Where(x => x.StartsWith(queuePrefix + "_", StringComparison.Ordinal))
+            .ToList();
     }
 
     private static List<string> GetQueuesFromSqlServer(string resourceGroup)
@@ -153,43 +200,45 @@ public static class QueueManager
         return queues;
     }
 
-    private static async Task PutQueueRabbitMqAsync(string exchange, string queueName, string vhost = "%2f")
+    // a quorum queue per partition (US-0022): the broker allows one active consumer (single active consumer), counts
+    // deliveries, and dead-letters a message after DeliveryLimit deliveries, at least once
+    private static async Task PutQueueRabbitMqAsync(QueueInventory inventory, string queueName, string vhost = "%2f")
     {
-        if (vhost == "/")
+        await PutAsync($"exchanges/{vhost}/{inventory.ExchangeName}",
+            "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}");
+        await PutAsync($"queues/{vhost}/{queueName}", JsonSerializer.Serialize(new
         {
-            vhost = "%2f";
-        }
+            durable = true,
+            arguments = new Dictionary<string, object>
+            {
+                ["x-queue-type"] = "quorum",
+                ["x-single-active-consumer"] = true,
+                ["x-delivery-limit"] = inventory.DeliveryLimit,
+                ["x-dead-letter-exchange"] = inventory.DeadLetterExchange,
+                ["x-dead-letter-strategy"] = "at-least-once",
+                ["x-overflow"] = "reject-publish", // required by at-least-once dead-lettering
+            },
+        }));
+        // equal weights: the consistent-hash exchange spreads routing keys (conversation IDs) evenly
+        await PostAsync($"bindings/{vhost}/e/{inventory.ExchangeName}/q/{queueName}",
+            "{\"routing_key\":\"10\",\"arguments\":{}}");
+    }
 
-        StringContent createExchangeContent = new(
-            "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}",
-            Encoding.UTF8,
-            "application/json"
-        );
-        var createExchangeResponse = await client.PutAsync($"exchanges/{vhost}/{exchange}", createExchangeContent);
-        if (!createExchangeResponse.IsSuccessStatusCode)
+    private static async Task PutAsync(string path, string json)
+    {
+        var response = await client.PutAsync(path, new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode)
         {
-            throw new Exception("Failed to create exchange");
+            throw new Exception($"PUT {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
         }
+    }
 
-        StringContent createQueueContent = new("{ \"durable\":true}", Encoding.UTF8, "application/json");
-        var createQueueResponse = await client.PutAsync($"queues/{vhost}/{queueName}", createQueueContent);
-        if (!createQueueResponse.IsSuccessStatusCode)
+    private static async Task PostAsync(string path, string json)
+    {
+        var response = await client.PostAsync(path, new StringContent(json, Encoding.UTF8, "application/json"));
+        if (!response.IsSuccessStatusCode)
         {
-            throw new Exception("Failed to create queue");
-        }
-
-        StringContent createBindingsContent = new(
-            "{\"routing_key\":\"10\",\"arguments\":{}}",
-            Encoding.UTF8,
-            "application/json"
-        );
-        var createBindingsResponse = await client.PostAsync(
-            $"bindings/{vhost}/e/{exchange}/q/{queueName}",
-            createBindingsContent
-        );
-        if (!createBindingsResponse.IsSuccessStatusCode)
-        {
-            throw new Exception("Failed to create exchange to queue bindings");
+            throw new Exception($"POST {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
         }
     }
 

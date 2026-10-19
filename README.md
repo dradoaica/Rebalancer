@@ -6,7 +6,9 @@ a group of participating nodes.
 
 ## Use cases
 
-- Create Kafka-like "consumer groups" with messaging technologies like RabbitMQ, SQS, etc.
+- Create Kafka-like "consumer groups" with messaging technologies like RabbitMQ, SQS, etc. On RabbitMQ 3.8+ read
+  [RabbitMQ: ordered consumer groups with Rebalancer or with super streams](docs/guides/rabbitmq-ordered-consumer-groups.md)
+  first: single active consumer and super streams now cover much of this natively.
 
 - Consume a group of resources such as file shares, FTPs, S3 buckets between the instances of a scaled-out application.
 

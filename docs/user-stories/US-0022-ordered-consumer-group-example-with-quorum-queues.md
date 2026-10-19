@@ -1,11 +1,11 @@
 ---
 id: US-0022
-status: Draft
+status: In progress
 date: 2026-10-19
 owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Should"
-ssdlc-phase: Planning
+ssdlc-phase: Coding
 depends-on: [ "ADR-0002", "ADR-0019", "ADR-0021", "US-008", "US-009" ]
 ---
 
@@ -33,7 +33,10 @@ broker enforces one consumer per queue (single active consumer) and Rebalancer o
 2. `Rebalancer.RabbitMq.Tools publish` sends M conversations × T turns with the conversation ID as routing key and the
    turn number in the message, so per-conversation order can be checked.
 3. The consumer acknowledges manually, sets prefetch 1 per queue and handles one message at a time per queue; a failed
-   message is negatively acknowledged with requeue, so the delivery limit and dead-lettering apply.
+   turn is retried in the consumer (up to the delivery limit, with a short back-off) and then rejected without requeue,
+   so it is dead-lettered. (Corrected 2026-10-19 before approval: on RabbitMQ 4.x `basic.nack` with requeue does not
+   count toward `x-delivery-limit` (observed with 4.3.6; RabbitMQ's quorum-queue documentation); retrying in the
+   consumer keeps order and the limit stays the backstop for redeliveries after a consumer crash.)
 4. The consumer keeps the last processed turn per conversation in SQL Server and updates it conditionally; a stale or
    duplicate turn is acknowledged and skipped. A conversation whose turn was dead-lettered is marked blocked; its later
    turns are rejected without requeue (parked in the dead-letter queue) until an operator unblocks it.
@@ -72,9 +75,11 @@ Example only. Credentials come from arguments or environment, never from source;
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
+- [x] Acceptance criteria met – `examples/Rebalancer.RabbitMq.Tools` (`create`, `publish`, `unblock`),
+  `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend` (`QueueConsumers`, `ConversationGuard`, `Settings`); criterion 8
+  verified manually on 2026-10-19 (RabbitMQ 4.3.6, SQL Server 2022), results in the example README
 - [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
+- [x] Docs / runbooks updated if needed – example README, US-008/US-009 notes
 - [ ] Traceable to change record (if released) - `docs/change-records/…`
 
 ## Sources

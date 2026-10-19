@@ -1,132 +1,70 @@
-﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+using RabbitMQ.Client;
 using Rebalancer.Core;
 using Rebalancer.SqlServer;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
 
+/// <summary>
+///     An ordered consumer group on RabbitMQ (US-0022, "option A"): a consistent-hash exchange spreads conversations over
+///     quorum queues with single active consumer and dead-lettering; Rebalancer spreads the queues over the nodes; a
+///     turn-number guard in SQL Server keeps each conversation in order. See README.md.
+/// </summary>
 internal static class Program
 {
-    private static List<ClientTask> clientTasks;
-
-    public static async Task<int> Main(string[] args)
+    public static async Task<int> Main()
     {
-        await RunAsync().ConfigureAwait(false);
+        var settings = Settings.FromEnvironment();
+        void Log(string text) => Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff} [{settings.Node}] {text}");
+
+        var factory = new ConnectionFactory
+        {
+            HostName = settings.RabbitHost,
+            Port = settings.RabbitPort,
+            UserName = settings.RabbitUser,
+            Password = settings.RabbitPassword,
+            ClientProvidedName = $"rebalancer-example-{settings.Node}",
+        };
+        await using var connection = await factory.CreateConnectionAsync();
+        var consumers = new QueueConsumers(connection, settings, new ConversationGuard(settings.SqlConnectionString), Log);
+
+        using var client = new RebalancerClient(new SqlServerProvider(settings.SqlConnectionString));
+        // Rebalancer invokes these one after the other; waiting here keeps "stop old queues" before "start new ones"
+        client.OnAssignment += (_, args) =>
+        {
+            Log($"assigned: {string.Join(", ", args.Resources)}");
+            consumers.StartAsync(args.Resources).GetAwaiter().GetResult();
+        };
+        client.OnUnassignment += (_, _) =>
+        {
+            Log("unassigned");
+            consumers.StopAllAsync().GetAwaiter().GetResult();
+        };
+        // with AutoRecoveryOnError the client restarts after an error and is assigned again, so this only logs
+        client.OnAborted += (_, args) => Log($"error: {args.AbortReason} {args.Exception?.Message}");
+
+        // Ctrl+C and SIGTERM (docker stop, Kubernetes) stop the node cleanly: cancel the default termination, so the
+        // Rebalancer client stops and the consumers finish their current turn before the process exits
+        var stop = new TaskCompletionSource();
+        void OnSignal(PosixSignalContext context)
+        {
+            context.Cancel = true;
+            stop.TrySetResult();
+        }
+
+        using var sigint = PosixSignalRegistration.Create(PosixSignal.SIGINT, OnSignal);
+        using var sigterm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnSignal);
+
+        await client.StartAsync(settings.ConsumerGroup,
+            new ClientOptions { AutoRecoveryOnError = true, RestartDelay = TimeSpan.FromSeconds(5), });
+        Log($"started in group {settings.ConsumerGroup}; Ctrl+C to stop");
+        await stop.Task;
+
+        await client.StopAsync(TimeSpan.FromSeconds(30));
+        await consumers.StopAllAsync();
+        Log("stopped");
         return 0;
     }
-
-    private static async Task RunAsync()
-    {
-        clientTasks = [];
-        using RebalancerClient context = new(
-            new SqlServerProvider("Server=(local);Database=RabbitMqScaling;Trusted_Connection=true;")
-        );
-        context.OnAssignment += (sender, args) =>
-        {
-            var queues = context.GetAssignedResources();
-            foreach (var queue in queues.Resources)
-            {
-                StartConsuming(queue);
-            }
-        };
-        context.OnUnassignment += (sender, args) =>
-        {
-            LogInfo("Consumer subscription cancelled");
-            StopAllConsumption();
-        };
-        // with AutoRecoveryOnError the SQL Server client restarts after an error and is assigned again, so this only logs
-        context.OnAborted += (sender, args) =>
-        {
-            LogInfo($"Error: {args.AbortReason}, Exception: {args.Exception?.Message}");
-        };
-        await context.StartAsync(
-            "NotificationsGroup",
-            new ClientOptions
-            {
-                AutoRecoveryOnError = true,
-                RestartDelay = TimeSpan.FromSeconds(30),
-            }
-        );
-        LogInfo("Press enter to shutdown");
-        while (!Console.KeyAvailable)
-        {
-            Thread.Sleep(100);
-        }
-
-        StopAllConsumption();
-        Task.WaitAll(clientTasks.Select(x => x.Client).ToArray());
-    }
-
-    private static void StartConsuming(string queueName)
-    {
-        LogInfo("Subscription started for queue: " + queueName);
-        CancellationTokenSource cts = new();
-
-        var task = Task.Run(async () =>
-            {
-                try
-                {
-                    ConnectionFactory factory = new()
-                    {
-                        HostName = "localhost",
-                    };
-                    await using var connection = await factory.CreateConnectionAsync(cts.Token);
-                    await using var channel = await connection.CreateChannelAsync(cancellationToken: cts.Token);
-                    AsyncEventingBasicConsumer consumer = new(channel);
-                    consumer.ReceivedAsync += (_, ea) =>
-                    {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-                        LogInfo($"{queueName} Received {message}");
-                        return Task.CompletedTask;
-                    };
-                    await channel.BasicConsumeAsync(queueName, true, consumer, cts.Token);
-                    while (!cts.Token.IsCancellationRequested)
-                    {
-                        Thread.Sleep(100);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex.ToString());
-                }
-
-                if (cts.Token.IsCancellationRequested)
-                {
-                    LogInfo("Cancellation signal received for " + queueName);
-                }
-                else
-                {
-                    LogInfo("Consumer stopped for " + queueName);
-                }
-            }
-        );
-        clientTasks.Add(
-            new ClientTask
-            {
-                Cts = cts,
-                Client = task,
-            }
-        );
-    }
-
-    private static void StopAllConsumption()
-    {
-        foreach (var ct in clientTasks)
-        {
-            ct.Cts.Cancel();
-        }
-    }
-
-    private static void LogInfo(string text) =>
-        Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {text}");
-
-    private static void LogError(string text) =>
-        Console.WriteLine($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR  : {text}");
 }

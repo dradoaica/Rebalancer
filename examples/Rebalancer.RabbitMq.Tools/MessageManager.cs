@@ -1,56 +1,24 @@
-﻿using RabbitMQ.Client;
+using RabbitMQ.Client;
 using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Rebalancer.RabbitMq.Tools;
 
-public class MessageManager
+/// <summary>Publishes test conversations for the ordered consumer group example (US-0022).</summary>
+public static class MessageManager
 {
-    private static HttpClient client;
-    private static RabbitConnection rabbitConn;
-
-    public static void Initialize(RabbitConnection rabbitConnection)
-    {
-        client.BaseAddress = new Uri($"http://{rabbitConnection.Host}:{rabbitConnection.ManagementPort}/api/");
-        client = new HttpClient();
-        var byteArray = Encoding.ASCII.GetBytes($"{rabbitConnection.Username}:{rabbitConnection.Password}");
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-        rabbitConn = rabbitConnection;
-    }
-
-    public static async Task SendMessagesViaHttpAsync(
+    /// <summary>
+    ///     Publishes <paramref name="turns" /> turns of each of <paramref name="conversations" /> conversations, turn by
+    ///     turn, with the conversation ID as routing key, so the consistent-hash exchange keeps a conversation in one
+    ///     queue. Waits for each publisher confirm: with <c>x-overflow: reject-publish</c> a full queue rejects a message.
+    /// </summary>
+    public static async Task PublishConversationsAsync(
+        RabbitConnection rabbitConn,
         string exchange,
-        string routingKeyPrefix,
-        int count,
-        string vhost = "%2f"
+        int conversations,
+        int turns
     )
-    {
-        if (vhost == "/")
-        {
-            vhost = "%2f";
-        }
-
-        for (var i = 0; i < count; i++)
-        {
-            var routingKey = routingKeyPrefix + i;
-            StringContent content = new(
-                "{\"properties\":{},\"routing_key\":\"" +
-                routingKey +
-                "\",\"payload\":\"" +
-                routingKey +
-                "\",\"payload_encoding\":\"string\"}",
-                Encoding.UTF8,
-                "application/json"
-            );
-            var response = await client.PostAsync($"exchanges/{vhost}/{exchange}/publish", content);
-        }
-    }
-
-    public static async Task SendMessagesViaClient(string exchange, string routingKeyPrefix, int count)
     {
         ConnectionFactory factory = new()
         {
@@ -61,13 +29,20 @@ public class MessageManager
             Password = rabbitConn.Password,
         };
         await using var connection = await factory.CreateConnectionAsync();
-        await using var channel = await connection.CreateChannelAsync();
-        for (var i = 0; i < count; i++)
+        await using var channel = await connection.CreateChannelAsync(
+            new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true)
+        );
+        var properties = new BasicProperties { Persistent = true, ContentType = "application/json", };
+        for (var turn = 1; turn <= turns; turn++)
         {
-            var routingKey = routingKeyPrefix + i;
-            var message = routingKeyPrefix + i;
-            var body = Encoding.UTF8.GetBytes(message);
-            await channel.BasicPublishAsync(exchange, routingKey, body);
+            for (var c = 1; c <= conversations; c++)
+            {
+                var conversationId = $"conversation-{c}";
+                var body = JsonSerializer.SerializeToUtf8Bytes(new { conversationId, turn, });
+                await channel.BasicPublishAsync(exchange, conversationId, false, properties, body);
+            }
         }
+
+        Console.WriteLine($"Published {conversations} conversations x {turns} turns to {exchange}");
     }
 }

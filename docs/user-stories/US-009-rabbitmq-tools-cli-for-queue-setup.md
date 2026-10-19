@@ -66,3 +66,10 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - `examples/Rebalancer.RabbitMq.Tools/Program.cs`
 - `examples/Rebalancer.RabbitMq.Tools/RabbitConnection.cs` (and related types)
 - `README.md`
+
+## Note (2026-10-19)
+
+Superseded in part by [US-0022](US-0022-ordered-consumer-group-example-with-quorum-queues.md): the example now uses
+quorum queues with single active consumer and dead-lettering, manual acknowledgement and a turn guard; the tools gained
+`publish` and `unblock` and declare the new queue arguments.
+

@@ -31,7 +31,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0022](adrs/0022-rebalancing-telemetry-contract.md) | Telemetry contract: System.Diagnostics metrics and traces | US-0017 | `src/Rebalancer.Core/RebalancerTelemetry.cs`, `RebalancerClient.cs`, backends' coordinators and providers | `tests/Rebalancer.UnitTests` (`RebalancerClientTelemetryTests`), `tests/Rebalancer.IntegrationTests` (`*TelemetryTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
 | [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018, US-0021 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
 | [0025](adrs/0025-pin-patched-system-security-cryptography-pkcs.md) | Pin patched System.Security.Cryptography.Pkcs (CVE-2026-84008) | US-005 | `src/Rebalancer.SqlServer/Rebalancer.SqlServer.csproj` | vulnerability scan; unit and SQL Server integration tests | **Accepted**; 4.2.1 (CR-0009, Implemented) |
-| [0024](adrs/0024-dependencies-of-the-rabbitmq-examples.md) | Dependencies of the RabbitMQ example projects | US-0022, US-0023 | `examples/` | not implemented | **Accepted** (guide instead of a stream-client example; remove unused `Consul`) |
+| [0024](adrs/0024-dependencies-of-the-rabbitmq-examples.md) | Dependencies of the RabbitMQ example projects | US-0022, US-0023 | `examples/Rebalancer.RabbitMq.*`, `docs/guides/rabbitmq-ordered-consumer-groups.md` | manual run (example README) | **Accepted**; implemented (guide; `Consul` removed) |
 
 ### Release records
 
@@ -79,6 +79,8 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | Story | Title | Links | Locations |
 |-------|-------|-------|-----------|
 | [US-009](user-stories/US-009-rabbitmq-tools-cli-for-queue-setup.md) | RabbitMQ tools CLI | README | `examples/Rebalancer.RabbitMq.Tools/` |
+| [US-0022](user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md) | Ordered consumer group example (option A) | ADR-0002, ADR-0019, ADR-0021, ADR-0024 | `examples/Rebalancer.RabbitMq.*` |
+| [US-0023](user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md) | Rebalancer or super streams guide | ADR-0024 | `docs/guides/rabbitmq-ordered-consumer-groups.md` |
 
 ### v2 documentation slice
 
