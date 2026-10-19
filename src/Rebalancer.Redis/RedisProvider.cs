@@ -36,6 +36,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     private readonly ResourceGroupStore store;
     private Guid clientId;
     private volatile bool isCoordinator;
+    private volatile bool aborted;
     private Task mainTask;
     private string resourceGroup;
     private bool started;
@@ -186,6 +187,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                             }
                             else
                             {
+                                aborted = true; // gave up after an error: GetState reports Aborted (US-0021)
                                 break;
                             }
                         }
@@ -247,6 +249,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         }
                         else
                         {
+                            aborted = true; // gave up after an error: GetState reports Aborted (US-0021)
                             break;
                         }
                     }
@@ -284,6 +287,11 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     /// </summary>
     public AssignedResources GetAssignedResources()
     {
+        if (aborted)
+        {
+            return new AssignedResources { Resources = new List<string>(), ClientState = ClientState.Aborted, };
+        }
+
         var response = store.GetResources();
         return new AssignedResources
         {
@@ -294,6 +302,11 @@ public class RedisProvider : IRebalancerProvider, IDisposable
 
     public ClientState GetState()
     {
+        if (aborted)
+        {
+            return ClientState.Aborted;
+        }
+
         if (started)
         {
             var response = store.GetResources();

@@ -95,6 +95,10 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
     (2) ADR-0019 option C, a fencing token for resource handlers, the only full fix (needs its own decision record).
     Closing this record requires an owner for both; until then they stay in the corrective-actions table.
   - **Governance change:** N/A. This is a protocol defect, found by design review; no rule, skill or persona gap.
+- **Status of the open follow-ups (appended 2026-10-19):** both are resolved; this record stays closed. (1) The pause
+  integration test exists: `SqlServerPausedNodeTests` / `RedisPausedNodeTests` (released in 3.2.0, CR-0005), plus the
+  randomised runs (US-0019, 4.1.0). (2) Option C was decided in ADR-0021: option D, no fencing token for now; revisit
+  on consumer demand. The corrective-actions table above shows the same.
 
 ## Sources
 

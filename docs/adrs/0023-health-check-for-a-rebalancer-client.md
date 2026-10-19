@@ -130,3 +130,12 @@ or connection details.
 * Out of scope here: making SQL Server and Redis report `ClientState.Aborted`; that would be a behavior change worth its
   own story.
 * Release: a minor version (new package, additive). Implementation follows only after this record is Accepted.
+
+## Note (2026-10-19, after 4.1.0)
+
+Finding 2 was incomplete: SQL Server and Redis raise `OnAborted` also for errors they recover from (auto-recovery on),
+not only for final ones. The 4.1.0 check therefore stayed `Unhealthy` after a recovered error. Fixed under US-0021:
+the check clears the abort when the client is assigned again, so the table's first row reads "after `OnAborted`,
+until the client is assigned again"; SQL Server and Redis now also report `ClientState.Aborted` after a final error.
+The decision (option A) is unchanged. Appended at dradoaica's request (follow-up of the open-topics review).
+

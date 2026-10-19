@@ -29,7 +29,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0020](adrs/0020-per-group-redis-leases-and-resources.md) | Per-group Redis keys for leases and resource lists | US-0016 (3.x warning), US-0020 (4.0) | `src/Rebalancer.Redis/Utils/PerGroupKeyMigration.cs`, `Leases/`, `Clients/`, `Resources/` | `tests/Rebalancer.IntegrationTests/Redis/` (`RedisPerGroupKeysTests`, `RedisClientRecordTests`) | **Accepted**; 3.x warning in 3.2.0 (CR-0005, Implemented), layout in 4.0.0 (CR-0006, Implemented) |
 | [0021](adrs/0021-assignment-generation-for-resource-handlers.md) | No fencing token for resource handlers for now | US-002 | none (option D) | `*PausedNodeTests` (window of ADR-0019) | **Accepted** (2026-10-19), option D; revisit on consumer demand |
 | [0022](adrs/0022-rebalancing-telemetry-contract.md) | Telemetry contract: System.Diagnostics metrics and traces | US-0017 | `src/Rebalancer.Core/RebalancerTelemetry.cs`, `RebalancerClient.cs`, backends' coordinators and providers | `tests/Rebalancer.UnitTests` (`RebalancerClientTelemetryTests`), `tests/Rebalancer.IntegrationTests` (`*TelemetryTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
-| [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
+| [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018, US-0021 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
 
 ### Release records
 
@@ -51,13 +51,19 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 |--------|--------|--------|
 | [CR-0007](change-records/CR-0007-release-4-1-0.md) | **Implemented** (4.1.0, `a340daf`); [release notes](release-notes/4.1.0.md) | ADR-0022, ADR-0023, US-0017..0019 (US-0019: `*RandomisedTests`, governed by ADR-0002 / ADR-0019) |
 
+### 4.2.0 records
+
+| Record | Status | Covers |
+|--------|--------|--------|
+| [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Approved** (4.2.0); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
+
 ### Threat models
 
 | Threat model | Status | Scope |
 |--------------|--------|-------|
-| [TM-0001](threat-models/TM-0001-zookeeper-coordination-and-acl.md) | **Accepted** revisions 1–2 | ZooKeeper coordination and ACLs |
-| [TM-0002](threat-models/TM-0002-sql-server-coordination.md) | **Accepted** revisions 1–2 | SQL Server coordination (`RBR` schema) |
-| [TM-0003](threat-models/TM-0003-redis-coordination.md) | **Accepted** revisions 1–4 | Redis coordination (`RBR` keys) |
+| [TM-0001](threat-models/TM-0001-zookeeper-coordination-and-acl.md) | **Accepted** revisions 1–3 | ZooKeeper coordination and ACLs |
+| [TM-0002](threat-models/TM-0002-sql-server-coordination.md) | **Accepted** revisions 1–3 | SQL Server coordination (`RBR` schema) |
+| [TM-0003](threat-models/TM-0003-redis-coordination.md) | **Accepted** revisions 1–5 | Redis coordination (`RBR` keys) |
 
 ### Stories without a single ADR (tooling / quality)
 

@@ -40,7 +40,13 @@ internal static class PerGroupKeyMigration
                 }
 
                 var shared = await db.ListRangeAsync(SharedResourcesKey);
-                var own = shared.Where(x => RedisHash.Decode<Resource>(x).ResourceGroup == resourceGroup).ToArray();
+                var own = shared.Where(x => RedisHash.TryDecode<Resource>(x)?.ResourceGroup == resourceGroup).ToArray();
+                var malformed = shared.Count(x => RedisHash.TryDecode<Resource>(x) == null);
+                if (malformed > 0)
+                {
+                    // left in the shared list: they belong to no group, and the move must not fail because of them
+                    logger.Warn(clientId, $"Skipped {malformed} malformed entr(y/ies) in {SharedResourcesKey}");
+                }
 
                 var transaction = db.CreateTransaction();
                 transaction.AddCondition(Condition.KeyNotExists(leaseKey));

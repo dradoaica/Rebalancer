@@ -19,6 +19,7 @@ internal class ResourceService : IResourceService
     {
         // only this group's entries since 4.0 (ADR-0020), so the read no longer grows with other groups
         var values = await cache.ListRangeAsync(RedisHash.ResourcesKey(resourceGroup));
-        return values.Select(x => RedisHash.Decode<Resource>(x).ResourceName).ToList();
+        // a malformed entry is skipped rather than failing every heartbeat of the group
+        return values.Select(RedisHash.TryDecode<Resource>).Where(x => x?.ResourceName != null).Select(x => x.ResourceName).ToList();
     }
 }

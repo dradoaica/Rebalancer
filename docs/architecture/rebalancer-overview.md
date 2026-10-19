@@ -41,7 +41,7 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.1.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release history: [`docs/release-notes/`](../release-notes/).
+Current version: **4.2.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 
@@ -85,7 +85,8 @@ Keep the lease expiry (`LeaseExpirySeconds`) well above the longest pause a node
   the unassigned duration; the backends' coordinators record rebalances (with an activity per rebalance) and
   elections. Tags: backend and group; never resource names.
 - **Health** ([ADR-0023](../adrs/0023-health-check-for-a-rebalancer-client.md)): `RebalancerClientHealthCheck` in its own
-  package observes the host's client (state and `OnAborted`); it never calls the backend.
+  package observes the host's client (state, and `OnAborted` until the client is assigned again); it never calls the
+  backend. Since 4.2.0 all three backends report `ClientState.Aborted` after a final error (US-0021).
 
 ## Access control
 

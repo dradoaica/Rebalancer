@@ -28,6 +28,7 @@ public class SqlServerProvider : IRebalancerProvider
     private readonly ResourceGroupStore store;
     private Guid clientId;
     private volatile bool isCoordinator;
+    private volatile bool aborted;
     private Task mainTask;
     private string resourceGroup;
     private bool started;
@@ -173,6 +174,7 @@ public class SqlServerProvider : IRebalancerProvider
                             }
                             else
                             {
+                                aborted = true; // gave up after an error: GetState reports Aborted (US-0021)
                                 break;
                             }
                         }
@@ -234,6 +236,7 @@ public class SqlServerProvider : IRebalancerProvider
                         }
                         else
                         {
+                            aborted = true; // gave up after an error: GetState reports Aborted (US-0021)
                             break;
                         }
                     }
@@ -271,6 +274,11 @@ public class SqlServerProvider : IRebalancerProvider
     /// </summary>
     public AssignedResources GetAssignedResources()
     {
+        if (aborted)
+        {
+            return new AssignedResources { Resources = new List<string>(), ClientState = ClientState.Aborted, };
+        }
+
         var response = store.GetResources();
         return new AssignedResources
         {
@@ -281,6 +289,11 @@ public class SqlServerProvider : IRebalancerProvider
 
     public ClientState GetState()
     {
+        if (aborted)
+        {
+            return ClientState.Aborted;
+        }
+
         if (started)
         {
             var response = store.GetResources();

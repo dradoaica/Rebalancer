@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0003" ]
+depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -25,6 +25,16 @@ resource groups, and unbounded growth of the client table.
 - Since 3.0 the coordinator deletes stale client records, and a node deletes its own record on a clean stop
   (ADR-0014). This resolves the unbounded growth (D1).
 - The login now needs `DELETE` on `RBR.Clients`, which brings a new availability threat (D3).
+
+**Revision 3 (4.1.0, CR-0007; accepted by dradoaica, 2026-10-19):** telemetry and health checks (ADR-0022, ADR-0023).
+- **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
+  the rebalance activity, `rebalancer.fencing_token`. Resource names, node identifiers, connection strings and credentials are never
+  emitted (verified by the SQL Server telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
+  the telemetry backend learns group names, how often groups rebalance and coordinators change. Risk: **Low**; group
+  names are deployment-chosen labels. Mitigation: treat the telemetry backend as Internal data; drop or hash the group
+  tag in the collector where group names are sensitive.
+- **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
+  in-process state and never calls SQL Server.
 
 ## System context and boundaries
 
@@ -140,6 +150,7 @@ resource groups, and unbounded growth of the client table.
 ## Residual risk and acceptance
 
 - Residual risks after mitigations:
+  - **Telemetry exports group names** (revision 3): accepted as Low; filter in the collector if needed.
   - **No authentication of nodes beyond the login,** and no per-group isolation.
   - ~~**Unbounded `Clients` growth**~~ Resolved in 3.0 (ADR-0014).
   - **Client-row deletes by the login holder** cause rebalancing churn (D3), not double assignment.
@@ -168,6 +179,8 @@ resource groups, and unbounded growth of the client table.
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 2) | dradoaica | 2026-10-19 |
+| Service owner (revision 3)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 3) | dradoaica | 2026-10-19 |
 
 ## Sources
 
