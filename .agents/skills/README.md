@@ -13,6 +13,8 @@ model, etc.). Skills are meant to be followed **exactly**.
 
 ## Approved repository skills
 
+Imported skills follow `.agents/rules/10-imported-assets.md`; their provenance is recorded below.
+
 - **`ponytail`** (`.agents/skills/ponytail/SKILL.md`): Pragmatic senior developer execution mode (YAGNI, standard
   libraries, minimal complete diffs, ceiling annotations).
 - **`ponytail-review`** (`.agents/skills/ponytail-review/SKILL.md`): Quality and lean diff review (correctness, safety,
@@ -22,6 +24,12 @@ model, etc.). Skills are meant to be followed **exactly**.
   technical debt ledger.
 - **`ponytail-gain`** (`.agents/skills/ponytail-gain/SKILL.md`): Empirical benchmark scoreboard display.
 - **`ponytail-help`** (`.agents/skills/ponytail-help/SKILL.md`): Reference card for commands and configurations.
+
+### Provenance of imported skills
+
+| Skill(s)                     | Source                                                                | Version                                  | License | Imported   |
+|------------------------------|-----------------------------------------------------------------------|------------------------------------------|---------|------------|
+| `ponytail`, `ponytail-*` (6) | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | 09c434ab73ca43761c5d8b0c5d341926c2fba710 | MIT     | 2026-10-17 |
 
 ## Skill file requirements
 

@@ -64,4 +64,5 @@ Add personas, rules, skills, commands, tools, and similar assets from community 
 - [PatrickJS/awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules)
 - [ComposioHQ/awesome-codex-skills](https://github.com/ComposioHQ/awesome-codex-skills)
 
-Imports must not override `.agents/AGENTS.md`; check license and policy fit.
+Imports must not override `.agents/AGENTS.md` and must follow `.agents/rules/10-imported-assets.md` (human-reviewed
+MR, provenance recorded, license checked).

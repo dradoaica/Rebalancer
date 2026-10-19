@@ -53,7 +53,8 @@ to it instead of creating a parallel artifact.
   that merges the artifact into the shared trunk.
 - Teams **should** enforce this with path-scoped required reviewers where the platform supports it (e.g.,
   `CODEOWNERS` on GitHub/GitLab, required reviewers by path on Azure DevOps); otherwise the reviewer verifies it.
-- Agents never fill in `approved-by`; they report binding statuses that lack it.
+- Agents never fill in `approved-by` on their own initiative; they may only record a human's explicit, in-session
+  approval, naming that human. They report binding statuses that lack it.
 
 ## Claim work early
 
