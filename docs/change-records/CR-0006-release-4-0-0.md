@@ -1,9 +1,9 @@
 ---
 id: CR-0006
-status: Submitted
+status: Approved
 date: 2026-10-19
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -52,11 +52,13 @@ guide: `docs/release-notes/migrating-to-4.0.md`.
 
 ## Preconditions
 
-- [ ] CR-0005 (3.2.0, with the warning) released first, as ADR-0020 requires.
-- [ ] US-0020 readiness approval and TM-0003 revision 4 accepted by a human.
+- [x] CR-0005 (3.2.0, with the warning) released first, as ADR-0020 requires (`860b3d3`, 2026-10-19).
+- [x] US-0020 readiness approval and TM-0003 revision 4 accepted (dradoaica, 2026-10-19).
 - [x] Tests on branch `agent/redis-4.0-per-group-keys` (2026-10-19): see the evidence line below.
 - [ ] Rollback procedure validated: the manual reverse move in the migration guide is **not rehearsed**.
 - [x] Pre-change test suite passing cleanly.
+
+Approved by dradoaica on 2026-10-19 with one precondition open: the manual rollback to 3.x is not rehearsed.
 
 Evidence (2026-10-19): unit 47/47; SQL Server + Redis integration 16/16 (Docker), including the 3 new
 `RedisPerGroupKeysTests`; `Rebalancer.Redis` builds with warnings as errors. ZooKeeper integration not run (no ensemble;
@@ -88,8 +90,8 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-10-19 |
+| Release / CAB (or org) | dradoaica | 2026-10-19 |
 
 ## Post-implementation
 
