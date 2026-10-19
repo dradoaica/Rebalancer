@@ -21,7 +21,7 @@ depends-on: [ "ADR-0024", "US-0022" ]
 
 Review of 2026-10-19: for strict per-conversation order through deploys and scaling, super streams with single active
 consumer are often the better fit (broker-enforced, only affected partitions switch, replay), at the cost of writing
-retry and parking logic (no dead-lettering). ADR-0024 (Proposed) decides whether this is shown as a guide (option B of
+retry and parking logic (no dead-lettering). ADR-0024 (Accepted: the guide) decides whether this is shown as a guide (option B of
 that record, proposed) or as a runnable example with `RabbitMQ.Stream.Client` (option A of that record).
 
 ## Acceptance criteria
@@ -51,7 +51,7 @@ If ADR-0024 is accepted with the code example (its option A), instead:
 
 ## Dependencies
 
-- Decision records: `docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md` (Proposed; must be Accepted first)
+- Decision records: `docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md` (Accepted: the guide)
 - Other stories: `docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md`
 
 ## Security & compliance
@@ -61,7 +61,7 @@ accepted.
 
 ## Definition of ready
 
-- [x] Governing ADR referenced (or marked "N/A - non-architectural") – ADR-0024 (Proposed)
+- [x] Governing ADR referenced (or marked "N/A - non-architectural") – ADR-0024 (Accepted: the guide)
 - [x] Acceptance criteria are testable, unambiguous, and numbered
 - [x] Security & compliance considerations addressed
 - [x] Dependencies and non-goals are explicitly identified

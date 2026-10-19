@@ -1,10 +1,10 @@
 ---
 id: ADR-0024
-status: Proposed
+status: Accepted
 date: 2026-10-19
 decides: "the third-party package dependencies of the RabbitMQ example projects under examples/"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -50,7 +50,7 @@ This record decides which packages the example projects may reference.
 
 ## Decision Outcome
 
-Proposed option: **B**.
+Chosen option: **B** (accepted by dradoaica, 2026-10-19).
 
 The strongest argument against B is that a guide cannot be run: a working super-streams example next to the option A
 example would let readers compare both on their own machine, which is what US-0023 asks for, and a code example is
