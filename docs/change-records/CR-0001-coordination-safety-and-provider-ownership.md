@@ -1,5 +1,5 @@
 ---
-id: CR-2026-10-18-coordination-safety-and-provider-ownership
+id: CR-0001
 status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
@@ -8,7 +8,7 @@ risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 2.1.0"
-depends-on: [ "ADR-0002", "ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "TM-0001", "PRB-2026-10-18-demoted-coordinator-keeps-resources", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider", "US-001", "US-003", "US-005", "US-006", "US-007", "US-010", "US-011", "US-012", "US-013" ]
+depends-on: [ "ADR-0002", "ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "TM-0001", "PRB-0001", "PRB-0002", "US-001", "US-003", "US-005", "US-006", "US-007", "US-010", "US-011", "US-012", "US-013" ]
 ---
 
 # Change record: Coordination safety fixes, provider ownership, and ZooKeeper ACLs
@@ -34,7 +34,7 @@ added as overloads. Three documented behavior changes remain: provider ownership
 
 ## Motivation / drivers
 
-- Assignment safety (never two nodes on one resource): `docs/problem-records/PRB-2026-10-18-demoted-coordinator-keeps-resources.md`.
+- Assignment safety (never two nodes on one resource): `docs/problem-records/PRB-0001-demoted-coordinator-keeps-resources.md`.
 - Lease correctness independent of client clock skew; no lost updates between concurrent Redis writers.
 - No Redis connection leak per disposed client.
 - ZooKeeper znodes were always world-writable (`OPEN_ACL_UNSAFE`).
@@ -162,7 +162,7 @@ Added after this record was approved, and approved separately on 2026-10-18 for 
   `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md`, `docs/adrs/0007-non-blocking-get-assigned-resources.md`,
   `docs/adrs/0008-replace-redis-datatypes-with-direct-newtonsoft-json.md`,
   `docs/adrs/0009-reject-conflicting-provider-registrations.md`
-- Problem records: `docs/problem-records/PRB-2026-10-18-demoted-coordinator-keeps-resources.md`,
-  `docs/problem-records/PRB-2026-10-18-zookeeper-tests-ignored-their-provider.md`
+- Problem records: `docs/problem-records/PRB-0001-demoted-coordinator-keeps-resources.md`,
+  `docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md`
 - SDP: N/A (library, no service offering)
 - Accepted threat model: `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md` (Accepted 2026-10-18)

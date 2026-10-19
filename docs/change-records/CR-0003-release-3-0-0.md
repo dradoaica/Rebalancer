@@ -1,5 +1,5 @@
 ---
-id: CR-0002
+id: CR-0003
 status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
@@ -8,7 +8,7 @@ risk: "High"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 3.0.0"
-depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-0001", "TM-0002", "TM-0003", "US-0015", "US-005", "US-006", "US-007", "CR-0001" ]
+depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-0001", "TM-0002", "TM-0003", "US-0015", "US-005", "US-006", "US-007", "CR-0002" ]
 ---
 
 # Change record: Rebalancer 3.0.0
@@ -16,7 +16,7 @@ depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-00
 ## Summary
 
 Releases 3.0.0 of all five packages:
-- ADR-0011 and ADR-0013 remove the APIs deprecated in 2.2.0 (CR-0001).
+- ADR-0011 and ADR-0013 remove the APIs deprecated in 2.2.0 (CR-0002).
 - ZooKeeper entry points require credentials or an explicit ACL.
 - Stale client records expire, and nodes re-register safely (ADR-0014).
 - Redis client records move to one hash per resource group (ADR-0015).
@@ -51,7 +51,7 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
 
 **Out of scope:**
 
-- PRB-0001 (resumed follower window, a 2.x behavior; needs its own decision record).
+- PRB-0003 (resumed follower window, a 2.x behavior; needs its own decision record).
 - Moving Redis leases and resources to per-group keys (ADR-0015 consequences).
 - Updates to accepted threat models (see Preconditions).
 
@@ -109,7 +109,7 @@ before publishing.
 ## Post-implementation
 
 - **Actual outcome (2026-10-18):** `release/3.0.0` merged into `main` as `f3efbcb` ("Release 3.0.0", together with
-  the CR-0001 post-implementation commit `4f565cc`) and pushed by dradoaica. The "Release Packages" workflow ran on that
+  the CR-0002 post-implementation commit `4f565cc`) and pushed by dradoaica. The "Release Packages" workflow ran on that
   push and succeeded at 19:02:12 UTC, including "Push to GitHub Packages"
   (https://github.com/dradoaica/Rebalancer/actions/runs/39156837798). Published package versions were not listed from
   the agent session (the GitHub Packages API requires authentication).
@@ -126,7 +126,7 @@ before publishing.
 - **Deviations:** the rollback dry-run was not performed. One defect was found and fixed before release while drafting
   TM-0003: a per-group Redis ACL user blocked the expiry through the migration step (`fc2515e`).
 - **Follow-ups:**
-  - PRB-0001 (resumed follower window, needs a decision record);
+  - PRB-0003 (resumed follower window, needs a decision record);
   - a verified minimal Redis ACL command set (TM-0003);
   - per-group keys for Redis leases and resources (TM-0003, needs a decision record);
   - readiness approval of US-0015 (Draft).
@@ -151,4 +151,4 @@ before publishing.
 - Threat models: `docs/threat-models/TM-0001-…`, `TM-0002-…`, `TM-0003-…`
 - User stories: `docs/user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md`, `US-005-…`, `US-006-…`,
   `US-007-…`
-- Previous release: `docs/change-records/CR-0001-release-2-2-0-deprecations.md`
+- Previous release: `docs/change-records/CR-0002-release-2-2-0-deprecations.md`

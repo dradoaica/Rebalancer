@@ -8,7 +8,7 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-001", "US-012", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider" ]
+depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-001", "US-012", "PRB-0002" ]
 supersedes: [ "ADR-0001", "ADR-0009" ]
 superseded-by: ""
 ---
@@ -25,7 +25,7 @@ A `RebalancerClient` gets its provider in one of two ways today:
 | `new RebalancerClient(provider)` or the DI extensions | ADR-0005            |
 
 The static registry is process-wide state. It caused a real defect: the ZooKeeper integration tests ran every test with
-the first test's provider (PRB-2026-10-18-zookeeper-tests-ignored-their-provider). ADR-0009 turned that silent failure
+the first test's provider (PRB-0002). ADR-0009 turned that silent failure
 into an exception, but the global state remains. Two accepted records also now disagree: ADR-0001 says a duplicate
 registration "is silently ignored", ADR-0009 says a conflicting one throws. This record decides the registration model
 for 3.0 and resolves that contradiction.

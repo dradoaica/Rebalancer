@@ -28,7 +28,7 @@ change. This record decides the layout of client records in 3.0.
 
 * Heartbeat cost proportional to the group, not the installation.
 * Per-group isolation possible with Redis ACL key patterns.
-* A safe migration from 2.x data, compatible with the Redis all-nodes-at-once upgrade rule (CR-2026-10-18).
+* A safe migration from 2.x data, compatible with the Redis all-nodes-at-once upgrade rule (CR-0001).
 
 ## Considered Options
 
@@ -43,7 +43,7 @@ change. This record decides the layout of client records in 3.0.
 
 Proposed option: **A**. The strongest argument against A is that it is a data-format change: a 2.x node and a 3.0 node
 in one group would look at different hashes and could both coordinate. That is already ruled out for Redis, where
-mixed versions are unsupported and every node of a group is upgraded at once (CR-2026-10-18). The 3.0 change record
+mixed versions are unsupported and every node of a group is upgraded at once (CR-0001). The 3.0 change record
 repeats the rule. Rollback to 2.x needs the reverse move. With ADR-0014 in place, a fresh start with an empty hash is
 also acceptable, because nodes re-register. Group names are used as key segments, so they must not contain characters
 that clash with key patterns. The key segment is the group name, escaped (rule fixed at implementation).
