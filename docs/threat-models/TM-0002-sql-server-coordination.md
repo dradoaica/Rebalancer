@@ -144,8 +144,9 @@ resource groups, and unbounded growth of the client table.
   - ~~**Unbounded `Clients` growth**~~ Resolved in 3.0 (ADR-0014).
   - **Client-row deletes by the login holder** cause rebalancing churn (D3), not double assignment.
   - **No audit trail** unless the database provides one.
-- Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). Still open: a
-  least-privilege role script next to `db/` (no decision record needed; documentation).
+- Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). The
+  least-privilege role script is `db/RebalanserLeastPrivilege.sql` (2026-10-19, verified by
+  `SqlServerLeastPrivilegeTests`).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
   2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
 
@@ -155,7 +156,8 @@ resource groups, and unbounded growth of the client table.
   `docs/adrs/0014-expire-stale-client-records.md` (Accepted).
 - Required SDPs: N/A (library).
 - Change records to implement mitigations: `docs/change-records/CR-0003-release-3-0-0.md`.
-- Runbooks / monitors to add: least-privilege role script (the client-table cleanup procedure is no longer needed).
+- Runbooks / monitors: `db/RebalanserLeastPrivilege.sql` (role `rebalancer_node`); the client-table cleanup procedure is
+  no longer needed.
 
 ## Approvals
 

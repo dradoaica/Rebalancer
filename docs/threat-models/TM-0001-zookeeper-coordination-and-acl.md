@@ -173,8 +173,8 @@ matters most, because its data holds the assignment table.
 - Required SDPs: N/A (library).
 - Change records to implement mitigations: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
   `docs/change-records/CR-0003-release-3-0-0.md`.
-- Runbooks / monitors to add: an operator procedure to create or secure a resource group's znodes with the group's
-  credentials (ZooKeeper CLI `addauth` + `create` / `setAcl`).
+- Runbooks / monitors: "Runbook: create or secure a resource group's znodes" in `src/Rebalancer.ZooKeeper/README.md`
+  (ZooKeeper CLI `addauth` + `create` / `setAcl`; verified with ZooKeeper 3.8 on 2026-10-19).
 
 ## Approvals
 
