@@ -376,7 +376,7 @@ internal class Coordinator
         }
     }
 
-    // ADR-0019 (PRB-0001): a client whose keep-alive expired may only be paused. If its record still grants resources,
+    // ADR-0019 (PRB-0003): a client whose keep-alive expired may only be paused. If its record still grants resources,
     // a resumed follower would keep them although they are reassigned below; recording StopActivity makes it stop at
     // its first tick through the normal follower path. A violation here is not fatal: a row can disappear between the
     // read and the stop (e.g. a clean stop deletes it), and a real fencing violation is caught again when resources are

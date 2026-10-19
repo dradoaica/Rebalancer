@@ -35,10 +35,19 @@ internal static class SchemaSetup
         }
     }
 
-    public static async Task SeedResourceGroupAsync(
+    public static Task SeedResourceGroupAsync(
         string connectionString,
         string resourceGroup,
         string resourceName,
+        CancellationToken cancellationToken = default
+    ) => SeedResourceGroupAsync(connectionString, resourceGroup, [resourceName], 300, 25, cancellationToken);
+
+    public static async Task SeedResourceGroupAsync(
+        string connectionString,
+        string resourceGroup,
+        IReadOnlyList<string> resourceNames,
+        int leaseExpirySeconds,
+        int heartbeatSeconds,
         CancellationToken cancellationToken = default
     )
     {
@@ -49,14 +58,17 @@ internal static class SchemaSetup
         {
             cmd.CommandText = """
                               INSERT INTO RBR.ResourceGroups (ResourceGroup, CoordinatorId, LastCoordinatorRenewal, CoordinatorServer, LockedByClient, FencingToken, LeaseExpirySeconds, HeartbeatSeconds)
-                              VALUES (@g, NULL, NULL, NULL, NULL, 0, 300, 25)
+                              VALUES (@g, NULL, NULL, NULL, NULL, 0, @expiry, @heartbeat)
                               """;
             cmd.Parameters.AddWithValue("@g", resourceGroup);
+            cmd.Parameters.AddWithValue("@expiry", leaseExpirySeconds);
+            cmd.Parameters.AddWithValue("@heartbeat", heartbeatSeconds);
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        await using (var cmd = conn.CreateCommand())
+        foreach (var resourceName in resourceNames)
         {
+            await using var cmd = conn.CreateCommand();
             cmd.CommandText = "INSERT INTO RBR.Resources (ResourceGroup, ResourceName) VALUES (@g, @r)";
             cmd.Parameters.AddWithValue("@g", resourceGroup);
             cmd.Parameters.AddWithValue("@r", resourceName);

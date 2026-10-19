@@ -1,0 +1,40 @@
+using Rebalancer.SqlServer;
+using Testcontainers.MsSql;
+using Xunit;
+
+namespace Rebalancer.IntegrationTests.Sql;
+
+/// <summary>
+///     Requires Docker. A node that stops responding past the lease / keep-alive expiry and then resumes (PRB-0003,
+///     ADR-0019; PRB-0001) against a real SQL Server.
+/// </summary>
+public sealed class SqlServerPausedNodeTests
+{
+    [SkippableFact]
+    public Task FollowerPausedPastExpiry_StopsAtFirstTickAfterResume() =>
+        RunAsync(PausedNodeScenarios.FollowerPausedPastExpiry_StopsAtFirstTickAfterResume);
+
+    [SkippableFact]
+    public Task CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume() =>
+        RunAsync(PausedNodeScenarios.CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume);
+
+    private static async Task RunAsync(
+        Func<string, Func<Core.IRebalancerProvider>, Func<NodePause, Core.IRebalancerProvider>, Task> scenario
+    )
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
+        await sql.StartAsync();
+        var connectionString = sql.GetConnectionString();
+        await SchemaSetup.ApplyRbrSchemaAsync(connectionString);
+        var group = "it-sql-pause-" + Guid.NewGuid().ToString("N");
+        await SchemaSetup.SeedResourceGroupAsync(connectionString, group, PausedNodeScenarios.Resources,
+            leaseExpirySeconds: 5, heartbeatSeconds: 1);
+
+        await scenario(
+            group,
+            () => new SqlServerProvider(connectionString),
+            pause => PausableSqlServerServices.CreateProvider(connectionString, pause)
+        );
+    }
+}
