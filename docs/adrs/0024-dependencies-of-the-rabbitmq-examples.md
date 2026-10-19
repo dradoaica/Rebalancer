@@ -1,10 +1,10 @@
 ---
 id: ADR-0024
-status: Proposed
+status: Accepted
 date: 2026-10-20
 decides: "the third-party package dependencies of the RabbitMQ example projects under examples/"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -55,7 +55,7 @@ This record decides which packages the example projects may reference.
 
 ## Decision Outcome
 
-Proposed option: **A**, as requested by the maintainer on 2026-10-20 (this record first proposed B and was revised in
+Chosen option: **A** (accepted by dradoaica, 2026-10-20), as requested by the maintainer (this record first proposed B and was revised in
 place before reaching the shared trunk).
 
 The strongest argument against A is B: the super-streams example contains no Rebalancer code, so the repository

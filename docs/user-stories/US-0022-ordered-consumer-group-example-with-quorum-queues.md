@@ -1,9 +1,9 @@
 ---
 id: US-0022
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-20)
 priority: "Should"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0002", "ADR-0019", "ADR-0021", "US-008", "US-009" ]
@@ -81,9 +81,9 @@ Example only. Credentials come from arguments or environment, never from source;
 - [x] Acceptance criteria met – `examples/Rebalancer.RabbitMq.Tools` (`create`, `publish`, `unblock`),
   `examples/Rebalancer.RabbitMq.QuorumQueuesExample` (`QueueConsumers`, `ConversationGuard`, `Settings`); criterion 8
   verified manually on 2026-10-19 (RabbitMQ 4.3.6, SQL Server 2022), results in the example README
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-20)
 - [x] Docs / runbooks updated if needed – example README, US-008/US-009 notes
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Traceable to change record (if released) - N/A: examples and docs only, not part of a package release
 
 ## Sources
 

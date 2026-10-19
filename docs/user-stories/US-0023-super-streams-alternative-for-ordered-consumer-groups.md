@@ -1,9 +1,9 @@
 ---
 id: US-0023
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-20)
 priority: "Could"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0024", "US-0022" ]
@@ -21,7 +21,7 @@ depends-on: [ "ADR-0024", "US-0022" ]
 
 Review of 2026-10-19: for strict per-conversation order through deploys and scaling, super streams with single active
 consumer are often the better fit (broker-enforced, only affected partitions switch, replay), at the cost of writing
-retry and parking logic (no dead-lettering). ADR-0024 (Proposed, revised 2026-10-20) adds a runnable example with `RabbitMQ.Stream.Client`
+retry and parking logic (no dead-lettering). ADR-0024 (Accepted 2026-10-20) adds a runnable example with `RabbitMQ.Stream.Client`
 next to the guide.
 
 ## Acceptance criteria
@@ -51,7 +51,7 @@ Added 2026-10-20 (ADR-0024 revised: the maintainer asked for a runnable example 
 
 ## Dependencies
 
-- Decision records: `docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md` (Proposed: runnable example and guide)
+- Decision records: `docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md` (Accepted: runnable example and guide)
 - Other stories: `docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md`
 
 ## Security & compliance
@@ -61,7 +61,7 @@ accepted.
 
 ## Definition of ready
 
-- [x] Governing ADR referenced (or marked "N/A - non-architectural") – ADR-0024 (Proposed, revised 2026-10-20)
+- [x] Governing ADR referenced (or marked "N/A - non-architectural") – ADR-0024 (Accepted 2026-10-20)
 - [x] Acceptance criteria are testable, unambiguous, and numbered
 - [x] Security & compliance considerations addressed
 - [x] Dependencies and non-goals are explicitly identified
@@ -71,9 +71,9 @@ accepted.
 - [x] Acceptance criteria met – criteria 5–7: `examples/Rebalancer.RabbitMq.SuperStreamsExample`, verified manually on
   2026-10-20 (RabbitMQ 4.3.6, SQL Server 2022; results in its README). Criteria 1–4, the guide: `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
   from the README "Use cases" and the example README; RabbitMQ facts checked against rabbitmq.com on 2026-10-19
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-20)
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Traceable to change record (if released) - N/A: examples and docs only, not part of a package release
 
 ## Sources
 
