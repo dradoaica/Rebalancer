@@ -8,7 +8,7 @@
 | Area      | Path                                                                                     |
 |-----------|------------------------------------------------------------------------------------------|
 | Libraries | `src/Rebalancer.*` (Core, SqlServer, Redis, ZooKeeper, Extensions.DependencyInjection)   |
-| Examples  | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools` |
+| Examples  | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools`, `examples/Rebalancer.RabbitMq.SuperStreamsExample` |
 | Tests     | `tests/Rebalancer.UnitTests`, `tests/Rebalancer.IntegrationTests`                        |
 
 ## Product intent
@@ -23,7 +23,7 @@ repository).
 - `Rebalancer.Core` — public `RebalancerClient`, `IRebalancerProvider`, `ClientOptions`, logging abstraction.
 - `Rebalancer.SqlServer`, `Rebalancer.Redis` — coordinator/follower + lease + store pattern.
 - `Rebalancer.ZooKeeper` — leader election, `ResourceBarrier` / `GlobalBarrier` modes.
-- Example: RabbitMQ + SQL Server sample (`examples/Rebalancer.RabbitMq.QuorumQueuesExample`).
+- Examples: an ordered consumer group on RabbitMQ with Rebalancer, quorum queues and SQL Server (`examples/Rebalancer.RabbitMq.QuorumQueuesExample`, US-0022), and the same scenario with super streams and no Rebalancer (`examples/Rebalancer.RabbitMq.SuperStreamsExample`, US-0023); [guide](../guides/rabbitmq-ordered-consumer-groups.md) on when to choose which.
 - Tooling: RabbitMQ CLI (`examples/Rebalancer.RabbitMq.Tools`).
 - Tests: **`tests/Rebalancer.IntegrationTests`** — **ZooKeeper** barrier/randomized suite under `ZooKeeper/` (requires
   live ZK); **SqlServer + Redis** assignment-safety sampling with Testcontainers (**Docker**). Since 3.2.0 also
@@ -49,7 +49,7 @@ repository).
   ([US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **4.2.0** (Aborted state on SQL Server / Redis, health-check and Redis fixes). Previous: **4.1.0**
+- Current release: **4.2.1** (security patch: CVE-2026-84008 in a SQL Server dependency, ADR-0025). Previous: **4.2.0** (Aborted state on SQL Server / Redis, health-check and Redis fixes), **4.1.0**
   (metrics, traces, health check), **4.0.0** (breaking for Redis provisioning only: per-group
   keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)).
   Release history and change records: [`docs/release-notes/`](../release-notes/), [

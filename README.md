@@ -76,6 +76,8 @@ will be available.
 
 ## Documentation
 
+- [RabbitMQ: ordered consumer groups with Rebalancer or with super streams](docs/guides/rabbitmq-ordered-consumer-groups.md)
+  — guide and the two RabbitMQ examples
 - [Traceability matrix](docs/traceability-matrix.md) — ADRs, user stories, and paths under `src/`, `examples/`, and
   `tests/`
 - [Product baseline (.NET)](docs/initial-product-specs/rebalancer-product-baseline.md) — scope, non-goals, v2 themes

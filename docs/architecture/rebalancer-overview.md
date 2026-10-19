@@ -43,7 +43,8 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.2.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release
+Current version: **4.2.1**, a security patch for CVE-2026-84008 (six packages, including
+`Rebalancer.Extensions.Diagnostics.HealthChecks`). Release
 history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
