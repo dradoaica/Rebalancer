@@ -1,6 +1,6 @@
 using System;
 
-namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.QuorumQueuesExample;
 
 /// <summary>Example settings from environment variables, so no connection string lives in source (US-0022).</summary>
 internal sealed class Settings

@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.QuorumQueuesExample;
 
 /// <summary>
 ///     Consumes the queues Rebalancer assigns to this node (US-0022): one channel per queue, prefetch 1 and manual

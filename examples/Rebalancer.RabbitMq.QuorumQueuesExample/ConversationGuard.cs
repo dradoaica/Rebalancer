@@ -3,7 +3,7 @@ using System;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.QuorumQueuesExample;
 
 internal enum TurnOutcome
 {

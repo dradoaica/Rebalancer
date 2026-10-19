@@ -71,6 +71,7 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 
 Superseded in part by [US-0022](US-0022-ordered-consumer-group-example-with-quorum-queues.md): the example now uses
 quorum queues with single active consumer and dead-lettering, manual acknowledgement and a turn guard; the tools gained
-`publish` and `unblock` and declare the new queue arguments. (Also outdated above: the example passes the provider to
+`publish` and `unblock` and declare the new queue arguments. On 2026-10-20 the example project was renamed to
+`examples/Rebalancer.RabbitMq.QuorumQueuesExample`. (Also outdated above: the example passes the provider to
 `RebalancerClient`; `Providers.Register` was removed in 3.0, ADR-0013.)
 

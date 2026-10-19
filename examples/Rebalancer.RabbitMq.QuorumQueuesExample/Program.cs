@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
+namespace Rebalancer.RabbitMq.QuorumQueuesExample;
 
 /// <summary>
 ///     An ordered consumer group on RabbitMQ (US-0022, "option A"): a consistent-hash exchange spreads conversations over

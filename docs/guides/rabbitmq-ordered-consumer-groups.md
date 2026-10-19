@@ -7,7 +7,7 @@ conversation), there are two good setups on RabbitMQ. This guide compares them a
 
 - **Option A, Rebalancer over quorum queues:** a consistent-hash exchange routes each message by its key to one of N
   quorum queues with single active consumer and dead-lettering; Rebalancer spreads the queues over the nodes. Runnable
-  in this repository: [the RabbitMQ example](../../examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/README.md).
+  in this repository: [the RabbitMQ example](../../examples/Rebalancer.RabbitMq.QuorumQueuesExample/README.md).
 - **Option B, super streams:** a partitioned stream routes each message by its key to one of N partitions; single
   active consumer gives each partition one consumer of a named group, and the broker spreads partitions over the
   group. No Rebalancer is involved. Runnable in this repository:

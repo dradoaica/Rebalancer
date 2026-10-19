@@ -40,9 +40,9 @@ $T --Command create --Backend mssql --ConnString "$EXAMPLE_SQL" --ConsumerGroup 
 
 # two consumer nodes, in two terminals (EXAMPLE_FAIL_* makes one turn fail, to show dead-lettering)
 EXAMPLE_NODE=A EXAMPLE_GROUP=chat EXAMPLE_DELIVERY_LIMIT=3 EXAMPLE_FAIL_CONVERSATION=conversation-7 EXAMPLE_FAIL_TURN=3 \
-  dotnet run --project examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend
+  dotnet run --project examples/Rebalancer.RabbitMq.QuorumQueuesExample
 EXAMPLE_NODE=B EXAMPLE_GROUP=chat EXAMPLE_DELIVERY_LIMIT=3 \
-  dotnet run --project examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend
+  dotnet run --project examples/Rebalancer.RabbitMq.QuorumQueuesExample
 
 # 20 conversations x 10 turns, routed by conversation ID
 $T --Command publish --ExchangeName chat.hash --Conversations 20 --Turns 10

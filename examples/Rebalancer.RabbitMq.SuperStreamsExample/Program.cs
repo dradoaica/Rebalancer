@@ -1,7 +1,7 @@
 using RabbitMQ.Stream.Client;
 using RabbitMQ.Stream.Client.AMQP;
 using RabbitMQ.Stream.Client.Reliable;
-using Rebalancer.RabbitMq.ExampleWithSqlServerBackend;
+using Rebalancer.RabbitMq.QuorumQueuesExample;
 using System;
 using System.Buffers;
 using System.Linq;

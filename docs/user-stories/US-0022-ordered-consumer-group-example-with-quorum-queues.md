@@ -48,6 +48,9 @@ broker enforces one consumer per queue (single active consumer) and Rebalancer o
 8. Verified manually with two consumer processes: kill one while publishing, and every conversation's turns are
    processed in order (the log shows no out-of-order turn); the injected failure ends in the dead-letter queue.
 
+Project renamed on 2026-10-20 from `Rebalancer.RabbitMq.ExampleWithSqlServerBackend` to
+`Rebalancer.RabbitMq.QuorumQueuesExample`, matching `Rebalancer.RabbitMq.SuperStreamsExample` (US-0023).
+
 ## Non-goals
 
 - Super streams (US-0023).
@@ -76,7 +79,7 @@ Example only. Credentials come from arguments or environment, never from source;
 ## Definition of done
 
 - [x] Acceptance criteria met – `examples/Rebalancer.RabbitMq.Tools` (`create`, `publish`, `unblock`),
-  `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend` (`QueueConsumers`, `ConversationGuard`, `Settings`); criterion 8
+  `examples/Rebalancer.RabbitMq.QuorumQueuesExample` (`QueueConsumers`, `ConversationGuard`, `Settings`); criterion 8
   verified manually on 2026-10-19 (RabbitMQ 4.3.6, SQL Server 2022), results in the example README
 - [ ] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed – example README, US-008/US-009 notes
@@ -84,6 +87,6 @@ Example only. Credentials come from arguments or environment, never from source;
 
 ## Sources
 
-- `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`, `examples/Rebalancer.RabbitMq.Tools/QueueManager.cs`
+- `examples/Rebalancer.RabbitMq.QuorumQueuesExample/Program.cs`, `examples/Rebalancer.RabbitMq.Tools/QueueManager.cs`
 - `src/Rebalancer.Core/ClientOptions.cs` (`OnAssignmentDelay`: RabbitMQ redelivery order)
 - `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md`, `docs/adrs/0021-assignment-generation-for-resource-handlers.md`

@@ -17,7 +17,7 @@
 
     <!-- the same turn guard as the option A example (US-0022), compiled from its source -->
     <ItemGroup>
-        <Compile Include="..\Rebalancer.RabbitMq.ExampleWithSqlServerBackend\ConversationGuard.cs" Link="ConversationGuard.cs"/>
+        <Compile Include="..\Rebalancer.RabbitMq.QuorumQueuesExample\ConversationGuard.cs" Link="ConversationGuard.cs"/>
     </ItemGroup>
 
 </Project>

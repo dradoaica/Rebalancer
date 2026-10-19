@@ -1,6 +1,6 @@
 # Ordered consumer group with RabbitMQ super streams (option B, no Rebalancer)
 
-The same chatbot-style scenario as the [option A example](../Rebalancer.RabbitMq.ExampleWithSqlServerBackend/README.md),
+The same chatbot-style scenario as the [option A example](../Rebalancer.RabbitMq.QuorumQueuesExample/README.md),
 built on RabbitMQ super streams instead of Rebalancer
 ([US-0023](../../docs/user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md),
 [ADR-0024](../../docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md)). Which one to choose:

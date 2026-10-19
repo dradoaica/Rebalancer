@@ -8,7 +8,7 @@
 | Area | Path |
 |------|------|
 | Libraries | `src/Rebalancer.*` (Core, SqlServer, Redis, ZooKeeper, Extensions.DependencyInjection) |
-| Examples | `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend`, `examples/Rebalancer.RabbitMq.Tools` |
+| Examples | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools` |
 | Tests | `tests/Rebalancer.UnitTests`, `tests/Rebalancer.IntegrationTests` |
 
 ## Product intent
@@ -20,7 +20,7 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 - `Rebalancer.Core` — public `RebalancerClient`, `IRebalancerProvider`, `ClientOptions`, logging abstraction.
 - `Rebalancer.SqlServer`, `Rebalancer.Redis` — coordinator/follower + lease + store pattern.
 - `Rebalancer.ZooKeeper` — leader election, `ResourceBarrier` / `GlobalBarrier` modes.
-- Example: RabbitMQ + SQL Server sample (`examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend`).
+- Example: RabbitMQ + SQL Server sample (`examples/Rebalancer.RabbitMq.QuorumQueuesExample`).
 - Tooling: RabbitMQ CLI (`examples/Rebalancer.RabbitMq.Tools`).
 - Tests: **`tests/Rebalancer.IntegrationTests`** — **ZooKeeper** barrier/randomized suite under `ZooKeeper/` (requires live ZK); **SqlServer + Redis** assignment-safety sampling with Testcontainers (**Docker**). Since 3.2.0 also paused-node scenarios (a follower paused past its keep-alive expiry, a coordinator stalled past its lease expiry), the SQL Server least-privilege role, and (4.0) the Redis per-group key move. **`tests/Rebalancer.UnitTests`** — DI registration, provider lifecycle, 3.0 API contract, ZooKeeper ACL API, Redis lease decisions, record expiry, coordinator demotion and unresponsive followers; no Docker — [US-010](../user-stories/US-010-zookeeper-tests-uphold-assignment-safety.md), [US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md), [US-013](../user-stories/US-013-cross-backend-assignment-safety-tests.md).
 
