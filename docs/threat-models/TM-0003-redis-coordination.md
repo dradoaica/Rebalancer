@@ -172,8 +172,8 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
   per group with a migration (ADR-0015). Per-group keys for leases and resources: ADR-0020 (Accepted; not
   implemented yet).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18; revision 2 accepted by dradoaica on 2026-10-18. Revision 3: {Accepted by <role> on <date>} – pending
-  human review.
+  2026-10-18; revision 2 accepted by dradoaica on 2026-10-18. Revision 3 accepted by dradoaica (in session
+  2026-10-19; also recorded in commit `acce411` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
@@ -192,8 +192,8 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 2) | dradoaica | 2026-10-18 |
-| Service owner (revision 3)           |           |            |
-| Security / architecture (revision 3) |           |            |
+| Service owner (revision 3)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 3) | dradoaica | 2026-10-19 |
 
 ## Sources
 

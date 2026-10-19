@@ -162,7 +162,8 @@ matters most, because its data holds the assignment table.
   1. Warn when `{group}/resources` or the group node is open although credentials are configured: ADR-0010 (2.1.0).
   2. Credentials or an explicit ACL by default: ADR-0011 (deprecation 2.2.0, removal 3.0.0).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
+  2026-10-18. Revision 2 accepted by dradoaica (in session 2026-10-19; also recorded in
+  commit `e868155` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
@@ -182,8 +183,8 @@ matters most, because its data holds the assignment table.
 |-------------------------|------|------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 
 ## Sources
 

@@ -148,7 +148,8 @@ resource groups, and unbounded growth of the client table.
   least-privilege role script is `db/RebalanserLeastPrivilege.sql` (2026-10-19, verified by
   `SqlServerLeastPrivilegeTests`).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
+  2026-10-18. Revision 2 accepted by dradoaica (in session 2026-10-19; also recorded in
+  commit `e868155` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
@@ -165,8 +166,8 @@ resource groups, and unbounded growth of the client table.
 |-------------------------|------|------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 
 ## Sources
 

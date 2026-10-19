@@ -3,7 +3,7 @@ id: US-005
 status: Done
 date: 2026-04-11
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
 depends-on: [ "ADR-0001", "ADR-0002", "US-001" ]

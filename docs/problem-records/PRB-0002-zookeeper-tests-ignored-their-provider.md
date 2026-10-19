@@ -4,7 +4,7 @@ status: Closed
 date: 2026-10-18
 opened: 2026-10-18
 owner: ""
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 severity: "High (false confidence in assignment-safety coverage)"
 depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-010", "CR-0001" ]
 ---

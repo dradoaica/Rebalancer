@@ -1,9 +1,9 @@
 ---
 id: CR-0005
-status: Submitted
+status: Approved
 date: 2026-10-19
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -56,11 +56,14 @@ ZooKeeper znode runbook, and new integration tests. No API, configuration or dat
 
 - [ ] Decision record in place: ADR-0020 (Accepted, on the shared trunk); ADR-0021 Accepted on branch
   `agent/open-topics-2026-10-19`, not yet on the shared trunk.
-- [ ] US-0016 readiness approval (`approved-by`) recorded by a human.
+- [x] US-0016 readiness approval (`approved-by`) recorded (dradoaica, 2026-10-19).
 - [x] Tests / dry-run completed on the release branch (2026-10-19, on top of `3f6360d`): unit 49/49; SQL Server + Redis
   integration 13/13 (Docker); ZooKeeper integration not run (no ensemble; no ZooKeeper code change).
 - [ ] Rollback procedure validated: redeploy 3.1.0 (no data change); not rehearsed.
 - [x] Pre-change test suite passing cleanly (`Rebalancer.Redis` builds with warnings as errors).
+
+Approved by dradoaica on 2026-10-19 with two preconditions open: ADR-0021 reaches the shared trunk with this
+release's merge, and the rollback (redeploy 3.1.0) is not rehearsed.
 
 ## Implementation plan
 
@@ -85,8 +88,8 @@ Release notes `docs/release-notes/3.2.0.md`; migration guide `docs/release-notes
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-10-19 |
+| Release / CAB (or org) | dradoaica | 2026-10-19 |
 
 ## Post-implementation
 

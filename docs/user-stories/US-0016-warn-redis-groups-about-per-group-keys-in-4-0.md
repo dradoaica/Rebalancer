@@ -1,9 +1,9 @@
 ---
 id: US-0016
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Should"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0020", "ADR-0015", "TM-0003", "US-006" ]
@@ -78,9 +78,9 @@ No change to data or access in 3.x. The documentation in criterion 4 is the firs
 - [x] Acceptance criteria met – `src/Rebalancer.Redis/RedisProvider.cs` (`StartAsync`), `docs/release-notes/migrating-to-4.0.md`,
   `tests/Rebalancer.UnitTests/PerGroupKeysDeprecationTests.cs` (criterion 5: Redis and SQL Server; ZooKeeper has no
   code path to the warning, checked by inspection)
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0005-release-3-2-0.md`
 
 ## Sources
 
