@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-0001", "CR-0003" ]
+depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -32,7 +32,8 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 - A Redis ACL user can now be limited to one group's client hash. Leases and resources stay shared.
 
 **Revision 3 (3.1.0, CR-0004):** the minimal ACL command set is verified, and an end-to-end test covers it. Leases
-and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
+and resources per group are decided in ADR-0020 (Accepted; not implemented yet). [2026-10-19: implemented in 4.0.0,
+see revision 4.]
 
 **Revision 4 (4.0.0, CR-0006; accepted by dradoaica, 2026-10-19):**
 - Leases and settings move to `RBR:Lease:{group}` (hash, one field) and resources to `RBR:Resources:{group}` (list),
@@ -44,6 +45,16 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
   values, so a concurrent writer makes it retry instead of losing or duplicating entries (`RedisPerGroupKeysTests`).
   Mitigation: run the first start with a temporary user that has shared-key access, or provision the per-group keys as
   an operator (`docs/release-notes/migrating-to-4.0.md`).
+
+**Revision 5 (4.1.0, CR-0007; Proposed, pending human review):** telemetry and health checks (ADR-0022, ADR-0023).
+- **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
+  the rebalance activity, `rebalancer.fencing_token`. Resource names, node identifiers, connection strings and credentials are never
+  emitted (verified by the Redis telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
+  the telemetry backend learns group names, how often groups rebalance and coordinators change. Risk: **Low**; group
+  names are deployment-chosen labels. Mitigation: treat the telemetry backend as Internal data; drop or hash the group
+  tag in the collector where group names are sensitive.
+- **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
+  in-process state and never calls Redis.
 
 ## System context and boundaries
 
@@ -173,6 +184,7 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 ## Residual risk and acceptance
 
 - Residual risks after mitigations:
+  - **Telemetry exports group names** (revision 5, pending): accepted as Low; filter in the collector if needed.
   - **Partial per-group isolation** inside one Redis database: client records can be isolated (3.0), leases and
     resources cannot. Revision 4: resolved in 4.0 for groups that have moved (ADR-0020).
   - ~~**Unbounded growth of the clients hash**~~ Resolved in 3.0 (ADR-0014, ADR-0015).
@@ -207,6 +219,8 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 | Security / architecture (revision 3) | dradoaica | 2026-10-19 |
 | Service owner (revision 4)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 4) | dradoaica | 2026-10-19 |
+| Service owner (revision 5)           |           |            |
+| Security / architecture (revision 5) |           |            |
 
 ## Sources
 

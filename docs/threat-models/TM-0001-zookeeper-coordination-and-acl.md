@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.ZooKeeper provider and its znodes, including its ACL and credential handling"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-0001", "CR-0003" ]
+depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -30,6 +30,16 @@ matters most, because its data holds the assignment table.
   are configured.
 - One path is outside these checks: a caller-supplied `IZooKeeperService` (ADR-0012) decides its own ACLs.
 - The 2.x ACL support decided in ADR 0006 is now recorded in ADR-0018.
+
+**Revision 3 (4.1.0, CR-0007; Proposed, pending human review):** telemetry and health checks (ADR-0022, ADR-0023).
+- **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
+  the rebalance activity, `rebalancer.epoch` (the coordinator epoch). Resource names, node identifiers, connection strings and credentials are never
+  emitted (verified by the ZooKeeper telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
+  the telemetry backend learns group names, how often groups rebalance and coordinators change. Risk: **Low**; group
+  names are deployment-chosen labels. Mitigation: treat the telemetry backend as Internal data; drop or hash the group
+  tag in the collector where group names are sensitive.
+- **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
+  in-process state and never calls ZooKeeper.
 
 ## System context and boundaries
 
@@ -152,6 +162,7 @@ matters most, because its data holds the assignment table.
 ## Residual risk and acceptance
 
 - Residual risks after mitigations:
+  - **Telemetry exports group names** (revision 3, pending): accepted as Low; filter in the collector if needed.
   - ~~**ACLs stay opt-in.**~~ Resolved in 3.0 (ADR-0011): an open ACL must be passed explicitly. Deployments that do so
     keep every High risk above, by their own choice.
   - **A caller-supplied `IZooKeeperService` is not checked** (T4, ADR-0012).
@@ -185,6 +196,8 @@ matters most, because its data holds the assignment table.
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 2) | dradoaica | 2026-10-19 |
+| Service owner (revision 3)           |           |            |
+| Security / architecture (revision 3) |           |            |
 
 ## Sources
 
