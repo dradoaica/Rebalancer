@@ -1,10 +1,10 @@
 ---
 id: PRB-0004
-status: Root cause identified
+status: Closed
 date: 2026-10-19
 opened: 2026-10-19
-owner: ""
-approved-by: [ ]            # closure review; set by a human only
+owner: "dradoaica"
+approved-by: [ "dradoaica" ]            # closure review; set by a human only
 severity: "High"
 depends-on: [ "TM-0002", "CR-0008", "ADR-0025", "CR-0009" ]
 ---
@@ -36,7 +36,8 @@ affected.
 | 2026-10-19 | Detected while verifying US-0022 (NuGet audit warnings in the examples; full scan of the solution) |
 | 2026-10-19 | Problem record drafted; no mitigation yet                                                          |
 | 2026-10-20 | Fix prepared: ADR-0025 (Pkcs 10.0.13 pinned), CR-0009 (release 4.2.1); scan clean on the branch    |
-| 2026-10-20 | Released in 4.2.1 (`732ecd7`); closure review pending                                               |
+| 2026-10-20 | Released in 4.2.1 (`732ecd7`)                                                                       |
+| 2026-10-20 | Closed by dradoaica (closure review)                                                               |
 
 ## Evidence
 
@@ -63,7 +64,7 @@ nor a vulnerability scan (open topic: CI test job).
 | Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Decided: ADR-0025 (Accepted) |
 | Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Done: released in 4.2.1 (CR-0009, `732ecd7`) |
 | Pin or upgrade in the examples and test projects as well                                                              |       | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
-| Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 |       | Open |
+| Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 | dradoaica | Open (follow-up; ADR-0025 Consequences) |
 
 ## Preventive measures
 
@@ -81,7 +82,21 @@ later (9.0.21 / 10.0.13 for net9 / net10 hosts); NuGet then resolves the patched
 
 ## Closure
 
-{Open.}
+- **Closed:** 2026-10-20 by dradoaica (closure review).
+- **Resolution summary:** fixed in 4.2.1 (CR-0009, ADR-0025): `Rebalancer.SqlServer` references
+  `System.Security.Cryptography.Pkcs` 10.0.13 directly, so every host resolves a patched version whatever
+  `Microsoft.Data.SqlClient` asks for. The release notes name the CVE and give a workaround for hosts that cannot
+  upgrade. Versions up to 4.2.0 stay affected.
+- **Corrective action verification:** `dotnet list Rebalancer.slnx package --vulnerable --include-transitive` reports no
+  vulnerable package in any project (2026-10-20); the packed `Rebalancer.SqlServer` 4.2.1 declares Pkcs >= 10.0.13; the
+  "Release Packages" run for `732ecd7` succeeded.
+- **Owned follow-ups (dradoaica):** (1) remove the direct Pkcs reference once SqlClient depends on a patched version;
+  (2) a dependency vulnerability scan that fails on High or Critical in the CI test job (open topic).
+- **Governance change (proposed, not applied):** the pre-MR gate in `.agents/AGENTS.md` lists static analysis
+  "(e.g., Sonar, SAST, secrets scanning)" but not dependency vulnerability scanning, which is how this defect went
+  unnoticed. Proposal: name a dependency scan (`dotnet list package --vulnerable --include-transitive`, or an
+  equivalent) in that list. Changing the governance contract is the maintainer's decision; until then, change records
+  record the scan in their preconditions, as CR-0009 does.
 
 ## Sources
 
