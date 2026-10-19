@@ -105,6 +105,37 @@ public sealed class RedisPerGroupKeysTests
         Assert.Equal(["r1"], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
     }
 
+    // seen in the rollback rehearsal (2026-10-19): one malformed entry in a resource list crashed StartAsync
+    [SkippableFact]
+    public async Task MalformedResourceEntries_AreSkipped_WhenMovingAndWhenReading()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await redis.StartAsync();
+        var connectionString = redis.GetConnectionString();
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1"]);
+        using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
+        var db = mux.GetDatabase();
+        await db.ListRightPushAsync("List:RBR:Resources", ["", "not json"]);
+
+        using var client = new RebalancerClient(new RedisProvider(connectionString));
+        await client.StartAsync(Group, new ClientOptions());
+        try
+        {
+            // a malformed entry added to the group's own list after the move is skipped on every heartbeat
+            await WaitUntilAsync(() => client.GetAssignedResources().Resources?.Count > 0);
+            await db.ListRightPushAsync(RedisHash.ResourcesKey(Group), "{broken");
+            await Task.Delay(3000);
+            Assert.Equal(["r1"], client.GetAssignedResources().Resources);
+        }
+        finally
+        {
+            await client.StopAsync(TimeSpan.FromSeconds(15));
+        }
+
+        Assert.Equal(["", "not json"], (await db.ListRangeAsync("List:RBR:Resources")).Select(x => x.ToString()));
+    }
+
     [SkippableFact]
     public async Task AUserWithoutSharedKeyAccess_OnAGroupNotMovedYet_GetsAnErrorPointingToTheGuide()
     {

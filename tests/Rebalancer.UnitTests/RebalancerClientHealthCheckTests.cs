@@ -40,6 +40,18 @@ public sealed class RebalancerClientHealthCheckTests
         Assert.Equal(HealthStatus.Unhealthy, (await CheckAsync(check)).Status);
     }
 
+    // SQL Server and Redis raise OnAborted also for errors they recover from (found 2026-10-19, after 4.1.0)
+    [Fact]
+    public async Task AnAbortFollowedByANewAssignment_IsHealthyAgain()
+    {
+        var (check, provider, _) = await StartedAsync(ClientState.Assigned);
+        provider.Actions!.OnAbortActions[0]("recovered", new InvalidOperationException());
+        Assert.Equal(HealthStatus.Unhealthy, (await CheckAsync(check)).Status);
+
+        provider.Actions.OnStartActions[0](["r1"]);
+        Assert.Equal(HealthStatus.Healthy, (await CheckAsync(check)).Status);
+    }
+
     [Fact]
     public async Task PendingAssignment_IsDegradedOnlyAfterTheThreshold()
     {

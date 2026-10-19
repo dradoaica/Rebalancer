@@ -12,8 +12,8 @@ namespace Rebalancer.Extensions.Diagnostics.HealthChecks;
 ///     The check reads state only and never calls the backend.
 /// </summary>
 /// <remarks>
-///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> (the SQL Server and Redis providers do not report
-///     <see cref="ClientState.Aborted" />) and in the states Aborted, Stopped, NotStarted and NoProvider. <c>Degraded</c>
+///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> until the client is assigned again (SQL Server and
+///     Redis raise it also for errors they recover from), and in the states Aborted, Stopped, NotStarted and NoProvider. <c>Degraded</c>
 ///     while PendingAssignment lasts longer than the threshold. <c>Healthy</c> otherwise.
 /// </remarks>
 public sealed class RebalancerClientHealthCheck : IHealthCheck
@@ -39,7 +39,13 @@ public sealed class RebalancerClientHealthCheck : IHealthCheck
         this.utcNow = utcNow;
         client.OnAborted += (_, _) => Interlocked.Exchange(ref aborted, 1);
         client.OnUnassignment += (_, _) => Interlocked.CompareExchange(ref pendingSinceTicks, utcNow().Ticks, 0);
-        client.OnAssignment += (_, _) => Interlocked.Exchange(ref pendingSinceTicks, 0);
+        client.OnAssignment += (_, _) =>
+        {
+            Interlocked.Exchange(ref pendingSinceTicks, 0);
+            // SQL Server and Redis raise OnAborted also for errors they recover from; a new assignment means the client
+            // takes part again, so the abort no longer applies (a final abort reports ClientState.Aborted instead)
+            Interlocked.Exchange(ref aborted, 0);
+        };
     }
 
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
