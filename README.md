@@ -83,7 +83,8 @@ will be available.
 - [Release notes 4.2.0](docs/release-notes/4.2.0.md) — SQL Server / Redis report `Aborted`; health-check and Redis fixes
 - [Release notes 4.1.0](docs/release-notes/4.1.0.md) — metrics and traces, health check package, randomised tests
 - [Release notes 4.0.0](docs/release-notes/4.0.0.md) and [migration guide](docs/release-notes/migrating-to-4.0.md) —
-  Redis: each resource group in its own keys (breaking for Redis provisioning)
+  Redis: each resource group in its own keys (breaking for Redis provisioning). **Known issue:** upgrade to 4.1.0 or
+  later before rolling a Redis group back to 3.x ([details](docs/release-notes/4.0.0.md#known-issue-resources-doubled-after-a-rollback-fixed-in-410))
 - [Release notes 3.2.0](docs/release-notes/3.2.0.md) — Redis warning ahead of 4.0, SQL Server least-privilege role,
   ZooKeeper znode runbook
 - [Release notes 3.1.0](docs/release-notes/3.1.0.md) — unresponsive followers are told to stop (PRB-0003)
