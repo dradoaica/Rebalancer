@@ -113,6 +113,8 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
     replaces a leftover list (rehearsed with the old steps: `[r1]`; regression test
     `MovingAgainAfterARollback_ReplacesALeftoverResourceList`). Released 4.0.0 keeps the defect; fixed in 4.1.0 (CR-0007).
   - **SQL Server:** 4.0.0 clean stop, then 3.2.0 assigned `r1` after 6.4 s; no data to move back.
+- **Note (2026-10-19):** Scope lists "TM-0003 revision 4 (Proposed)", which was its state when this record was
+  approved; revision 4 was accepted by dradoaica on 2026-10-19.
 
 ## Sources
 

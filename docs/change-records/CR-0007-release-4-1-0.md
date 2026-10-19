@@ -107,7 +107,7 @@ Release notes `docs/release-notes/4.1.0.md`; README sections "Metrics and traces
 - **Deviations:** the rollback rehearsal found a defect in the 4.0 migration guide's rollback and in the 4.0.0 move
   (a leftover per-group resource list was appended to); fixed in this release before approval of the merge (`7732407`).
 - **Follow-ups:** confirm the new package `Rebalancer.Extensions.Diagnostics.HealthChecks` 4.1.0 appears in GitHub
-  Packages; a CI test job (still not planned); ZooKeeper telemetry has no automated test.
+  Packages (**done 2026-10-19:** confirmed by dradoaica); a CI test job (still not planned); ZooKeeper telemetry has no automated test.
 
 ## Sources
 
