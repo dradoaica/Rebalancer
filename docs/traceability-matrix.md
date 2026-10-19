@@ -30,6 +30,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0021](adrs/0021-assignment-generation-for-resource-handlers.md) | No fencing token for resource handlers for now | US-002 | none (option D) | `*PausedNodeTests` (window of ADR-0019) | **Accepted** (2026-10-19), option D; revisit on consumer demand |
 | [0022](adrs/0022-rebalancing-telemetry-contract.md) | Telemetry contract: System.Diagnostics metrics and traces | US-0017 | `src/Rebalancer.Core/RebalancerTelemetry.cs`, `RebalancerClient.cs`, backends' coordinators and providers | `tests/Rebalancer.UnitTests` (`RebalancerClientTelemetryTests`), `tests/Rebalancer.IntegrationTests` (`*TelemetryTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
 | [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018, US-0021 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
+| [0025](adrs/0025-pin-patched-system-security-cryptography-pkcs.md) | Pin patched System.Security.Cryptography.Pkcs (CVE-2026-84008) | US-005 | `src/Rebalancer.SqlServer/Rebalancer.SqlServer.csproj` | vulnerability scan; unit and SQL Server integration tests | **Proposed**; 4.2.1 (CR-0009, Submitted) |
 
 ### Release records
 
@@ -56,6 +57,13 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | Record | Status | Covers |
 |--------|--------|--------|
 | [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Implemented** (4.2.0, `7bd4ad8`); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
+
+### 4.2.1 records
+
+| Record | Status | Covers |
+|--------|--------|--------|
+| [CR-0009](change-records/CR-0009-release-4-2-1.md) | **Submitted** (4.2.1); [release notes](release-notes/4.2.1.md) | ADR-0025, PRB-0004 (CVE-2026-84008) |
+| [PRB-0004](problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md) | Root cause identified | `System.Security.Cryptography.Pkcs` in the SQL Server packages |
 
 ### Threat models
 

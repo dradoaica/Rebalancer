@@ -6,7 +6,7 @@ opened: 2026-10-19
 owner: ""
 approved-by: [ ]            # closure review; set by a human only
 severity: "High"
-depends-on: [ "TM-0002", "CR-0008" ]
+depends-on: [ "TM-0002", "CR-0008", "ADR-0025", "CR-0009" ]
 ---
 
 # Problem record: Published SQL Server packages pull in a vulnerable System.Security.Cryptography.Pkcs
@@ -35,6 +35,7 @@ affected.
 |------------|---------------------------------------------------------------------------------------------------|
 | 2026-10-19 | Detected while verifying US-0022 (NuGet audit warnings in the examples; full scan of the solution) |
 | 2026-10-19 | Problem record drafted; no mitigation yet                                                          |
+| 2026-10-20 | Fix prepared: ADR-0025 (Pkcs 10.0.13 pinned), CR-0009 (release 4.2.1); scan clean on the branch    |
 
 ## Evidence
 
@@ -58,9 +59,10 @@ nor a vulnerability scan (open topic: CI test job).
 
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
-| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Open |
-| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Open |
-| Pin or upgrade in the examples and test projects as well                                                              |       | Open |
+| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Drafted: ADR-0025 (Proposed) |
+| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Prepared: CR-0009 (4.2.1, Submitted) |
+| Pin or upgrade in the examples and test projects as well                                                              |       | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
+| Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 |       | Open |
 
 ## Preventive measures
 
