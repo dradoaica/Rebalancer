@@ -17,7 +17,7 @@ superseded-by: ""
 
 ## Context and Problem Statement
 
-Two backends—**SQL Server** and **Redis**—implement the same high-level Rebalancer idea: one **coordinator** node assigns resource identifiers to nodes, and **followers** follow those assignments, using a shared metadata store. Both need mutual exclusion when updating assignments and a way to detect liveness.
+Two backends— **SQL Server** and **Redis**—implement the same high-level Rebalancer idea: one **coordinator** node assigns resource identifiers to nodes, and **followers** follow those assignments, using a shared metadata store. Both need mutual exclusion when updating assignments and a way to detect liveness.
 
 This ADR documents the **shared structural pattern** in `src/Rebalancer.SqlServer/` and `src/Rebalancer.Redis/` as implemented, not a formal proof of correctness.
 

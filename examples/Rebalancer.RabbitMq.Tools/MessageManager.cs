@@ -10,8 +10,8 @@ public static class MessageManager
 {
     /// <summary>
     ///     Publishes <paramref name="turns" /> turns of each of <paramref name="conversations" /> conversations, turn by
-    ///     turn, with the conversation ID as routing key, so the consistent-hash exchange keeps a conversation in one
-    ///     queue. Waits for each publisher confirm: with <c>x-overflow: reject-publish</c> a full queue rejects a message.
+    ///     turn, with the conversation ID as routing key, so the consistent-hash exchange keeps a conversation in one queue.
+    ///     Waits for each publisher confirm: with <c>x-overflow: reject-publish</c> a full queue rejects a message.
     /// </summary>
     public static async Task PublishConversationsAsync(
         RabbitConnection rabbitConn,
@@ -29,16 +29,24 @@ public static class MessageManager
             Password = rabbitConn.Password,
         };
         await using var connection = await factory.CreateConnectionAsync();
-        await using var channel = await connection.CreateChannelAsync(
-            new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true)
-        );
-        var properties = new BasicProperties { Persistent = true, ContentType = "application/json", };
+        await using var channel = await connection.CreateChannelAsync(new CreateChannelOptions(true, true));
+        var properties = new BasicProperties
+        {
+            Persistent = true,
+            ContentType = "application/json",
+        };
         for (var turn = 1; turn <= turns; turn++)
         {
             for (var c = 1; c <= conversations; c++)
             {
                 var conversationId = $"conversation-{c}";
-                var body = JsonSerializer.SerializeToUtf8Bytes(new { conversationId, turn, });
+                var body = JsonSerializer.SerializeToUtf8Bytes(
+                    new
+                    {
+                        conversationId,
+                        turn,
+                    }
+                );
                 await channel.BasicPublishAsync(exchange, conversationId, false, properties, body);
             }
         }

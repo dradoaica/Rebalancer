@@ -22,8 +22,7 @@ that does not opt in can have its assignments rewritten, its leader election spo
 client that can reach the ensemble. `TM-0001` rates those risks **High** and lists "ACLs stay opt-in" as a residual
 risk. The next major version is the place to make the secure setting the default.
 
-ZooKeeper's `CREATOR_ALL_ACL` needs an authenticated session. "Secure by default" therefore means requiring credentials
-(or an explicit opt-out), not silently switching an ACL.
+ZooKeeper's `CREATOR_ALL_ACL` needs an authenticated session. "Secure by default" therefore means requiring credentials (or an explicit opt-out), not silently switching an ACL.
 
 ## Decision Drivers
 

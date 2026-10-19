@@ -45,8 +45,7 @@ ADR-0020 (Accepted, option C): 3.x warns (US-0016, 3.2.0); 4.0 switches the layo
 
 ## Security & compliance
 
-Resolves TM-0003's "partial per-group isolation" for moved groups; the move needs shared-key access once
-(TM-0003 revision 4, pending review).
+Resolves TM-0003's "partial per-group isolation" for moved groups; the move needs shared-key access once (TM-0003 revision 4, pending review).
 
 ## Definition of ready
 

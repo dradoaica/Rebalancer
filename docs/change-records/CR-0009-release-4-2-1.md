@@ -32,28 +32,26 @@ packages are released as 4.2.1. Release notes: `docs/release-notes/4.2.1.md`.
 
 ## Impact assessment
 
-| Area                  | Impact                                                                    |
-|-----------------------|---------------------------------------------------------------------------|
-| Users / customers     | SQL Server users get the patched Pkcs on upgrade; no code change needed.  |
-| Services / components | None at runtime besides the patched assembly.                             |
-| Data / schema         | None.                                                                     |
+| Area                  | Impact                                                                   |
+|-----------------------|--------------------------------------------------------------------------|
+| Users / customers     | SQL Server users get the patched Pkcs on upgrade; no code change needed. |
+| Services / components | None at runtime besides the patched assembly.                            |
+| Data / schema         | None.                                                                    |
 | Security              | Removes a known High vulnerability from the dependency graph.            |
-| Operations            | None. Any upgrade order.                                                   |
+| Operations            | None. Any upgrade order.                                                 |
 
 ## Preconditions
 
 - [x] Decision record in place: ADR-0025 (Accepted by dradoaica, 2026-10-20; on the shared trunk with this release's merge).
 - [x] Tests on branch `agent/security-pkcs-4.2.1`: see the evidence line below.
-- [x] `dotnet list Rebalancer.slnx package --vulnerable --include-transitive`: no vulnerable package in any project
-  (2026-10-20; before: High in six projects, including both SQL Server packages).
+- [x] `dotnet list Rebalancer.slnx package --vulnerable --include-transitive`: no vulnerable package in any project (2026-10-20; before: High in six projects, including both SQL Server packages).
 - [ ] Rollback procedure validated: redeploy 4.2.0 (reintroduces the vulnerability; no data change).
 - [x] Pre-change test suite passing cleanly.
 
 Approved by dradoaica on 2026-10-20 with one precondition open: the rollback to 4.2.0 is not rehearsed (no data
 change; rolling back reintroduces the vulnerability).
 
-Evidence (2026-10-20): all six libraries build with warnings as errors; unit 59/59; SQL Server integration 7/7
-(Docker); the packed `Rebalancer.SqlServer.4.2.1.nupkg` declares `System.Security.Cryptography.Pkcs` >= 10.0.13. Redis
+Evidence (2026-10-20): all six libraries build with warnings as errors; unit 59/59; SQL Server integration 7/7 (Docker); the packed `Rebalancer.SqlServer.4.2.1.nupkg` declares `System.Security.Cryptography.Pkcs` >= 10.0.13. Redis
 and ZooKeeper integration not run (no change to those backends). Rollback to 4.2.0 not rehearsed (no data change).
 
 ## Implementation plan
@@ -76,8 +74,8 @@ Release notes `docs/release-notes/4.2.1.md`, naming the CVE and the workaround f
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-20 |
 | Release / CAB (or org) | dradoaica | 2026-10-20 |
 

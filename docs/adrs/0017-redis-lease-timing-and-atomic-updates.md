@@ -17,8 +17,7 @@ superseded-by: ""
 
 ## Context and Problem Statement
 
-This record carries over ADR-0006 item 3 **unchanged**, as part of splitting ADR-0006 into one-concern records
-(with ADR-0016 and ADR-0018). It introduces no new decision.
+This record carries over ADR-0006 item 3 **unchanged**, as part of splitting ADR-0006 into one-concern records (with ADR-0016 and ADR-0018). It introduces no new decision.
 
 Leases must not depend on client clock skew, and two coordinators must not both win a lease (ADR-0002 fencing).
 
@@ -34,9 +33,7 @@ Leases must not depend on client clock skew, and two coordinators must not both 
 
 ## Decision Outcome
 
-Proposed option: **A**, as already in force since 2.1.0: Redis lease and keep-alive times use Redis server time
-(`TIME`), and lease and client updates are compare-and-set transactions. The stored data format did not change
-(`Dictionary:` / `List:` keys, Newtonsoft JSON). The strongest argument against A: a group that mixes versions would
+Proposed option: **A**, as already in force since 2.1.0: Redis lease and keep-alive times use Redis server time (`TIME`), and lease and client updates are compare-and-set transactions. The stored data format did not change (`Dictionary:` / `List:` keys, Newtonsoft JSON). The strongest argument against A: a group that mixes versions would
 judge leases with two clocks. That is why Redis groups are upgraded all nodes at once (CR-0001).
 
 ### Consequences

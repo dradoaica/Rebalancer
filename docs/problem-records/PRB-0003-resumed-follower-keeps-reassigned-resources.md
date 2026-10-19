@@ -26,12 +26,12 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 
 ## Timeline
 
-| When       | Event                                                                                      |
-|------------|--------------------------------------------------------------------------------------------|
-| 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
-| 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                        |
-| 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0004)                |
-| 2026-10-18 | 3.1.0 released (CR-0004 Implemented); closure prepared for human review                    |
+| When       | Event                                                                               |
+|------------|-------------------------------------------------------------------------------------|
+| 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work) |
+| 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                 |
+| 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0004)         |
+| 2026-10-18 | 3.1.0 released (CR-0004 Implemented); closure prepared for human review             |
 
 ## Evidence
 
@@ -61,13 +61,13 @@ re-registration both cover related cases, but not this one: the record has not e
 
 ## Corrective actions
 
-| Action                                                                                                                 | Owner | Status |
-|------------------------------------------------------------------------------------------------------------------------|-------|--------|
-| Decide the fix in a decision record                                                                                    |       | Done: ADR-0019 (Accepted), option A |
-| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (released in 3.1.0, CR-0004) |
-| Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it)       |       | Done (released in 3.1.0) |
-| Integration test that pauses a real follower past the keep-alive expiry                                               |       | Done, not released: `*PausedNodeTests` (2026-10-19; pauses the node's store calls, not the process) |
-| Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                            |       | Decided: ADR-0021 (Accepted, option D: no token) |
+| Action                                                                                                           | Owner | Status                                                                                              |
+|------------------------------------------------------------------------------------------------------------------|-------|-----------------------------------------------------------------------------------------------------|
+| Decide the fix in a decision record                                                                              |       | Done: ADR-0019 (Accepted), option A                                                                 |
+| Coordinator records stop for non-live clients that still hold an assignment (both backends)                      |       | Done (released in 3.1.0, CR-0004)                                                                   |
+| Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it) |       | Done (released in 3.1.0)                                                                            |
+| Integration test that pauses a real follower past the keep-alive expiry                                          |       | Done, not released: `*PausedNodeTests` (2026-10-19; pauses the node's store calls, not the process) |
+| Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                       |       | Decided: ADR-0021 (Accepted, option D: no token)                                                    |
 
 ## Preventive measures
 
@@ -91,8 +91,7 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
   release notes 3.1.0).
 - **Preventive action verification:**
   - **Done:** regression tests `UnresponsiveFollowerTests` (both backends, mutation-checked) run in the unit suite.
-  - **Open, to be owned at closure:** (1) an integration test that pauses a real follower past the keep-alive expiry;
-    (2) ADR-0019 option C, a fencing token for resource handlers, the only full fix (needs its own decision record).
+  - **Open, to be owned at closure:** (1) an integration test that pauses a real follower past the keep-alive expiry; (2) ADR-0019 option C, a fencing token for resource handlers, the only full fix (needs its own decision record).
     Closing this record requires an owner for both; until then they stay in the corrective-actions table.
   - **Governance change:** N/A. This is a protocol defect, found by design review; no rule, skill or persona gap.
 - **Status of the open follow-ups (appended 2026-10-19):** both are resolved; this record stays closed. (1) The pause

@@ -42,16 +42,16 @@ $X publish 20 10                # 20 conversations x 10 turns
 Stop or kill a consumer while it works: the other takes over its partitions at once (the broker sees the closed
 connection; a frozen process is noticed at the heartbeat timeout) and continues after the stored offsets.
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `EXAMPLE_SQL` | (required) | SQL Server connection string (conversation table) |
-| `EXAMPLE_STREAM_HOST`, `EXAMPLE_STREAM_PORT` | `localhost`, `5552` | Stream protocol endpoint (all connections go here, also when the broker advertises another host) |
-| `EXAMPLE_RABBIT_USER`, `EXAMPLE_RABBIT_PASSWORD` | `guest`, `guest` | Credentials |
-| `EXAMPLE_SUPER_STREAM`, `EXAMPLE_PARTITIONS` | `chat`, `4` | Super stream name and partition count (`create`) |
-| `EXAMPLE_REFERENCE` | `chat-consumers` | Consumer group name |
-| `EXAMPLE_ATTEMPTS` | `3` | Attempts of a turn before it is parked |
-| `EXAMPLE_NODE`, `EXAMPLE_WORK_MS` | machine name, `50` | Name in the log, simulated work per turn |
-| `EXAMPLE_FAIL_CONVERSATION`, `EXAMPLE_FAIL_TURN` | none | That turn always fails |
+| Variable                                         | Default             | Meaning                                                                                          |
+|--------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------|
+| `EXAMPLE_SQL`                                    | (required)          | SQL Server connection string (conversation table)                                                |
+| `EXAMPLE_STREAM_HOST`, `EXAMPLE_STREAM_PORT`     | `localhost`, `5552` | Stream protocol endpoint (all connections go here, also when the broker advertises another host) |
+| `EXAMPLE_RABBIT_USER`, `EXAMPLE_RABBIT_PASSWORD` | `guest`, `guest`    | Credentials                                                                                      |
+| `EXAMPLE_SUPER_STREAM`, `EXAMPLE_PARTITIONS`     | `chat`, `4`         | Super stream name and partition count (`create`)                                                 |
+| `EXAMPLE_REFERENCE`                              | `chat-consumers`    | Consumer group name                                                                              |
+| `EXAMPLE_ATTEMPTS`                               | `3`                 | Attempts of a turn before it is parked                                                           |
+| `EXAMPLE_NODE`, `EXAMPLE_WORK_MS`                | machine name, `50`  | Name in the log, simulated work per turn                                                         |
+| `EXAMPLE_FAIL_CONVERSATION`, `EXAMPLE_FAIL_TURN` | none                | That turn always fails                                                                           |
 
 A blocked conversation is released the same way as in option A: replay its parked turns in order (they are kept in
 the parking stream), then `Rebalancer.RabbitMq.Tools --Command unblock --ConnString … --Conversation <id>`.

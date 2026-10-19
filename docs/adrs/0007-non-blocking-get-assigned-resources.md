@@ -20,11 +20,11 @@ superseded-by: ""
 `RebalancerClient.GetAssignedResources()` is documented as: "If the client is pending assignment or not in an active
 state then the resources collection will be empty." The backends disagree:
 
-| Provider            | Behavior while assignment is pending                                                 |
-|---------------------|--------------------------------------------------------------------------------------|
-| `ZooKeeperProvider` | Returns immediately with the current (empty) resources, as documented                |
-| `SqlServerProvider` | Blocks the calling thread (`while (true)` + `Thread.Sleep(100)`) until assigned      |
-| `RedisProvider`     | Same as SQL Server                                                                   |
+| Provider            | Behavior while assignment is pending                                            |
+|---------------------|---------------------------------------------------------------------------------|
+| `ZooKeeperProvider` | Returns immediately with the current (empty) resources, as documented           |
+| `SqlServerProvider` | Blocks the calling thread (`while (true)` + `Thread.Sleep(100)`) until assigned |
+| `RedisProvider`     | Same as SQL Server                                                              |
 
 If a SQL Server or Redis node is never assigned (for example, the resource group does not exist and the node aborts),
 the call never returns. On 2026-10-18 this made `RedisAssignmentSafetyTests` hang instead of failing; the tests now

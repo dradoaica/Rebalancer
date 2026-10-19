@@ -19,10 +19,10 @@ superseded-by: ""
 
 A `RebalancerClient` gets its provider in one of two ways today:
 
-| Way                                                   | Decided in          |
-|-------------------------------------------------------|---------------------|
+| Way                                                             | Decided in         |
+|-----------------------------------------------------------------|--------------------|
 | Static `Providers.Register(factory)` + `new RebalancerClient()` | ADR-0001, ADR-0009 |
-| `new RebalancerClient(provider)` or the DI extensions | ADR-0005            |
+| `new RebalancerClient(provider)` or the DI extensions           | ADR-0005           |
 
 The static registry is process-wide state. It caused a real defect: the ZooKeeper integration tests ran every test with
 the first test's provider (PRB-0002). ADR-0009 turned that silent failure
@@ -53,8 +53,7 @@ one line (`new RebalancerClient(new SqlServerProvider(...))`), the DI path alrea
 documented root cause of a defect in this repository. C keeps the global state forever for no benefit.
 
 What ADR-0001 decided otherwise stays unchanged and is restated here so ADR-0001 can be superseded as a whole:
-`IRebalancerProvider` is the backend abstraction, `RebalancerClient` owns the public API and events
-(`OnAssignment`, `OnUnassignment`, `OnAborted`), and providers are pluggable per backend package. ADR-0009 becomes moot
+`IRebalancerProvider` is the backend abstraction, `RebalancerClient` owns the public API and events (`OnAssignment`, `OnUnassignment`, `OnAborted`), and providers are pluggable per backend package. ADR-0009 becomes moot
 in 3.0, because the method it governs no longer exists. Until then (2.2.x) its behavior stays.
 
 ### Consequences

@@ -20,10 +20,10 @@ superseded-by: ""
 ADR-0015 moved Redis **client records** to one hash per group (3.0.0). Leases and resources are still shared by all
 groups:
 
-| Data       | Key (3.x)                       | Read pattern                                                       |
-|------------|---------------------------------|--------------------------------------------------------------------|
-| Leases     | `Dictionary:RBR:ResourceGroups` | one field per group, compare-and-set (ADR-0017)                    |
-| Resources  | `List:RBR:Resources`            | `LRANGE` of the **whole** list on every heartbeat, filtered in memory |
+| Data      | Key (3.x)                       | Read pattern                                                          |
+|-----------|---------------------------------|-----------------------------------------------------------------------|
+| Leases    | `Dictionary:RBR:ResourceGroups` | one field per group, compare-and-set (ADR-0017)                       |
+| Resources | `List:RBR:Resources`            | `LRANGE` of the **whole** list on every heartbeat, filtered in memory |
 
 Two consequences, recorded as residual risks in TM-0003:
 

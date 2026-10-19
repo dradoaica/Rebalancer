@@ -24,6 +24,7 @@ the operator creates: the root, the group node, and the `resources` node with it
 matters most, because its data holds the assignment table.
 
 **Revision 2 (3.0.0, CR-0003).**
+
 - Since 3.0 every ZooKeeper entry point requires credentials or an explicit `OPEN_ACL_UNSAFE` (ADR-0011), so an open
   ensemble is now a deliberate, visible choice, not a default.
 - ADR-0010 (2.1.0) logs a warning when the operator-created group or `resources` znode is open although credentials
@@ -32,6 +33,7 @@ matters most, because its data holds the assignment table.
 - The 2.x ACL support decided in ADR 0006 is now recorded in ADR-0018.
 
 **Revision 3 (4.1.0, CR-0007; accepted by dradoaica, 2026-10-19):** telemetry and health checks (ADR-0022, ADR-0023).
+
 - **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
   the rebalance activity, `rebalancer.epoch` (the coordinator epoch). Resource names, node identifiers, connection strings and credentials are never
   emitted (verified by the ZooKeeper telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
@@ -43,8 +45,7 @@ matters most, because its data holds the assignment table.
 
 ## System context and boundaries
 
-- **In scope:** `ZooKeeperProvider`, `ZooKeeperService`, the znodes under `{root}/{group}`, the session credentials
-  (`authScheme` / `authData`), and the DI registration (`AddRebalancerZooKeeper`).
+- **In scope:** `ZooKeeperProvider`, `ZooKeeperService`, the znodes under `{root}/{group}`, the session credentials (`authScheme` / `authData`), and the DI registration (`AddRebalancerZooKeeper`).
 - **Out of scope:** ZooKeeper server hardening (TLS, SASL/Kerberos, quorum authentication, OS hardening); the resources
   themselves (e.g., RabbitMQ queues); the SQL Server and Redis backends (no threat model yet).
 - **Assumptions:**
@@ -59,13 +60,13 @@ matters most, because its data holds the assignment table.
 
 ## Asset and data classification
 
-| Asset / Data                                                        | Classification | Notes                                                                                     |
-|---------------------------------------------------------------------|----------------|-------------------------------------------------------------------------------------------|
-| Assignment table (`{group}/resources` znode data)                   | Confidential   | Integrity-critical: decides which node processes which resource                           |
-| Resource list (`{group}/resources/*` children)                       | Internal       | Integrity-critical: adding or removing children adds or removes work                      |
-| Coordination state (`clients/c_*`, `epoch`, `status`, `stopped/*`, barriers) | Internal | Integrity- and availability-critical: leader election, fencing (epoch), barrier progress |
-| Session credentials (`authData`)                                    | Restricted     | Secret; grants full control of the group's provider-created znodes                       |
-| Node identifiers and resource names in logs                         | Internal       | May reveal topology                                                                       |
+| Asset / Data                                                                 | Classification | Notes                                                                                    |
+|------------------------------------------------------------------------------|----------------|------------------------------------------------------------------------------------------|
+| Assignment table (`{group}/resources` znode data)                            | Confidential   | Integrity-critical: decides which node processes which resource                          |
+| Resource list (`{group}/resources/*` children)                               | Internal       | Integrity-critical: adding or removing children adds or removes work                     |
+| Coordination state (`clients/c_*`, `epoch`, `status`, `stopped/*`, barriers) | Internal       | Integrity- and availability-critical: leader election, fencing (epoch), barrier progress |
+| Session credentials (`authData`)                                             | Restricted     | Secret; grants full control of the group's provider-created znodes                       |
+| Node identifiers and resource names in logs                                  | Internal       | May reveal topology                                                                      |
 
 ## Data flows
 
@@ -85,7 +86,7 @@ matters most, because its data holds the assignment table.
 
 - Threat: a client that is not part of the group registers under `clients` and wins or influences leader election.
 - Affected flow/asset: flows 2, 4; coordination state.
-- Mitigation(s): ACL overload with digest auth (ADR 0006). Only sessions with the group's credentials can create
+- Mitigation (s): ACL overload with digest auth (ADR 0006). Only sessions with the group's credentials can create
   children under a provider-created `clients` znode.
 - Risk: **High** with an open ACL (in 3.0 only by explicit opt-out); **Low** with ACLs, if `clients` was created by a
   credentialed node.
@@ -94,21 +95,21 @@ matters most, because its data holds the assignment table.
 
 - Threat T1: rewrite the assignment table so that two nodes process the same resource, or none does.
 - Affected flow/asset: flow 4; `resources` znode data.
-- Mitigation(s): provider ACLs only help if the `resources` znode was created by a credentialed node or secured with
+- Mitigation (s): provider ACLs only help if the `resources` znode was created by a credentialed node or secured with
   `setAcl`. Operators usually pre-create `resources` to list resource children, so it often keeps an open ACL.
 - Risk: **High** whenever `resources` has an open ACL, **even with the ACL feature enabled**. **Low** once
   `resources` is secured with the group's credentials.
 - Threat T2: add or remove resource children, changing the set of work.
-- Mitigation(s): same as T1; secure `resources` with the group's credentials.
+- Mitigation (s): same as T1; secure `resources` with the group's credentials.
 - Risk: **Medium**.
 - Threat T3: rewrite `epoch` or `status` to defeat fencing or stall barriers.
-- Mitigation(s): ACLs on provider-created znodes.
+- Mitigation (s): ACLs on provider-created znodes.
 - Risk: **High** without ACLs; **Low** with ACLs.
 
 - Threat T4 (revision 2): a caller-supplied `IZooKeeperService` (ADR-0012) creates znodes with whatever ACL it chooses,
   including an open one. Neither the "credentials or explicit ACL" rule (ADR-0011) nor the open-znode warning (ADR-0010)
   applies to it.
-- Mitigation(s): XML documentation, README and release notes state that the service owns its ACLs; the constructor is
+- Mitigation (s): XML documentation, README and release notes state that the service owns its ACLs; the constructor is
   meant for test doubles and specialized connection handling.
 - Risk: **Low** for the built-in service (not affected); **Medium** where a custom service is used in production
   without an ACL review.
@@ -116,7 +117,7 @@ matters most, because its data holds the assignment table.
 ### Repudiation
 
 - Threat: an unauthorized change to assignments cannot be attributed.
-- Mitigation(s): ZooKeeper has no per-change audit by default. With digest ACLs the writing identity is at least
+- Mitigation (s): ZooKeeper has no per-change audit by default. With digest ACLs the writing identity is at least
   limited to holders of the group's credentials. Shared credentials mean nodes cannot be told apart.
 - Risk: **Medium**. Accepted for a coordination library; audit belongs to the ensemble (server audit logging, where
   available; unverified – please confirm for the deployed ZooKeeper version).
@@ -124,40 +125,40 @@ matters most, because its data holds the assignment table.
 ### Information Disclosure
 
 - Threat I1: anyone with ensemble access reads resource names, node identifiers and assignments.
-- Mitigation(s): ACLs. With `CREATOR_ALL_ACL`, read access needs the credentials. ZooKeeper 3.8 also requires
+- Mitigation (s): ACLs. With `CREATOR_ALL_ACL`, read access needs the credentials. ZooKeeper 3.8 also requires
   read permission to read a znode's ACL (verified 2026-10-18).
 - Risk: **Low to Medium**, depending on how sensitive resource names are.
 - Threat I2: digest credentials are disclosed on the network or in configuration.
-- Mitigation(s): encrypt client-to-server traffic (out of scope here); load `authData` from a secret store; never log it.
+- Mitigation (s): encrypt client-to-server traffic (out of scope here); load `authData` from a secret store; never log it.
   Rebalancer does not log `authData`.
 - Risk: **Medium** without transport encryption.
 
 ### Denial of Service
 
 - Threat D1: delete or flood `clients`, `stopped` or barrier znodes to stall rebalancing indefinitely.
-- Mitigation(s): ACLs on provider-created znodes; ensemble quotas and network isolation.
+- Mitigation (s): ACLs on provider-created znodes; ensemble quotas and network isolation.
 - Risk: **High** without ACLs; **Low** with ACLs.
 - Threat D2: misconfigured credentials (nodes with different credentials) make nodes fail with `NoAuth` and abort.
-- Mitigation(s): operator notes in `src/Rebalancer.ZooKeeper/README.md` (same credentials on every node); the
+- Mitigation (s): operator notes in `src/Rebalancer.ZooKeeper/README.md` (same credentials on every node); the
   change record requires all nodes to run the new version before ACLs are enabled.
 - Risk: **Medium** (operational).
 
 ### Elevation of Privilege
 
 - Threat: a node with the group's credentials can control every znode of the group, including other nodes'.
-- Mitigation(s): none within one group. All nodes share one identity by design (`CREATOR_ALL_ACL` requires it).
+- Mitigation (s): none within one group. All nodes share one identity by design (`CREATOR_ALL_ACL` requires it).
   Use separate credentials per resource group to contain a compromised application.
 - Risk: **Medium**. Accepted: a compromised node can already mishandle the resources it is assigned.
 
 ## Controls mapping
 
-| Threat / Risk                                     | Control (design or runtime)                                                                  | Evidence / Reference                                                                 |
-|---------------------------------------------------|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| Spoofing / tampering of provider-created znodes   | Digest auth + `CREATOR_ALL_ACL` via the ACL overloads; since 3.0 an open ACL must be explicit | ADR-0018, ADR-0011; `tests/Rebalancer.IntegrationTests/ZooKeeper/AclTests.cs`, `tests/Rebalancer.UnitTests/DeprecationContractTests.cs` |
-| Tampering of the assignment table (`resources`)   | Create `resources` with the group's credentials, or `setAcl` it before starting secured nodes | `src/Rebalancer.ZooKeeper/README.md` (operator notes); detected and logged once per session (ADR 0010), **not enforced** |
-| Credential disclosure                             | Secret store for `authData`; transport encryption at the ensemble                              | README operator notes; deployment responsibility                                      |
-| Misconfiguration DoS                              | Same credentials on every node; all-nodes-first upgrade before enabling ACLs                  | CR-0001 (Implementation plan, step 5)                                          |
-| Caller-supplied service with open ACLs (T4)       | Documented ownership of ACLs by the custom service; review before production use              | ADR-0012; `src/Rebalancer.ZooKeeper/README.md`; release notes 2.2.0                 |
+| Threat / Risk                                   | Control (design or runtime)                                                                   | Evidence / Reference                                                                                                                    |
+|-------------------------------------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| Spoofing / tampering of provider-created znodes | Digest auth + `CREATOR_ALL_ACL` via the ACL overloads; since 3.0 an open ACL must be explicit | ADR-0018, ADR-0011; `tests/Rebalancer.IntegrationTests/ZooKeeper/AclTests.cs`, `tests/Rebalancer.UnitTests/DeprecationContractTests.cs` |
+| Tampering of the assignment table (`resources`) | Create `resources` with the group's credentials, or `setAcl` it before starting secured nodes | `src/Rebalancer.ZooKeeper/README.md` (operator notes); detected and logged once per session (ADR 0010), **not enforced**                |
+| Credential disclosure                           | Secret store for `authData`; transport encryption at the ensemble                             | README operator notes; deployment responsibility                                                                                        |
+| Misconfiguration DoS                            | Same credentials on every node; all-nodes-first upgrade before enabling ACLs                  | CR-0001 (Implementation plan, step 5)                                                                                                   |
+| Caller-supplied service with open ACLs (T4)     | Documented ownership of ACLs by the custom service; review before production use              | ADR-0012; `src/Rebalancer.ZooKeeper/README.md`; release notes 2.2.0                                                                     |
 
 ## Residual risk and acceptance
 
@@ -190,8 +191,8 @@ matters most, because its data holds the assignment table.
 
 ## Approvals
 
-| Role                    | Name | Date |
-|-------------------------|------|------|
+| Role                                 | Name      | Date       |
+|--------------------------------------|-----------|------------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-19 |

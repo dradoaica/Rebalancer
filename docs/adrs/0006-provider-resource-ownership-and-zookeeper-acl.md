@@ -21,12 +21,12 @@ Uncommitted hardening work in the working tree (2026-10-18) changes public contr
 `.agents/AGENTS.md` → *Change classification triage matrix*, these are **Tier 1** and need an accepted decision record
 before release. This ADR records them as one decision.
 
-| # | Change (as in working tree)                                                                                                 | Contract affected                                                       |
-|---|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| 1 | `RedisProvider` implements `IDisposable` and closes its `ConnectionMultiplexer`                                              | Public type surface (additive)                                          |
-| 2 | `RebalancerClient.Dispose()` disposes the provider when it implements `IDisposable`, also after `StopAsync`                  | Ownership: the client now owns an injected provider                     |
+| # | Change (as in working tree)                                                                                                         | Contract affected                                                                      |
+|---|-------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| 1 | `RedisProvider` implements `IDisposable` and closes its `ConnectionMultiplexer`                                                     | Public type surface (additive)                                                         |
+| 2 | `RebalancerClient.Dispose()` disposes the provider when it implements `IDisposable`, also after `StopAsync`                         | Ownership: the client now owns an injected provider                                    |
 | 3 | Redis lease and keep-alive times use Redis server time (`TIME`), and lease/client updates use optimistic `WATCH`-style transactions | Behavior; stored data format unchanged (`Dictionary:` / `List:` keys, Newtonsoft JSON) |
-| 4 | `ZooKeeperService(string, List<ACL> acl = null, string authScheme = null, byte[] authData = null)` applies an ACL to every znode | Public constructor signature (binary-breaking) and a **security control** |
+| 4 | `ZooKeeperService(string, List<ACL> acl = null, string authScheme = null, byte[] authData = null)` applies an ACL to every znode    | Public constructor signature (binary-breaking) and a **security control**              |
 
 ## Decision Drivers
 

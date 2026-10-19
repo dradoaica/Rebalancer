@@ -41,13 +41,13 @@ Copy the front matter from the chosen template and keep every key.
 
 ## Index (this repository)
 
-| ID | File | Status (YAML) |
-|----|------|----------------|
-| 0000 | [0000-use-markdown-architectural-decision-records.md](0000-use-markdown-architectural-decision-records.md) | accepted |
-| 0001 | [0001-pluggable-rebalancer-provider-and-client-lifecycle.md](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) | accepted |
-| 0002 | [0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md) | accepted |
-| 0003 | [0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md) | accepted |
-| 0004 | [0004-client-options-recovery-and-assignment-delay.md](0004-client-options-recovery-and-assignment-delay.md) | accepted |
-| 0005 | [0005-dependency-injection-for-provider-registration-v2.md](0005-dependency-injection-for-provider-registration-v2.md) | accepted |
+| ID   | File                                                                                                                                         | Status (YAML) |
+|------|----------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| 0000 | [0000-use-markdown-architectural-decision-records.md](0000-use-markdown-architectural-decision-records.md)                                   | accepted      |
+| 0001 | [0001-pluggable-rebalancer-provider-and-client-lifecycle.md](0001-pluggable-rebalancer-provider-and-client-lifecycle.md)                     | accepted      |
+| 0002 | [0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md) | accepted      |
+| 0003 | [0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md)         | accepted      |
+| 0004 | [0004-client-options-recovery-and-assignment-delay.md](0004-client-options-recovery-and-assignment-delay.md)                                 | accepted      |
+| 0005 | [0005-dependency-injection-for-provider-registration-v2.md](0005-dependency-injection-for-provider-registration-v2.md)                       | accepted      |
 
 See also [traceability matrix](../traceability-matrix.md).

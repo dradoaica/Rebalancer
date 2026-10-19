@@ -25,11 +25,11 @@ Removed: `new ZooKeeperService(hosts)`, the `ZooKeeperProvider` constructor endi
 = null`, and `AddRebalancerZooKeeper(..., IZooKeeperService? zooKeeperService = null)`. The remaining entry points throw
 `ArgumentException` if you give neither credentials nor an ACL.
 
-| You used                                       | Use in 3.0                                                                                           |
-|------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| No credentials (open znodes)                   | the ACL overload with `acl: ZooDefs.Ids.OPEN_ACL_UNSAFE, authScheme: null, authData: null` – same behavior, now explicit |
-| Credentials (`authScheme`, `authData`)         | unchanged                                                                                            |
-| A custom `IZooKeeperService`                   | `new ZooKeeperProvider(zooKeeperService, rootPath, sessionTimeout, connectTimeout, minimumRebalancingInterval, mode, logger)`; with DI, `AddRebalancerProvider(_ => new ZooKeeperProvider(new MyService(), ...))` |
+| You used                               | Use in 3.0                                                                                                                                                                                                        |
+|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| No credentials (open znodes)           | the ACL overload with `acl: ZooDefs.Ids.OPEN_ACL_UNSAFE, authScheme: null, authData: null` – same behavior, now explicit                                                                                          |
+| Credentials (`authScheme`, `authData`) | unchanged                                                                                                                                                                                                         |
+| A custom `IZooKeeperService`           | `new ZooKeeperProvider(zooKeeperService, rootPath, sessionTimeout, connectTimeout, minimumRebalancingInterval, mode, logger)`; with DI, `AddRebalancerProvider(_ => new ZooKeeperProvider(new MyService(), ...))` |
 
 See `src/Rebalancer.ZooKeeper/README.md` for securing znodes, including the `resources` znode you create yourself.
 
@@ -56,15 +56,16 @@ together: they would look at different hashes.
    its lease. Those entries belong to the stopped processes and expire later (ADR-0014).
 3. Optional: a Redis ACL user can now be limited to one group's client hash with the key patterns
    `~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` (leases and resources stay shared).
-   - **Command set (verified 2026-10-18, redis:7.0, StackExchange.Redis 3.4.5):**
-     `+@read +@write +@transaction +time +echo` with `resetchannels`, e.g.
-     `ACL SETUSER orders-user on >secret resetchannels ~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources +@read +@write +@transaction +time +echo`.
-     `ECHO` is required by the client library's connection handshake. Its other handshake commands (`CLIENT`, `CLUSTER`,
-     `CONFIG GET`, `INFO`, `SELECT`, `SUBSCRIBE`) are denied but tolerated, and appear in `ACL LOG`; grant them only to
-     silence the log. With a non-zero database index, also grant `+select`.
-   - **Old entries:** a user without access to `Dictionary:RBR:Clients` cannot move the group's old entries. The
-     coordinator then skips that step, and expiry still works. Run the first 3.0 start with a user that can read the
-     old hash if you want the old entries cleaned up.
+    - **Command set (verified 2026-10-18, redis:7.0, StackExchange.Redis 3.4.5):**
+      `+@read +@write +@transaction +time +echo` with `resetchannels`, e.g.
+      `ACL SETUSER orders-user on >secret resetchannels ~RBR:Clients:orders ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources +@read +@write +@transaction +time +echo`.
+      `ECHO` is required by the client library's connection handshake. Its other handshake commands (`CLIENT`,
+      `CLUSTER`,
+      `CONFIG GET`, `INFO`, `SELECT`, `SUBSCRIBE`) are denied but tolerated, and appear in `ACL LOG`; grant them only to
+      silence the log. With a non-zero database index, also grant `+select`.
+    - **Old entries:** a user without access to `Dictionary:RBR:Clients` cannot move the group's old entries. The
+      coordinator then skips that step, and expiry still works. Run the first 3.0 start with a user that can read the
+      old hash if you want the old entries cleaned up.
 
 **Rollback to 2.x:** stop the group's nodes and start 2.x. 2.x ignores `RBR:Clients:*`; its nodes register new records
 in the shared hash at start, so nothing needs to move back. You may delete the group's `RBR:Clients:{group}` key

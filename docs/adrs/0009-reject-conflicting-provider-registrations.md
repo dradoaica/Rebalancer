@@ -20,8 +20,7 @@ superseded-by: "ADR-0013"
 `Providers.Register` is static and keeps only the first factory. Every later call is ignored without any signal. ADR
 0001 recorded this as a drawback ("can surprise tests or mis-ordered startup"). On 2026-10-18 it did exactly that: every
 ZooKeeper integration test registered its own factory, but all of them ran with the first test's provider. The
-ResourceBarrier mode was not exercised at all, and the suite still passed
-(`docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md`).
+ResourceBarrier mode was not exercised at all, and the suite still passed (`docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md`).
 
 The tests now pass providers explicitly, but the trap remains for applications: a second, different registration is
 silently lost. ADR 0005 keeps `Providers` (not `[Obsolete]`) in this milestone, so the fix has to stay compatible with

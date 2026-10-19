@@ -50,8 +50,7 @@ that clash with key patterns. The key segment is the group name, escaped (rule f
 
 ### Consequences
 
-* Good, because heartbeat reads scale with the group, and a Redis ACL user can be limited to one group's keys
-  (resolves a TM-0003 residual risk).
+* Good, because heartbeat reads scale with the group, and a Redis ACL user can be limited to one group's keys (resolves a TM-0003 residual risk).
 * Bad, because 3.0 Redis upgrades need the migration step and a matching rollback procedure.
 * Bad, because the leases (`Dictionary:RBR:ResourceGroups`) and resources (`List:RBR:Resources`) stay shared. Moving
   them is out of scope here; the resources list has the same whole-list read pattern (follow-up).

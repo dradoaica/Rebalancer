@@ -11,19 +11,19 @@ clients log a warning once per session that points here (US-0016); 4.0 no longer
 records (ADR-0015). In the key names, `{group}` is the group name percent-encoded outside `A-Z a-z 0-9 - _ . ~`, e.g.
 `orders` stays `orders` and `eu orders` becomes `eu%20orders`.
 
-| Data                                | 3.x (shared by all groups)                              | 4.0 (one key per group)                                               |
-|-------------------------------------|---------------------------------------------------------|-----------------------------------------------------------------------|
-| Group settings and lease            | field `"{name}"` of hash `Dictionary:RBR:ResourceGroups` | hash `RBR:Lease:{group}`, same single field and value                  |
-| Resources                           | entries of list `List:RBR:Resources`                    | list `RBR:Resources:{group}`, same entry values                       |
-| Client records                      | `RBR:Clients:{group}` (since 3.0)                       | unchanged                                                             |
+| Data                     | 3.x (shared by all groups)                               | 4.0 (one key per group)                               |
+|--------------------------|----------------------------------------------------------|-------------------------------------------------------|
+| Group settings and lease | field `"{name}"` of hash `Dictionary:RBR:ResourceGroups` | hash `RBR:Lease:{group}`, same single field and value |
+| Resources                | entries of list `List:RBR:Resources`                     | list `RBR:Resources:{group}`, same entry values       |
+| Client records           | `RBR:Clients:{group}` (since 3.0)                        | unchanged                                             |
 
 Values keep their JSON format. The field name in `RBR:Lease:{group}` is the JSON-encoded group name (with quotes), as in
 the shared hash.
 
 ## Upgrading: automatic, once per group
 
-1. Stop every node of the group. A group must not run 3.x and 4.0 nodes together: they would read different keys
-   (the all-nodes-at-once rule that applies to Redis since 2.1).
+1. Stop every node of the group. A group must not run 3.x and 4.0 nodes together: they would read different keys (the
+   all-nodes-at-once rule that applies to Redis since 2.1).
 2. Deploy 4.0 and start the nodes. When a node starts and `RBR:Lease:{group}` does not exist, it moves the group's
    field from `Dictionary:RBR:ResourceGroups` and the group's entries from `List:RBR:Resources` to the new keys in one
    Redis transaction. The transaction fails if any of them changed meanwhile, so at most one node moves them; the
@@ -56,7 +56,8 @@ With 4.0 a user can be confined to its group completely, with no access to any s
 ACL SETUSER orders-user on >secret resetchannels ~RBR:Lease:orders ~RBR:Resources:orders ~RBR:Clients:orders +@read +@write +@transaction +time +echo
 ```
 
-The command set is the one verified for 3.0 (see [migrating-to-3.0.md](migrating-to-3.0.md#redis-upgrade-all-nodes-of-a-resource-group-at-once-adr-0015)).
+The command set is the one verified for 3.0
+(see [migrating-to-3.0.md](migrating-to-3.0.md#redis-upgrade-all-nodes-of-a-resource-group-at-once-adr-0015)).
 For 3.x, keep `~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` in the user until the group has moved.
 
 ## Rollback to 3.x

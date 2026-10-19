@@ -204,8 +204,8 @@ The randomised ZooKeeper tests run 2–8 hours each (about 38 hours in total). S
 
 ### Repository layout
 
-| Folder                   | Contents                                                                                                                                       |
-|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`). |
+| Folder                   | Contents                                                                                                                                                                                               |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`).                                                         |
 | [`examples/`](examples/) | RabbitMQ examples: ordered consumer group with Rebalancer (`Rebalancer.RabbitMq.QuorumQueuesExample`, `Rebalancer.RabbitMq.Tools`) and with super streams (`Rebalancer.RabbitMq.SuperStreamsExample`). |
-| [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                                                         |
+| [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                                                                                                                 |

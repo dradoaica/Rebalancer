@@ -114,18 +114,26 @@ public static class QueueManager
         var command = conn.CreateCommand();
         command.CommandText = "UPDATE Example.ConversationTurns SET Blocked = 0 WHERE ConversationId = @ConversationId";
         command.Parameters.Add("ConversationId", SqlDbType.VarChar, 200).Value = conversationId;
-        Console.WriteLine(command.ExecuteNonQuery() == 1 ? $"Unblocked {conversationId}" : $"{conversationId} not found");
+        Console.WriteLine(
+            command.ExecuteNonQuery() == 1 ? $"Unblocked {conversationId}" : $"{conversationId} not found"
+        );
     }
 
     /// <summary>The fanout dead-letter exchange and its quorum queue; failed and parked messages end here.</summary>
     public static async Task EnsureDeadLetteringAsync(QueueInventory inventory, string vhost = "%2f")
     {
-        await PutAsync($"exchanges/{vhost}/{inventory.DeadLetterExchange}",
-            "{\"type\":\"fanout\",\"durable\":true,\"auto_delete\":false,\"internal\":false,\"arguments\":{}}");
-        await PutAsync($"queues/{vhost}/{inventory.DeadLetterQueue}",
-            "{\"durable\":true,\"arguments\":{\"x-queue-type\":\"quorum\"}}");
-        await PostAsync($"bindings/{vhost}/e/{inventory.DeadLetterExchange}/q/{inventory.DeadLetterQueue}",
-            "{\"routing_key\":\"\",\"arguments\":{}}");
+        await PutAsync(
+            $"exchanges/{vhost}/{inventory.DeadLetterExchange}",
+            "{\"type\":\"fanout\",\"durable\":true,\"auto_delete\":false,\"internal\":false,\"arguments\":{}}"
+        );
+        await PutAsync(
+            $"queues/{vhost}/{inventory.DeadLetterQueue}",
+            "{\"durable\":true,\"arguments\":{\"x-queue-type\":\"quorum\"}}"
+        );
+        await PostAsync(
+            $"bindings/{vhost}/e/{inventory.DeadLetterExchange}/q/{inventory.DeadLetterQueue}",
+            "{\"routing_key\":\"\",\"arguments\":{}}"
+        );
     }
 
     public static async Task AddQueueSqlAsync(string resourceGroup, QueueInventory inventory)
@@ -204,24 +212,33 @@ public static class QueueManager
     // deliveries, and dead-letters a message after DeliveryLimit deliveries, at least once
     private static async Task PutQueueRabbitMqAsync(QueueInventory inventory, string queueName, string vhost = "%2f")
     {
-        await PutAsync($"exchanges/{vhost}/{inventory.ExchangeName}",
-            "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}");
-        await PutAsync($"queues/{vhost}/{queueName}", JsonSerializer.Serialize(new
-        {
-            durable = true,
-            arguments = new Dictionary<string, object>
-            {
-                ["x-queue-type"] = "quorum",
-                ["x-single-active-consumer"] = true,
-                ["x-delivery-limit"] = inventory.DeliveryLimit,
-                ["x-dead-letter-exchange"] = inventory.DeadLetterExchange,
-                ["x-dead-letter-strategy"] = "at-least-once",
-                ["x-overflow"] = "reject-publish", // required by at-least-once dead-lettering
-            },
-        }));
+        await PutAsync(
+            $"exchanges/{vhost}/{inventory.ExchangeName}",
+            "{\"type\":\"x-consistent-hash\",\"auto_delete\":false,\"durable\":true,\"internal\":false,\"arguments\":{}}"
+        );
+        await PutAsync(
+            $"queues/{vhost}/{queueName}",
+            JsonSerializer.Serialize(
+                new
+                {
+                    durable = true,
+                    arguments = new Dictionary<string, object>
+                    {
+                        ["x-queue-type"] = "quorum",
+                        ["x-single-active-consumer"] = true,
+                        ["x-delivery-limit"] = inventory.DeliveryLimit,
+                        ["x-dead-letter-exchange"] = inventory.DeadLetterExchange,
+                        ["x-dead-letter-strategy"] = "at-least-once",
+                        ["x-overflow"] = "reject-publish", // required by at-least-once dead-lettering
+                    },
+                }
+            )
+        );
         // equal weights: the consistent-hash exchange spreads routing keys (conversation IDs) evenly
-        await PostAsync($"bindings/{vhost}/e/{inventory.ExchangeName}/q/{queueName}",
-            "{\"routing_key\":\"10\",\"arguments\":{}}");
+        await PostAsync(
+            $"bindings/{vhost}/e/{inventory.ExchangeName}/q/{queueName}",
+            "{\"routing_key\":\"10\",\"arguments\":{}}"
+        );
     }
 
     private static async Task PutAsync(string path, string json)
@@ -229,7 +246,9 @@ public static class QueueManager
         var response = await client.PutAsync(path, new StringContent(json, Encoding.UTF8, "application/json"));
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"PUT {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+            throw new Exception(
+                $"PUT {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}"
+            );
         }
     }
 
@@ -238,7 +257,9 @@ public static class QueueManager
         var response = await client.PostAsync(path, new StringContent(json, Encoding.UTF8, "application/json"));
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"POST {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+            throw new Exception(
+                $"POST {path} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}"
+            );
         }
     }
 

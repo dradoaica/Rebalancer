@@ -1,6 +1,8 @@
 # Rebalancer — architecture overview
 
-High-level view of the .NET solution. Libraries live under [`src/`](../../src/); samples under [`examples/`](../../examples/); automated tests under [`tests/`](../../tests/). For protocol detail, see [src/Rebalancer.ZooKeeper/README.md](../../src/Rebalancer.ZooKeeper/README.md) and [README.md](../../README.md).
+High-level view of the .NET solution. Libraries live under [`src/`](../../src/); samples under [
+`examples/`](../../examples/); automated tests under [`tests/`](../../tests/). For protocol detail,
+see [src/Rebalancer.ZooKeeper/README.md](../../src/Rebalancer.ZooKeeper/README.md) and [README.md](../../README.md).
 
 ```mermaid
 flowchart TB
@@ -41,7 +43,8 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.2.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release history: [`docs/release-notes/`](../release-notes/).
+Current version: **4.2.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release
+history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 
@@ -50,13 +53,14 @@ which writes each client's assignment into the store; followers read theirs on e
 ([ADR-0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)). ZooKeeper uses leader
 election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md)).
 
-| Backend    | Group settings and lease                       | Resources                         | Client records                   |
-|------------|------------------------------------------------|-----------------------------------|----------------------------------|
-| SQL Server | `RBR.ResourceGroups` (row per group)           | `RBR.Resources`                   | `RBR.Clients`                    |
-| Redis 4.0  | `RBR:Lease:{group}` (hash, one field)          | `RBR:Resources:{group}` (list)    | `RBR:Clients:{group}` (hash)     |
+| Backend    | Group settings and lease                                                                               | Resources                                                                   | Client records                                    |
+|------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
+| SQL Server | `RBR.ResourceGroups` (row per group)                                                                   | `RBR.Resources`                                                             | `RBR.Clients`                                     |
+| Redis 4.0  | `RBR:Lease:{group}` (hash, one field)                                                                  | `RBR:Resources:{group}` (list)                                              | `RBR:Clients:{group}` (hash)                      |
 | ZooKeeper  | leader: lowest `{root}/{group}/clients/c_*`; `epoch` (znode version) increments per coordinator tenure | children of `{root}/{group}/resources`; its data holds the assignment table | ephemeral sequential `{root}/{group}/clients/c_*` |
 
-- **Redis:** since 4.0 every key belongs to one group ([ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md));
+- **Redis:** since 4.0 every key belongs to one group
+  ([ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md));
   `{group}` is percent-encoded ([ADR-0015](../adrs/0015-store-redis-clients-per-resource-group.md)). The first 4.0 node
   of a group moves it out of the 3.x shared keys `Dictionary:RBR:ResourceGroups` and `List:RBR:Resources`
   ([migration guide](../release-notes/migrating-to-4.0.md)). Leases use the Redis server clock and compare-and-set
@@ -67,13 +71,13 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
 
 ## Safety mechanisms (SQL Server, Redis)
 
-| Mechanism                                                                                   | Decision / record |
-|---------------------------------------------------------------------------------------------|-------------------|
-| Coordinator writes are guarded by its lease's fencing token; a newer coordinator wins         | ADR-0002          |
-| A demoted coordinator records its status and clears its local state, so its successor's stop barrier includes it | PRB-0001          |
-| Client records without a keep-alive for 10 × the lease expiry (configurable) are deleted      | ADR-0014          |
-| A client that stopped responding but still holds resources is told to stop; it does so at its first tick after resuming | ADR-0019, PRB-0003 |
-| No fencing token for resource handlers: a resumed process can run its handlers for up to one follower interval | ADR-0021 (option D) |
+| Mechanism                                                                                                               | Decision / record   |
+|-------------------------------------------------------------------------------------------------------------------------|---------------------|
+| Coordinator writes are guarded by its lease's fencing token; a newer coordinator wins                                   | ADR-0002            |
+| A demoted coordinator records its status and clears its local state, so its successor's stop barrier includes it        | PRB-0001            |
+| Client records without a keep-alive for 10 × the lease expiry (configurable) are deleted                                | ADR-0014            |
+| A client that stopped responding but still holds resources is told to stop; it does so at its first tick after resuming | ADR-0019, PRB-0003  |
+| No fencing token for resource handlers: a resumed process can run its handlers for up to one follower interval          | ADR-0021 (option D) |
 
 Keep the lease expiry (`LeaseExpirySeconds`) well above the longest pause a node can have (GC, VM freeze); see the
 3.1.0 release notes.
@@ -91,7 +95,8 @@ participation by `GetCurrentState()`, not by the event.
   `Rebalancer` in `Rebalancer.Core` (`RebalancerTelemetry`). `RebalancerClient` records assignments, unassignments and
   the unassigned duration; the backends' coordinators record rebalances (with an activity per rebalance) and
   elections. Tags: backend and group; never resource names.
-- **Health** ([ADR-0023](../adrs/0023-health-check-for-a-rebalancer-client.md)): `RebalancerClientHealthCheck` in its own
+- **Health** ([ADR-0023](../adrs/0023-health-check-for-a-rebalancer-client.md)): `RebalancerClientHealthCheck` in its
+  own
   package observes the host's client (state, and `OnAborted` until the client is assigned again); it never calls the
   backend. Since 4.2.0 all three backends report `ClientState.Aborted` after a final error (US-0021).
 

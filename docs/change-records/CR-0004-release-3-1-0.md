@@ -44,13 +44,13 @@ resumed follower stops at its first tick. No API, configuration or data format c
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                         |
-|-----------------------|----------------------------------------------------------------------------------------------------------------|
-| Users / customers     | A follower that resumes after a long pause gets `OnUnassignment` at its first tick, then a new assignment.     |
+| Area                  | Impact                                                                                                            |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------|
+| Users / customers     | A follower that resumes after a long pause gets `OnUnassignment` at its first tick, then a new assignment.        |
 | Services / components | One extra read of the group's clients per rebalance, and one stop write when unresponsive clients hold resources. |
-| Data / schema         | None.                                                                                                          |
-| Security              | None (no new access; uses the existing fencing-guarded stop).                                                  |
-| Operations            | None. Any upgrade order; mixed 3.0 / 3.1 groups behave like 3.0 when a 3.0 node coordinates.                    |
+| Data / schema         | None.                                                                                                             |
+| Security              | None (no new access; uses the existing fencing-guarded stop).                                                     |
+| Operations            | None. Any upgrade order; mixed 3.0 / 3.1 groups behave like 3.0 when a 3.0 node coordinates.                      |
 
 ## Preconditions
 

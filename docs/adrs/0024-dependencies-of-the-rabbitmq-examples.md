@@ -28,11 +28,9 @@ This record decides which packages the example projects may reference.
 **Facts (verified 2026-10-19/20):**
 
 * `RabbitMQ.Stream.Client` 1.12.2 (NuGet, latest stable) targets net8.0, net9.0 and net10.0 (the examples target
-  net10.0). Its license is **Apache-2.0 AND MPL-2.0** (both apply), whereas `RabbitMQ.Client` 7.2.2, used today, is
-  **Apache-2.0 OR MPL-2.0** (either may be chosen).
+  net10.0). Its license is **Apache-2.0 AND MPL-2.0** (both apply), whereas `RabbitMQ.Client` 7.2.2, used today, is **Apache-2.0 OR MPL-2.0** (either may be chosen).
 * Its documentation shows super streams (`StreamSystem.CreateSuperStream`, `PartitionsSuperStreamSpec`), a routed
-  producer (`ProducerConfig.SuperStreamConfig.Routing`) and a consumer group with single active consumer
-  (`ConsumerConfig.IsSuperStream`, `IsSingleActiveConsumer`, `Reference`, `ConsumerUpdateListener`, `StoreOffset`).
+  producer (`ProducerConfig.SuperStreamConfig.Routing`) and a consumer group with single active consumer (`ConsumerConfig.IsSuperStream`, `IsSingleActiveConsumer`, `Reference`, `ConsumerUpdateListener`, `StoreOffset`).
   Super streams need RabbitMQ 3.11 or later with the `rabbitmq_stream` plugin.
 * `examples/Rebalancer.RabbitMq.Tools` referenced `Consul` 1.8.0, but no example source file used it (it only supplied
   `Newtonsoft.Json` transitively).
@@ -47,8 +45,7 @@ This record decides which packages the example projects may reference.
 
 * **A. Runnable example:** a new project `examples/Rebalancer.RabbitMq.SuperStreamsExample` references
   `RabbitMQ.Stream.Client` 1.12.2 (new to the repository) and, for the same SQL Server turn guard as the option A
-  example, `Microsoft.Data.SqlClient` 7.1.1 with the `System.Security.Cryptography.Pkcs` 10.0.13 pin of ADR-0025
-  (both already used by the other examples); keep the guide; remove `Consul`.
+  example, `Microsoft.Data.SqlClient` 7.1.1 with the `System.Security.Cryptography.Pkcs` 10.0.13 pin of ADR-0025 (both already used by the other examples); keep the guide; remove `Consul`.
 * **B. Guide only:** document super streams in a guide that links RabbitMQ's own examples; no new dependency; remove
   `Consul`.
 * **C. Keep the dependencies as they are:** no super-streams material, `Consul` stays.

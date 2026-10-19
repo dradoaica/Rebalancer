@@ -23,8 +23,7 @@ and how it finds the client it checks.
 
 **Findings (verified in code, 2026-10-19):**
 
-1. **There is no single DI-registered client.** Every `AddRebalancer*` extension registers `RebalancerClient` as
-   **transient** (`src/Rebalancer.Extensions.DependencyInjection/*.cs`), so each resolve creates a new client with a
+1. **There is no single DI-registered client.** Every `AddRebalancer*` extension registers `RebalancerClient` as **transient** (`src/Rebalancer.Extensions.DependencyInjection/*.cs`), so each resolve creates a new client with a
    new provider (ADR-0016). A check that resolves "the" client from DI would check a fresh, never-started client.
    US-0018 criterion 1 must change accordingly.
 2. **`GetCurrentState()` does not reveal an abort on SQL Server and Redis.** Only `ZooKeeperProvider` returns
@@ -51,8 +50,7 @@ and how it finds the client it checks.
   and that `IHealthChecksBuilder` lives in the second one).
 * **B. The same check inside `Rebalancer.Extensions.DependencyInjection`.** Every DI user takes the health-check
   packages, whether they use health checks or not.
-* **C. Register `RebalancerClient` as a singleton** so a check can resolve it. A behavior change of the DI contract
-  (ADR-0005, US-012) for every host that resolves several clients; Tier 1 on its own.
+* **C. Register `RebalancerClient` as a singleton** so a check can resolve it. A behavior change of the DI contract (ADR-0005, US-012) for every host that resolves several clients; Tier 1 on its own.
 * **D. Documentation only:** a sample check of about 20 lines in the README, which the host copies. No package, no
   dependency, no maintained API.
 
@@ -69,12 +67,12 @@ changing the DI contract, which C does.
 
 Behavior:
 
-| Condition                                                                 | Result      |
-|---------------------------------------------------------------------------|-------------|
-| `OnAborted` was raised, or state `Aborted`                                | `Unhealthy` |
-| State `Stopped`, `NotStarted` or `NoProvider`                             | `Unhealthy` |
-| State `PendingAssignment` for longer than the configured threshold        | `Degraded`  |
-| Otherwise (`Assigned`, or `PendingAssignment` within the threshold)       | `Healthy`   |
+| Condition                                                           | Result      |
+|---------------------------------------------------------------------|-------------|
+| `OnAborted` was raised, or state `Aborted`                          | `Unhealthy` |
+| State `Stopped`, `NotStarted` or `NoProvider`                       | `Unhealthy` |
+| State `PendingAssignment` for longer than the configured threshold  | `Degraded`  |
+| Otherwise (`Assigned`, or `PendingAssignment` within the threshold) | `Healthy`   |
 
 The threshold is a constructor / registration parameter (default: 2 minutes, unverified – please confirm a sensible
 default against typical `LeaseExpirySeconds`). The result's description carries the state only, never resource names

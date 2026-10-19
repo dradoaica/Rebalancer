@@ -44,13 +44,13 @@ ZooKeeper znode runbook, and new integration tests. No API, configuration or dat
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                     |
-|-----------------------|------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Redis users see one warning per client start in their logs. Nothing else changes.                          |
-| Services / components | None at runtime besides the log line.                                                                      |
-| Data / schema         | None. The role script is optional and additive (a new database role).                                      |
-| Security              | Positive: operators get a least-privilege role and a verified procedure to secure ZooKeeper znodes.        |
-| Operations            | None. Any upgrade order; 3.1 and 3.2 nodes can run in one group.                                           |
+| Area                  | Impact                                                                                              |
+|-----------------------|-----------------------------------------------------------------------------------------------------|
+| Users / customers     | Redis users see one warning per client start in their logs. Nothing else changes.                   |
+| Services / components | None at runtime besides the log line.                                                               |
+| Data / schema         | None. The role script is optional and additive (a new database role).                               |
+| Security              | Positive: operators get a least-privilege role and a verified procedure to secure ZooKeeper znodes. |
+| Operations            | None. Any upgrade order; 3.1 and 3.2 nodes can run in one group.                                    |
 
 ## Preconditions
 
@@ -77,8 +77,7 @@ release's merge, and the rollback (redeploy 3.1.0) is not rehearsed.
 
 ## Rollback plan
 
-Redeploy 3.1.0; no data or configuration to undo. The role script's role can stay or be dropped
-(`DROP ROLE [rebalancer_node]` after removing its members).
+Redeploy 3.1.0; no data or configuration to undo. The role script's role can stay or be dropped (`DROP ROLE [rebalancer_node]` after removing its members).
 
 ## Communications
 
@@ -86,8 +85,8 @@ Release notes `docs/release-notes/3.2.0.md`; migration guide `docs/release-notes
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-19 |
 | Release / CAB (or org) | dradoaica | 2026-10-19 |
 

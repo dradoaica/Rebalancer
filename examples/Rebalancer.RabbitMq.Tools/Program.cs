@@ -41,7 +41,11 @@ internal static class Program
             };
             if (backend.Equals("mssql", StringComparison.OrdinalIgnoreCase))
             {
-                await DeployQueuesWithSqlBackend(GetMandatoryArg(configuration, "ConnString"), rabbitConn, queueInventory)
+                await DeployQueuesWithSqlBackend(
+                        GetMandatoryArg(configuration, "ConnString"),
+                        rabbitConn,
+                        queueInventory
+                    )
                     .ConfigureAwait(false);
             }
             else
@@ -80,7 +84,11 @@ internal static class Program
         try
         {
             QueueManager.Initialize(connection, rabbitConn);
-            QueueManager.EnsureResourceGroup(queueInventory.ConsumerGroup, queueInventory.LeaseExpirySeconds, queueInventory.HeartbeatSeconds);
+            QueueManager.EnsureResourceGroup(
+                queueInventory.ConsumerGroup,
+                queueInventory.LeaseExpirySeconds,
+                queueInventory.HeartbeatSeconds
+            );
             QueueManager.EnsureConversationTable();
             await QueueManager.EnsureDeadLetteringAsync(queueInventory);
             LogInfo("Phase 1 - Reconcile Backend with existing RabbitMQ queues ---------");

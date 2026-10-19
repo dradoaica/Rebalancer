@@ -28,10 +28,10 @@ not exercised.
 
 ## Timeline
 
-| When       | Event                                                                                              |
-|------------|----------------------------------------------------------------------------------------------------|
-| 2026-10-18 | Detected while preparing the randomised suite run; confirmed from the log of the earlier run       |
-| 2026-10-18 | Tests changed to pass a per-test provider factory to `RebalancerClient` (uncommitted)              |
+| When       | Event                                                                                        |
+|------------|----------------------------------------------------------------------------------------------|
+| 2026-10-18 | Detected while preparing the randomised suite run; confirmed from the log of the earlier run |
+| 2026-10-18 | Tests changed to pass a per-test provider factory to `RebalancerClient` (uncommitted)        |
 
 ## Evidence
 
@@ -59,13 +59,13 @@ factory is also bound to the first test class instance, so the randomised tests 
 
 ## Corrective actions
 
-| Action                                                                                                                     | Owner | Status             |
-|----------------------------------------------------------------------------------------------------------------------------|-------|--------------------|
-| ZooKeeper tests pass their own factory: `new RebalancerClient(providerFactory())` (`SingleClientTests`, `MultiClientTests`, randomised `TestClient`) | | Done (2.1.0)       |
-| Re-run the ZooKeeper suites so both modes are actually exercised                                                           |       | Done: single/multi/ACL all passed; randomised smoke (2-min cap) 6/13 passed, 0 failed, both modes, then stopped by decision of dradoaica as sufficient |
-| Startup-race assertions in 4 multi-client tests replaced by settled-outcome checks (`AssertSettledAssigned`)                |       | Done (2.1.0)       |
-| Randomised tests write their event log under the OS temp directory; `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` caps runtime   |       | Done (2.1.0)       |
-| Release with `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`                              |       | Done (2.1.0)       |
+| Action                                                                                                                                               | Owner | Status                                                                                                                                                 |
+|------------------------------------------------------------------------------------------------------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ZooKeeper tests pass their own factory: `new RebalancerClient(providerFactory())` (`SingleClientTests`, `MultiClientTests`, randomised `TestClient`) |       | Done (2.1.0)                                                                                                                                           |
+| Re-run the ZooKeeper suites so both modes are actually exercised                                                                                     |       | Done: single/multi/ACL all passed; randomised smoke (2-min cap) 6/13 passed, 0 failed, both modes, then stopped by decision of dradoaica as sufficient |
+| Startup-race assertions in 4 multi-client tests replaced by settled-outcome checks (`AssertSettledAssigned`)                                         |       | Done (2.1.0)                                                                                                                                           |
+| Randomised tests write their event log under the OS temp directory; `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` caps runtime                            |       | Done (2.1.0)                                                                                                                                           |
+| Release with `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`                                                             |       | Done (2.1.0)                                                                                                                                           |
 
 ## Preventive measures
 

@@ -59,13 +59,13 @@ added as overloads. Three documented behavior changes remain: provider ownership
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                                                                                |
-|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Area                  | Impact                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Users / customers     | Callers that share one provider instance between clients, or keep using a provider after disposing its client, must create one provider per client (ADR 0006). DI registrations already do. SQL Server / Redis callers that relied on `GetAssignedResources()` waiting for an assignment get `PendingAssignment` and no resources instead; they can use the provider's `GetAssignedResources(CancellationToken)` overload to wait (ADR 0007). Consumers that used `RedisDictionary` / `RedisList` through Rebalancer's transitive reference must reference `StackExchange.Redis.DataTypes` themselves (ADR 0008). Applications that call `Providers.Register` with two different factories now fail at that call; they must register once, or pass providers explicitly (ADR 0009). |
-| Services / components | During a rebalance the coordinator now reports `PendingAssignment` instead of its old resources, like followers already did.                                                                                     |
-| Data / schema         | No schema change. Redis keys and JSON encoding unchanged (`Dictionary:` / `List:` keys, Newtonsoft JSON), so existing data stays readable.                                                                         |
-| Security              | ZooKeeper ACLs become available but stay opt-in; the default is unchanged (`OPEN_ACL_UNSAFE`). Credentials passed as `authData` are secrets. The published Redis package no longer pulls `Newtonsoft.Json` 12.0.1 (GHSA-5crp-9r3c-p9vr). |
-| Operations            | **Redis groups need an all-nodes-at-once upgrade** (see Implementation plan). SQL Server and ZooKeeper groups can be upgraded node by node.                                                                        |
+| Services / components | During a rebalance the coordinator now reports `PendingAssignment` instead of its old resources, like followers already did.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Data / schema         | No schema change. Redis keys and JSON encoding unchanged (`Dictionary:` / `List:` keys, Newtonsoft JSON), so existing data stays readable.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Security              | ZooKeeper ACLs become available but stay opt-in; the default is unchanged (`OPEN_ACL_UNSAFE`). Credentials passed as `authData` are secrets. The published Redis package no longer pulls `Newtonsoft.Json` 12.0.1 (GHSA-5crp-9r3c-p9vr).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Operations            | **Redis groups need an all-nodes-at-once upgrade** (see Implementation plan). SQL Server and ZooKeeper groups can be upgraded node by node.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ## Preconditions
 
@@ -115,8 +115,8 @@ must list them as potentially breaking. Notify the owners of consuming applicati
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-18 |
 | Release / CAB (or org) | dradoaica | 2026-10-18 |
 
@@ -137,8 +137,8 @@ Added after this record was approved, and approved separately on 2026-10-18 for 
 - **Rollback:** as for the rest of this record (previous package version).
 - **Not in this release:** ADR 0011 (Accepted) is scheduled for a later 2.x minor (deprecation) and 3.0 (removal).
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-18 |
 | Release / CAB (or org) | dradoaica | 2026-10-18 |
 
@@ -146,8 +146,7 @@ Added after this record was approved, and approved separately on 2026-10-18 for 
 
 - **Actual outcome (2026-10-18):** commit `2952de6` merged into `main` (fast-forward) and pushed by dradoaica. The
   "Release Packages" workflow ran on that push and completed successfully at 13:15:17 UTC, including the
-  "Push to GitHub Packages" step (https://github.com/dradoaica/Rebalancer/actions/runs/39130690089). The published package versions were not listed from the agent session
-  (the GitHub Packages API requires authentication).
+  "Push to GitHub Packages" step (https://github.com/dradoaica/Rebalancer/actions/runs/39130690089). The published package versions were not listed from the agent session (the GitHub Packages API requires authentication).
 - **Deviations:** the rollback dry-run was not performed (see Preconditions). No consumer upgrades are recorded here;
   they follow the implementation plan per resource group.
 - **Follow-ups (done 2026-10-18):** both problem records closed; "Traceable to change record" ticked in US-001,

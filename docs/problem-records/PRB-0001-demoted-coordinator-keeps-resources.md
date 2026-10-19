@@ -29,12 +29,11 @@ running them after another node becomes coordinator and gives those resources to
 |------------|-------------------------------------------------------------------------------------------|
 | 2026-10-18 | Detected by code review of `Roles/Coordinator.cs` and `Roles/Follower.cs` (both backends) |
 | 2026-10-18 | Corrective fix and regression tests in working tree (not yet released)                    |
-| 2026-10-18 | Released in 2.1.0 (`2952de6`, CR-0001)                                              |
+| 2026-10-18 | Released in 2.1.0 (`2952de6`, CR-0001)                                                    |
 
 ## Evidence
 
-- Regression tests `tests/Rebalancer.UnitTests/CoordinatorDemotionTests.cs` fail without the fix
-  (`Expected: Active, Actual: Waiting`) and pass with it.
+- Regression tests `tests/Rebalancer.UnitTests/CoordinatorDemotionTests.cs` fail without the fix (`Expected: Active, Actual: Waiting`) and pass with it.
 - With the fix, `RedisAssignmentSafetyTests` and `SqlServerAssignmentSafetyTests` (Docker) pass, 2026-10-18. Both
   tests now also assert that the resource is assigned at least once, so they can no longer pass when nothing is
   assigned; a run with the resource group seeded under the wrong name fails with
@@ -54,11 +53,11 @@ actions and later started again with new resources on top of the old ones.
 
 ## Corrective actions
 
-| Action                                                                                                                           | Owner | Status              |
-|----------------------------------------------------------------------------------------------------------------------------------|-------|---------------------|
-| Coordinator records `Waiting` and clears its local store after local stop, records `Active` after local start (both backends)     |       | Done (2.1.0)        |
-| Regression tests for both backends                                                                                                |       | Done (2.1.0)        |
-| Human review and release with a change record                                                                                     |       | Done (2.1.0, CR-0001) |
+| Action                                                                                                                        | Owner | Status                |
+|-------------------------------------------------------------------------------------------------------------------------------|-------|-----------------------|
+| Coordinator records `Waiting` and clears its local store after local stop, records `Active` after local start (both backends) |       | Done (2.1.0)          |
+| Regression tests for both backends                                                                                            |       | Done (2.1.0)          |
+| Human review and release with a change record                                                                                 |       | Done (2.1.0, CR-0001) |
 
 ## Preventive measures
 

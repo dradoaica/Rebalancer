@@ -14,8 +14,17 @@ namespace Rebalancer.RabbitMq.QuorumQueuesExample;
 ///     order. The queues have single active consumer on: if Rebalancer briefly assigns a queue to two nodes (after a
 ///     pause, ADR-0019), the broker still delivers to one of them only; the other waits as a standby consumer.
 /// </summary>
-internal sealed class QueueConsumers(IConnection connection, Settings settings, ConversationGuard guard, Action<string> log)
+internal sealed class QueueConsumers(
+    IConnection connection,
+    Settings settings,
+    ConversationGuard guard,
+    Action<string> log
+)
 {
+    // short and growing: retries hold up the other conversations of the same queue (head-of-line, as in any ordered partition)
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(200);
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly Dictionary<string, (IChannel Channel, string ConsumerTag)> active = new();
     private readonly SemaphoreSlim gate = new(1, 1);
 
@@ -110,7 +119,9 @@ internal sealed class QueueConsumers(IConnection connection, Settings settings, 
                 break;
             case TurnOutcome.Failed:
                 await guard.BlockAsync(turn.ConversationId);
-                log($"{queue} {turn.ConversationId} turn {turn.TurnNumber} dead-lettered after {attempt} attempts; conversation blocked");
+                log(
+                    $"{queue} {turn.ConversationId} turn {turn.TurnNumber} dead-lettered after {attempt} attempts; conversation blocked"
+                );
                 await channel.BasicRejectAsync(delivery.DeliveryTag, false);
                 break;
         }
@@ -124,11 +135,6 @@ internal sealed class QueueConsumers(IConnection connection, Settings settings, 
             throw new InvalidOperationException("injected failure");
         }
     }
-
-    // short and growing: retries hold up the other conversations of the same queue (head-of-line, as in any ordered partition)
-    private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(200);
-
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private sealed record TurnMessage(string ConversationId, int Turn);
 }

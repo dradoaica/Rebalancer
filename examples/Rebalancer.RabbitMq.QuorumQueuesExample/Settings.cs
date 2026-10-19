@@ -29,8 +29,11 @@ internal sealed class Settings
         new()
         {
             Node = Get("EXAMPLE_NODE", Environment.MachineName),
-            SqlConnectionString = Get("EXAMPLE_SQL",
-                "Server=localhost;Database=RabbitMqScaling;User Id=sa;Password=<set EXAMPLE_SQL>;TrustServerCertificate=true"),
+            SqlConnectionString =
+                Get(
+                    "EXAMPLE_SQL",
+                    "Server=localhost;Database=RabbitMqScaling;User Id=sa;Password=<set EXAMPLE_SQL>;TrustServerCertificate=true"
+                ),
             RabbitHost = Get("EXAMPLE_RABBIT_HOST", "localhost"),
             RabbitPort = int.Parse(Get("EXAMPLE_RABBIT_PORT", "5672")),
             RabbitUser = Get("EXAMPLE_RABBIT_USER", "guest"),

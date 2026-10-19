@@ -15,6 +15,7 @@ superseded-by: ""
 ## Summary
 
 Coordination state lives in these Redis keys:
+
 - `Dictionary:RBR:ResourceGroups` (hash, shared by all groups): leases.
 - `RBR:Clients:{group}` (hash, one per group, since 3.0; ADR-0015): client registrations with their assignments. The
   group name is percent-encoded outside `A-Z a-z 0-9 - _ . ~`.
@@ -22,11 +23,10 @@ Coordination state lives in these Redis keys:
   it, once per lease tenure; afterwards it holds only groups not yet upgraded.
 - `List:RBR:Resources` (list, shared by all groups): resources.
 
-Values are Newtonsoft JSON. Lease and client updates are compare-and-set transactions evaluated on Redis server time
-(ADR-0017, formerly ADR 0006). The library has no access control of its own: it relies on the Redis connection
-(password or ACL user, TLS). Anyone who can write these keys controls the assignments of the groups they cover.
+Values are Newtonsoft JSON. Lease and client updates are compare-and-set transactions evaluated on Redis server time (ADR-0017, formerly ADR 0006). The library has no access control of its own: it relies on the Redis connection (password or ACL user, TLS). Anyone who can write these keys controls the assignments of the groups they cover.
 
 **Revision 2 (3.0.0, CR-0003):**
+
 - Client records are per group (ADR-0015), and stale ones expire under the coordinator's fencing token (ADR-0014).
   Heartbeat reads no longer grow with other groups or with past restarts (D1 resolved).
 - A Redis ACL user can now be limited to one group's client hash. Leases and resources stay shared.
@@ -36,9 +36,9 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 see revision 4.]
 
 **Revision 4 (4.0.0, CR-0006; accepted by dradoaica, 2026-10-19):**
+
 - Leases and settings move to `RBR:Lease:{group}` (hash, one field) and resources to `RBR:Resources:{group}` (list),
-  ADR-0020. A moved group touches no shared key, so a Redis ACL user can be confined to its group completely
-  (`~RBR:Lease:{g} ~RBR:Resources:{g} ~RBR:Clients:{g}`), verified end to end by `RedisClientRecordTests`.
+  ADR-0020. A moved group touches no shared key, so a Redis ACL user can be confined to its group completely (`~RBR:Lease:{g} ~RBR:Resources:{g} ~RBR:Clients:{g}`), verified end to end by `RedisClientRecordTests`.
 - Heartbeats read only the group's own resource list (residual risk "resources list read in full" resolved).
 - New, transitional: the first 4.0 node of a group moves its entries out of the shared keys, so it needs read and write
   access to them once. The move is one transaction guarded by the per-group key's absence and the shared entries'
@@ -47,6 +47,7 @@ see revision 4.]
   an operator (`docs/release-notes/migrating-to-4.0.md`).
 
 **Revision 5 (4.1.0, CR-0007; accepted by dradoaica, 2026-10-19):** telemetry and health checks (ADR-0022, ADR-0023).
+
 - **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
   the rebalance activity, `rebalancer.fencing_token`. Resource names, node identifiers, connection strings and credentials are never
   emitted (verified by the Redis telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
@@ -73,14 +74,14 @@ see revision 4.]
 
 ## Asset and data classification
 
-| Asset / Data                                                    | Classification | Notes                                                              |
-|-----------------------------------------------------------------|----------------|--------------------------------------------------------------------|
-| `RBR:Clients:{group}` (assignments, statuses, fencing tokens)     | Confidential   | Integrity-critical; per group since 3.0                            |
-| `Dictionary:RBR:Clients` (2.x client hash)                        | Confidential   | Transitional: groups not yet upgraded to 3.0                       |
-| `Dictionary:RBR:ResourceGroups` (leases)                          | Confidential   | Integrity-critical: leader election and fencing                    |
-| `List:RBR:Resources` (resource names)                             | Internal       | Integrity-critical: defines the work                               |
-| Connection string (password / ACL user, TLS settings)             | Restricted     | Grants the rights above                                            |
-| `CoordinatorServer` (`Environment.MachineName`)                   | Internal       | Reveals host names                                                 |
+| Asset / Data                                                  | Classification | Notes                                           |
+|---------------------------------------------------------------|----------------|-------------------------------------------------|
+| `RBR:Clients:{group}` (assignments, statuses, fencing tokens) | Confidential   | Integrity-critical; per group since 3.0         |
+| `Dictionary:RBR:Clients` (2.x client hash)                    | Confidential   | Transitional: groups not yet upgraded to 3.0    |
+| `Dictionary:RBR:ResourceGroups` (leases)                      | Confidential   | Integrity-critical: leader election and fencing |
+| `List:RBR:Resources` (resource names)                         | Internal       | Integrity-critical: defines the work            |
+| Connection string (password / ACL user, TLS settings)         | Restricted     | Grants the rights above                         |
+| `CoordinatorServer` (`Environment.MachineName`)               | Internal       | Reveals host names                              |
 
 ## Data flows
 
@@ -105,36 +106,36 @@ see revision 4.]
 
 - Threat: a client with write access adds a fake client entry or takes the lease with a crafted `CoordinatorId`.
 - Affected flow/asset: flows 2, 3.
-- Mitigation(s): Redis authentication. Use a dedicated ACL user limited to the `RBR` keys (see Controls mapping).
+- Mitigation (s): Redis authentication. Use a dedicated ACL user limited to the `RBR` keys (see Controls mapping).
   Without a password, anyone who reaches the port can write.
 - Risk: **High** without authentication; **Medium** with a shared password; **Low to Medium** with a dedicated ACL user.
 
 ### Tampering
 
 - Threat T1: rewrite assignments or leases in the shared hashes.
-- Mitigation(s): authentication and key-scoped ACLs. Compare-and-set protects against concurrent nodes, not against a
+- Mitigation (s): authentication and key-scoped ACLs. Compare-and-set protects against concurrent nodes, not against a
   malicious writer.
 - Risk: **Medium** with authentication; **High** without.
 - Threat T2: malformed JSON written into a hash breaks every node that reads it. Deserialization throws, the role task
   faults, and nodes keep restarting.
-- Mitigation(s): same as T1. Newtonsoft is used with default settings, so no type-name handling is enabled and
+- Mitigation (s): same as T1. Newtonsoft is used with default settings, so no type-name handling is enabled and
   arbitrary types cannot be instantiated from the data.
 - Risk: **Medium** (availability impact through integrity).
 
 ### Repudiation
 
 - Threat: changes cannot be attributed.
-- Mitigation(s): none in the library; Redis ACL logs (`ACL LOG`) record only denials. Shared users make nodes
+- Mitigation (s): none in the library; Redis ACL logs (`ACL LOG`) record only denials. Shared users make nodes
   indistinguishable.
 - Risk: **Low to Medium**.
 
 ### Information Disclosure
 
 - Threat I1: the password in the connection string leaks through configuration or logs.
-- Mitigation(s): the library does not log connection strings (checked 2026-10-18); secret store.
+- Mitigation (s): the library does not log connection strings (checked 2026-10-18); secret store.
 - Risk: **Medium**.
 - Threat I2: traffic, including the password at `AUTH`, is read on the network.
-- Mitigation(s): `ssl=true` in the connection string with certificate validation (US-006 lists TLS as a deployment
+- Mitigation (s): `ssl=true` in the connection string with certificate validation (US-006 lists TLS as a deployment
   concern).
 - Risk: **Medium** without TLS.
 
@@ -142,44 +143,43 @@ see revision 4.]
 
 - Threat D1: client entries were never deleted, and every node read every group's entries on every heartbeat, so cost
   grew with every restart, across all groups.
-- Mitigation(s): since 3.0, entries live per group (ADR-0015), stale entries expire under the coordinator's fencing
+- Mitigation (s): since 3.0, entries live per group (ADR-0015), stale entries expire under the coordinator's fencing
   token, and a clean stop deletes the node's own entry (ADR-0014).
 - Risk: **Low** (revision 1: Medium).
 - Threat D2: high contention on the shared hashes makes compare-and-set retries run out (10 attempts), and the lease
   call reports an error.
-- Mitigation(s): server-side contention is limited to one lease field per group; the retry limit turns livelock into
+- Mitigation (s): server-side contention is limited to one lease field per group; the retry limit turns livelock into
   a visible error.
 - Risk: **Low**.
 - Threat D3: `FLUSHDB`, `DEL` or eviction (`maxmemory` policy) removes coordination state.
-- Mitigation(s): ACL user without `@dangerous` / `@keyspace` delete commands; a `noeviction` policy (or no eviction of
+- Mitigation (s): ACL user without `@dangerous` / `@keyspace` delete commands; a `noeviction` policy (or no eviction of
   these keys) on the database used.
 - Risk: **Medium** on shared or cache-configured instances.
 - Threat D4 (revision 2): a writer deletes live entries from `RBR:Clients:{group}`. Each affected node stops its
   activity and registers again (ADR-0014); repeated deletes keep the group rebalancing.
-- Mitigation(s): ACL user per group (or per trust domain); safety holds, because a node whose entry disappears stops
+- Mitigation (s): ACL user per group (or per trust domain); safety holds, because a node whose entry disappears stops
   before it registers again.
 - Risk: **Low** with per-group ACL users; **Medium** with a shared user.
 
 ### Elevation of Privilege
 
 - Threat: credentials for group A can modify group B.
-- Mitigation(s): since 3.0, client records can be separated with key-scoped ACL users (`~RBR:Clients:{group}`).
+- Mitigation (s): since 3.0, client records can be separated with key-scoped ACL users (`~RBR:Clients:{group}`).
   Leases (`Dictionary:RBR:ResourceGroups`) and resources (`List:RBR:Resources`) are still shared, so a group's user
   can still change another group's lease or resource list. Use separate Redis databases or instances for full
   isolation.
-- Risk: **Medium** where groups of different trust share a Redis database (lower than revision 1 for client records);
-  **Low** otherwise.
+- Risk: **Medium** where groups of different trust share a Redis database (lower than revision 1 for client records); **Low** otherwise.
 
 ## Controls mapping
 
-| Threat / Risk                      | Control (design or runtime)                                                                                       | Evidence / Reference                                   |
-|------------------------------------|-------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| Spoofing / tampering               | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Clients:{group} ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources`. Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
-| Credential and traffic disclosure  | Secret store; `ssl=true`; no connection strings in logs                                                            | US-006 Security & compliance                           |
-| Unsafe deserialization             | Newtonsoft default settings (no `TypeNameHandling`)                                                               | `src/Rebalancer.Redis/Utils/RedisHash.cs`              |
-| Clients hash growth (D1)           | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                   | ADR-0014, ADR-0015; `RedisClientRecordTests`           |
-| State loss                         | `noeviction` (or equivalent) on the database used                                                                 | Deployment responsibility                              |
-| Mixed-version clocks               | All-nodes-at-once upgrade of Redis groups                                                                         | CR-0001 (Implementation plan, step 3)            |
+| Threat / Risk                     | Control (design or runtime)                                                                                                                                                                                                                                                                                                                                                                                                               | Evidence / Reference                                                                                                                                                                |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Spoofing / tampering              | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Clients:{group} ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources`. Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
+| Credential and traffic disclosure | Secret store; `ssl=true`; no connection strings in logs                                                                                                                                                                                                                                                                                                                                                                                   | US-006 Security & compliance                                                                                                                                                        |
+| Unsafe deserialization            | Newtonsoft default settings (no `TypeNameHandling`)                                                                                                                                                                                                                                                                                                                                                                                       | `src/Rebalancer.Redis/Utils/RedisHash.cs`                                                                                                                                           |
+| Clients hash growth (D1)          | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                                                                                                                                                                                                                                                                                                                                            | ADR-0014, ADR-0015; `RedisClientRecordTests`                                                                                                                                        |
+| State loss                        | `noeviction` (or equivalent) on the database used                                                                                                                                                                                                                                                                                                                                                                                         | Deployment responsibility                                                                                                                                                           |
+| Mixed-version clocks              | All-nodes-at-once upgrade of Redis groups                                                                                                                                                                                                                                                                                                                                                                                                 | CR-0001 (Implementation plan, step 3)                                                                                                                                               |
 
 ## Residual risk and acceptance
 
@@ -209,8 +209,8 @@ see revision 4.]
 
 ## Approvals
 
-| Role                    | Name | Date |
-|-------------------------|------|------|
+| Role                                 | Name      | Date       |
+|--------------------------------------|-----------|------------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-18 |
@@ -233,5 +233,4 @@ see revision 4.]
 - Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
   `docs/change-records/CR-0003-release-3-0-0.md`
 - Code: `src/Rebalancer.Redis/`
-- External standards: STRIDE; OWASP ASVS V4 (access control), V8 (data protection) – control IDs not mapped
-  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)
+- External standards: STRIDE; OWASP ASVS V4 (access control), V8 (data protection) – control IDs not mapped (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

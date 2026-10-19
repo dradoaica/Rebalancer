@@ -15,8 +15,8 @@ internal enum TurnOutcome
 
 /// <summary>
 ///     The application-level order guard every option needs (ADR-0021: no fencing token from the library). Per
-///     conversation it stores the last processed turn and whether the conversation is blocked
-///     (<c>Example.ConversationTurns</c>, created by the Tools <c>create</c> command). Turns run inside one transaction
+///     conversation it stores the last processed turn and whether the conversation is blocked (
+///     <c>Example.ConversationTurns</c>, created by the Tools <c>create</c> command). Turns run inside one transaction
 ///     that holds the conversation's row, so even two consumers could not process one conversation at once.
 /// </summary>
 /// <remarks>
@@ -29,7 +29,8 @@ internal sealed class ConversationGuard(string connectionString)
     {
         await using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync();
-        await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+        await using var transaction =
+            (SqlTransaction)await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var (lastTurn, blocked) = await ReadAsync(connection, transaction, turn.ConversationId);
 
         if (blocked)
@@ -45,7 +46,9 @@ internal sealed class ConversationGuard(string connectionString)
         if (turn.TurnNumber != lastTurn + 1)
         {
             // never process past a gap; with single active consumer this should not happen
-            log($"OUT OF ORDER {turn.ConversationId}: turn {turn.TurnNumber} after {lastTurn}; blocking the conversation");
+            log(
+                $"OUT OF ORDER {turn.ConversationId}: turn {turn.TurnNumber} after {lastTurn}; blocking the conversation"
+            );
             await WriteAsync(connection, transaction, turn.ConversationId, lastTurn, true);
             await transaction.CommitAsync();
             return TurnOutcome.Parked;
@@ -80,7 +83,9 @@ internal sealed class ConversationGuard(string connectionString)
                     ConversationId varchar(200) NOT NULL PRIMARY KEY,
                     LastTurn int NOT NULL,
                     Blocked bit NOT NULL);
-            """, connection);
+            """,
+            connection
+        );
         await command.ExecuteNonQueryAsync();
     }
 
@@ -88,32 +93,46 @@ internal sealed class ConversationGuard(string connectionString)
     {
         await using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync();
-        await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+        await using var transaction =
+            (SqlTransaction)await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         var (lastTurn, _) = await ReadAsync(connection, transaction, conversationId);
         await WriteAsync(connection, transaction, conversationId, lastTurn, true);
         await transaction.CommitAsync();
     }
 
     // UPDLOCK, HOLDLOCK: the row (or its absence) stays locked until the transaction ends
-    private static async Task<(int LastTurn, bool Blocked)> ReadAsync(SqlConnection connection, SqlTransaction transaction,
-        string conversationId)
+    private static async Task<(int LastTurn, bool Blocked)> ReadAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string conversationId
+    )
     {
         await using var command = new SqlCommand(
             "SELECT LastTurn, Blocked FROM Example.ConversationTurns WITH (UPDLOCK, HOLDLOCK) WHERE ConversationId = @c",
-            connection, transaction);
+            connection,
+            transaction
+        );
         command.Parameters.Add("@c", SqlDbType.VarChar, 200).Value = conversationId;
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync() ? (reader.GetInt32(0), reader.GetBoolean(1)) : (0, false);
     }
 
-    private static async Task WriteAsync(SqlConnection connection, SqlTransaction transaction, string conversationId,
-        int lastTurn, bool blocked)
+    private static async Task WriteAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string conversationId,
+        int lastTurn,
+        bool blocked
+    )
     {
         await using var command = new SqlCommand(
             """
             UPDATE Example.ConversationTurns SET LastTurn = @t, Blocked = @b WHERE ConversationId = @c;
             IF @@ROWCOUNT = 0 INSERT INTO Example.ConversationTurns (ConversationId, LastTurn, Blocked) VALUES (@c, @t, @b);
-            """, connection, transaction);
+            """,
+            connection,
+            transaction
+        );
         command.Parameters.Add("@c", SqlDbType.VarChar, 200).Value = conversationId;
         command.Parameters.Add("@t", SqlDbType.Int).Value = lastTurn;
         command.Parameters.Add("@b", SqlDbType.Bit).Value = blocked;

@@ -18,8 +18,7 @@ superseded-by: ""
 ## Context and Problem Statement
 
 ADR-0006 decided four things in one record; the repository standard now allows one concern per decision record. This
-record carries over ADR-0006 items 1 and 2 **unchanged**, so ADR-0006 can be superseded by one-concern records
-(this one, ADR-0017 and ADR-0018). It introduces no new decision.
+record carries over ADR-0006 items 1 and 2 **unchanged**, so ADR-0006 can be superseded by one-concern records (this one, ADR-0017 and ADR-0018). It introduces no new decision.
 
 Long-running hosts must not leak a Redis connection per `RebalancerClient`, and a provider used by one client should be
 released with that client.

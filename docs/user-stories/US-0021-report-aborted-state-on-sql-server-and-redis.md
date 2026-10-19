@@ -25,8 +25,7 @@ error (auto-recovery off), the SQL Server and Redis providers kept reporting the
 `PendingAssignment`), so `RebalancerClient.BlockAsync` waited forever and a state-only check saw a healthy node.
 
 Also found (2026-10-19): SQL Server and Redis raise `OnAborted` for **every** error, including ones they recover from
-with auto-recovery on, although `RebalancerClient`'s documentation says "non recoverable". The 4.1.0 health check
-(US-0018) therefore stayed `Unhealthy` after a recovered error; it now clears the abort when the client is assigned
+with auto-recovery on, although `RebalancerClient`'s documentation says "non recoverable". The 4.1.0 health check (US-0018) therefore stayed `Unhealthy` after a recovered error; it now clears the abort when the client is assigned
 again. Changing when `OnAborted` fires is a public behavior change and is not part of this story.
 
 ## Acceptance criteria

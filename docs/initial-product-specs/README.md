@@ -7,5 +7,6 @@ Life Cycle) by translating them in user stories and decision records.
 
 ## Baseline
 
-- [Rebalancer product baseline (.NET)](rebalancer-product-baseline.md) — scope, non-goals, repository layout (`src/`, `examples/`, `tests/`), security notes, v2 pointers.
+- [Rebalancer product baseline (.NET)](rebalancer-product-baseline.md) — scope, non-goals, repository layout (`src/`,
+  `examples/`, `tests/`), security notes, v2 pointers.
 - [Traceability matrix (ADRs, stories, code, tests)](../traceability-matrix.md)

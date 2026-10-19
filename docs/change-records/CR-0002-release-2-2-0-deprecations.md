@@ -45,13 +45,13 @@ Release notes: `docs/release-notes/2.2.0.md`.
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                       |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Area                  | Impact                                                                                                                                                                |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Users / customers     | Callers of the deprecated APIs get CS0618 warnings; builds with warnings as errors fail until they move to the replacements in the release notes. No behavior change. |
-| Services / components | None at runtime. All public signatures from 2.1.0 still exist (binary-compatible).                                                                          |
-| Data / schema         | None.                                                                                                                                                        |
-| Security              | ADR-0012's constructor lets a caller-supplied service decide ACLs; documented in XML docs, README and release notes; TM-0001 update is a follow-up.           |
-| Operations            | None. Any upgrade order works, including node by node for Redis from 2.1.x.                                                                                   |
+| Services / components | None at runtime. All public signatures from 2.1.0 still exist (binary-compatible).                                                                                    |
+| Data / schema         | None.                                                                                                                                                                 |
+| Security              | ADR-0012's constructor lets a caller-supplied service decide ACLs; documented in XML docs, README and release notes; TM-0001 update is a follow-up.                   |
+| Operations            | None. Any upgrade order works, including node by node for Redis from 2.1.x.                                                                                           |
 
 ## Preconditions
 

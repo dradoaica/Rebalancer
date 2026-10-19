@@ -16,8 +16,7 @@ depends-on: [ "ADR-0022", "ADR-0023", "US-0017", "US-0018", "US-0019", "CR-0006"
 ## Summary
 
 Releases 4.1.0 of the five packages and the new `Rebalancer.Extensions.Diagnostics.HealthChecks`. Adds metrics and
-traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and randomised SQL Server / Redis tests
-(US-0019). Additive only. Release notes: `docs/release-notes/4.1.0.md`.
+traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and randomised SQL Server / Redis tests (US-0019). Additive only. Release notes: `docs/release-notes/4.1.0.md`.
 
 ## Motivation / drivers
 
@@ -31,8 +30,7 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
   duration); direct reference `System.Diagnostics.DiagnosticSource` 10.0.13 (already resolved transitively);
   `InternalsVisibleTo` for the three backends.
 - SQL Server and Redis `Roles/Coordinator.cs` (rebalance activity and outcome) and providers (elections); ZooKeeper
-  coordinators (rebalance activity and outcome; internal `ResourceGroup` property, no public API change) and provider
-  (elections).
+  coordinators (rebalance activity and outcome; internal `ResourceGroup` property, no public API change) and provider (elections).
 - New package `src/Rebalancer.Extensions.Diagnostics.HealthChecks` (references
   `Microsoft.Extensions.Diagnostics.HealthChecks` and `.Abstractions` 10.0.13); added to `Rebalancer.slnx`.
 - Tests: `RebalancerClientTelemetryTests`, `RebalancerClientHealthCheckTests` (unit); `*TelemetryTests`,
@@ -49,13 +47,13 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                   |
-|-----------------------|----------------------------------------------------------------------------------------------------------|
+| Area                  | Impact                                                                                                    |
+|-----------------------|-----------------------------------------------------------------------------------------------------------|
 | Users / customers     | Opt-in: telemetry only when a listener (OpenTelemetry) subscribes; the health check only when registered. |
-| Services / components | One counter / activity call per event; no cost without a listener.                                       |
-| Data / schema         | None.                                                                                                    |
-| Security              | Group names leave the process in telemetry (ADR-0022); resource names never do.                          |
-| Operations            | None. Any upgrade order; mixed 4.0 / 4.1 groups behave as 4.0.                                           |
+| Services / components | One counter / activity call per event; no cost without a listener.                                        |
+| Data / schema         | None.                                                                                                     |
+| Security              | Group names leave the process in telemetry (ADR-0022); resource names never do.                           |
+| Operations            | None. Any upgrade order; mixed 4.0 / 4.1 groups behave as 4.0.                                            |
 
 ## Preconditions
 
@@ -64,8 +62,7 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
 - [x] Readiness approval (`approved-by`) of US-0017, US-0018 and US-0019 recorded (dradoaica, 2026-10-19).
 - [x] Tests on branch `agent/release-4.1.0`: see the evidence line below.
 - [x] Rollback procedure validated (2026-10-19): 4.1.0 → 4.0.0 on Redis and SQL Server, clean stop and killed client;
-  4.0.0 assigned `r1` after 6.3–6.5 s (clean) and 10.3–10.5 s (killed; lease expiry 5 s). Details in CR-0006
-  (Post-implementation, rollback rehearsal).
+  4.0.0 assigned `r1` after 6.3–6.5 s (clean) and 10.3–10.5 s (killed; lease expiry 5 s). Details in CR-0006 (Post-implementation, rollback rehearsal).
 - [x] Pre-change test suite passing cleanly.
 
 Evidence (2026-10-19, final run after the rehearsal fix): all six libraries build with warnings as errors; unit 56/56;
@@ -92,8 +89,8 @@ Release notes `docs/release-notes/4.1.0.md`; README sections "Metrics and traces
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-19 |
 | Release / CAB (or org) | dradoaica | 2026-10-19 |
 
@@ -104,8 +101,7 @@ Release notes `docs/release-notes/4.1.0.md`; README sections "Metrics and traces
   succeeded at 19:15:10 UTC, including "Push to GitHub Packages"
   (https://github.com/dradoaica/Rebalancer/actions/runs/39309293112). Published package versions, and whether all six
   packages were pushed, were not listed from the agent session (the package listing needs credentials).
-- **Deviations:** the rollback rehearsal found a defect in the 4.0 migration guide's rollback and in the 4.0.0 move
-  (a leftover per-group resource list was appended to); fixed in this release before approval of the merge (`7732407`).
+- **Deviations:** the rollback rehearsal found a defect in the 4.0 migration guide's rollback and in the 4.0.0 move (a leftover per-group resource list was appended to); fixed in this release before approval of the merge (`7732407`).
 - **Follow-ups:** confirm the new package `Rebalancer.Extensions.Diagnostics.HealthChecks` 4.1.0 appears in GitHub
   Packages (**done 2026-10-19:** confirmed by dradoaica); a CI test job (still not planned); ZooKeeper telemetry has no automated test.
 

@@ -20,8 +20,7 @@ depends-on: [ "ADR-0002", "US-010", "US-013" ]
 ## Context
 
 US-013 added sampled two-node safety tests and left "full randomized parity with the ZooKeeper suite" out of scope.
-The product baseline lists it as backlog. Two defects in this protocol were found by review rather than by tests
-(PRB-0001, PRB-0003); `PausedNodeScenarios` (2026-10-19) covers those two scenarios only.
+The product baseline lists it as backlog. Two defects in this protocol were found by review rather than by tests (PRB-0001, PRB-0003); `PausedNodeScenarios` (2026-10-19) covers those two scenarios only.
 
 ## Acceptance criteria
 

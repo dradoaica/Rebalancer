@@ -15,8 +15,7 @@ depends-on: [ "ADR-0020", "ADR-0015", "ADR-0017", "US-0020", "US-0016", "TM-0003
 
 ## Summary
 
-Releases 4.0.0 of all five packages. Redis groups keep their settings / lease and resources in their own keys
-(`RBR:Lease:{group}`, `RBR:Resources:{group}`), moved automatically on the first 4.0 start (ADR-0020, US-0020).
+Releases 4.0.0 of all five packages. Redis groups keep their settings / lease and resources in their own keys (`RBR:Lease:{group}`, `RBR:Resources:{group}`), moved automatically on the first 4.0 start (ADR-0020, US-0020).
 Breaking for Redis provisioning and rollback; no API change. Release notes: `docs/release-notes/4.0.0.md`; migration
 guide: `docs/release-notes/migrating-to-4.0.md`.
 
@@ -42,13 +41,13 @@ guide: `docs/release-notes/migrating-to-4.0.md`.
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                         |
-|-----------------------|----------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Redis: provisioning scripts must write the per-group keys; ACL users need the new key patterns.                |
-| Services / components | One-time move per group at first start; afterwards only per-group keys are read and written.                  |
-| Data / schema         | Redis key layout changes per group (values unchanged). Other groups in the same database are not touched.     |
+| Area                  | Impact                                                                                                       |
+|-----------------------|--------------------------------------------------------------------------------------------------------------|
+| Users / customers     | Redis: provisioning scripts must write the per-group keys; ACL users need the new key patterns.              |
+| Services / components | One-time move per group at first start; afterwards only per-group keys are read and written.                 |
+| Data / schema         | Redis key layout changes per group (values unchanged). Other groups in the same database are not touched.    |
 | Security              | Positive: complete per-group ACL confinement. The first start needs shared-key access once (TM-0003 rev. 4). |
-| Operations            | All nodes of a group upgrade at once. Rollback to 3.x needs a manual reverse move (migration guide).          |
+| Operations            | All nodes of a group upgrade at once. Rollback to 3.x needs a manual reverse move (migration guide).         |
 
 ## Preconditions
 
@@ -88,8 +87,8 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-19 |
 | Release / CAB (or org) | dradoaica | 2026-10-19 |
 
@@ -103,8 +102,7 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
 - **Deviations:** one precondition was open at approval (recorded under Preconditions): the manual rollback to 3.x is
   not rehearsed. The validation step on a staging Redis is the operators' and is not recorded here.
 - **Follow-ups:** rehearse the 4.0 → 3.2 rollback from the migration guide before the first production group moves.
-- **Rollback rehearsal (performed after release, 2026-10-19):** released 3.2.0 (`860b3d3`), 4.0.0 (`b9b5f3f`) and 4.1.0
-  (branch `agent/release-4.1.0`) built side by side and run as single clients against shared containers (Redis
+- **Rollback rehearsal (performed after release, 2026-10-19):** released 3.2.0 (`860b3d3`), 4.0.0 (`b9b5f3f`) and 4.1.0 (branch `agent/release-4.1.0`) built side by side and run as single clients against shared containers (Redis
   `redis:7.0`, SQL Server 2022-CU14), lease expiry 5 s, one resource `r1`, a second Redis group left in the shared keys:
   - **Redis:** a 3.2.0-provisioned group moved on the first 4.0.0 start (6.3 s to assignment); the other group stayed
     shared. The reverse move as the guide then described (copy back, delete only `RBR:Lease:{group}`) let 3.2.0 assign

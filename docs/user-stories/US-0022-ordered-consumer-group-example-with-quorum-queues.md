@@ -21,8 +21,7 @@ depends-on: [ "ADR-0002", "ADR-0019", "ADR-0021", "US-008", "US-009" ]
 
 Review of 2026-10-19 ("option A"): the example already combines a consistent-hash exchange with Rebalancer assigning
 queues to nodes, but it uses classic queues, automatic acknowledgement, no single active consumer, no dead-lettering
-and no ordering key. With Rebalancer's lease as the only guard, two nodes can consume one queue after a pause
-(ADR-0019; no fencing token, ADR-0021), and automatic acknowledgement loses messages on a crash. In option A the
+and no ordering key. With Rebalancer's lease as the only guard, two nodes can consume one queue after a pause (ADR-0019; no fencing token, ADR-0021), and automatic acknowledgement loses messages on a crash. In option A the
 broker enforces one consumer per queue (single active consumer) and Rebalancer only balances queues across nodes.
 
 ## Acceptance criteria

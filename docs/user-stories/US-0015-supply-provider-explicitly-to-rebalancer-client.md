@@ -13,9 +13,7 @@ depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0003" ]
 
 ## Story
 
-**As a** library integrator
-**I want** to create a `RebalancerClient` with the provider for my backend, directly or through dependency injection
-**So that** my application joins a resource group without any process-wide registration
+**As a** library integrator **I want** to create a `RebalancerClient` with the provider for my backend, directly or through dependency injection **So that** my application joins a resource group without any process-wide registration
 
 ## Context
 
@@ -27,8 +25,7 @@ This story describes the 3.0 way and succeeds US-001 for 3.0 and later.
 
 1. `new RebalancerClient(provider)` uses exactly the given provider; `new RebalancerClient(null)` throws
    `ArgumentNullException`.
-2. `Rebalancer.Core` has no `Providers` type and no parameterless `RebalancerClient` constructor
-   (`DeprecationContractTests.StaticProviderRegistry_IsRemoved`).
+2. `Rebalancer.Core` has no `Providers` type and no parameterless `RebalancerClient` constructor (`DeprecationContractTests.StaticProviderRegistry_IsRemoved`).
 3. `AddRebalancerSqlServer`, `AddRebalancerRedis`, `AddRebalancerZooKeeper` and `AddRebalancerProvider` resolve a
    `RebalancerClient` with a new provider per client (`DiRegistrationTests.EachResolvedClient_GetsItsOwnProvider`).
 4. The example application and the README create clients with an explicit provider.

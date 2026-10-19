@@ -22,11 +22,12 @@ placeholder names, never values. The main risks are over-privileged or shared lo
 resource groups, and unbounded growth of the client table.
 
 **Revision 2 (3.0.0, CR-0003):**
-- Since 3.0 the coordinator deletes stale client records, and a node deletes its own record on a clean stop
-  (ADR-0014). This resolves the unbounded growth (D1).
+
+- Since 3.0 the coordinator deletes stale client records, and a node deletes its own record on a clean stop (ADR-0014). This resolves the unbounded growth (D1).
 - The login now needs `DELETE` on `RBR.Clients`, which brings a new availability threat (D3).
 
 **Revision 3 (4.1.0, CR-0007; accepted by dradoaica, 2026-10-19):** telemetry and health checks (ADR-0022, ADR-0023).
+
 - **New data flow out of the process:** metrics and traces carry `rebalancer.backend`, `rebalancer.group` and, on
   the rebalance activity, `rebalancer.fencing_token`. Resource names, node identifiers, connection strings and credentials are never
   emitted (verified by the SQL Server telemetry tests, which fail on a resource name in any tag). Threat: whoever reads
@@ -53,13 +54,13 @@ resource groups, and unbounded growth of the client table.
 
 ## Asset and data classification
 
-| Asset / Data                                                       | Classification | Notes                                                         |
-|--------------------------------------------------------------------|----------------|---------------------------------------------------------------|
-| `RBR.Clients.Resources` (assignments), `CoordinatorStatus`, `FencingToken` | Confidential | Integrity-critical: decides who processes what           |
-| `RBR.ResourceGroups` (lease: `CoordinatorId`, `FencingToken`, expiry)       | Confidential | Integrity-critical: leader election and fencing          |
-| `RBR.Resources` (resource names)                                   | Internal       | Integrity-critical: defines the work                          |
-| Connection string (login, password)                                | Restricted     | Grants the rights above to anyone who holds it                |
-| `CoordinatorServer` (`Environment.MachineName`)                    | Internal       | Reveals host names                                            |
+| Asset / Data                                                               | Classification | Notes                                           |
+|----------------------------------------------------------------------------|----------------|-------------------------------------------------|
+| `RBR.Clients.Resources` (assignments), `CoordinatorStatus`, `FencingToken` | Confidential   | Integrity-critical: decides who processes what  |
+| `RBR.ResourceGroups` (lease: `CoordinatorId`, `FencingToken`, expiry)      | Confidential   | Integrity-critical: leader election and fencing |
+| `RBR.Resources` (resource names)                                           | Internal       | Integrity-critical: defines the work            |
+| Connection string (login, password)                                        | Restricted     | Grants the rights above to anyone who holds it  |
+| `CoordinatorServer` (`Environment.MachineName`)                            | Internal       | Reveals host names                              |
 
 ## Data flows
 
@@ -80,35 +81,35 @@ resource groups, and unbounded growth of the client table.
 
 - Threat: a principal with write access inserts a fake client row or takes the lease with a crafted `CoordinatorId`.
 - Affected flow/asset: flows 2, 3; lease and client registrations.
-- Mitigation(s): database permissions only. The library cannot tell a genuine node from any writer with the same rights.
+- Mitigation (s): database permissions only. The library cannot tell a genuine node from any writer with the same rights.
 - Risk: **Medium** with a dedicated least-privilege login; **High** if the login is shared with other applications.
 
 ### Tampering
 
 - Threat T1: rewrite `Clients.Resources` / `CoordinatorStatus` to double-assign or starve resources.
-- Mitigation(s): least-privilege login used only by Rebalancer nodes; no other principals with write access to `RBR`.
+- Mitigation (s): least-privilege login used only by Rebalancer nodes; no other principals with write access to `RBR`.
   Fencing tokens protect against stale coordinators, not against a malicious writer.
 - Risk: **Medium**.
 - Threat T2: SQL injection through resource group names or client data.
-- Mitigation(s): all values are parameters (`SqlParameter`); the only dynamic SQL concatenates generated placeholder
+- Mitigation (s): all values are parameters (`SqlParameter`); the only dynamic SQL concatenates generated placeholder
   names (`ClientService.GetSetStatusQuery`).
 - Risk: **Low**.
 
 ### Repudiation
 
 - Threat: an unauthorized change to assignments or the lease cannot be attributed.
-- Mitigation(s): none in the library. Use SQL Server Audit or temporal tables if attribution is required. Shared logins
+- Mitigation (s): none in the library. Use SQL Server Audit or temporal tables if attribution is required. Shared logins
   make nodes indistinguishable.
 - Risk: **Low to Medium**, depending on the deployment's audit requirements.
 
 ### Information Disclosure
 
 - Threat I1: credentials in the connection string leak through configuration, source control, or logs.
-- Mitigation(s): the library does not log connection strings (checked 2026-10-18); load them from a secret store; prefer
+- Mitigation (s): the library does not log connection strings (checked 2026-10-18); load them from a secret store; prefer
   integrated or managed-identity authentication over SQL passwords.
 - Risk: **Medium**.
 - Threat I2: traffic is read on the network.
-- Mitigation(s): `Encrypt=True` with certificate validation in the connection string. Note: the test suites and
+- Mitigation (s): `Encrypt=True` with certificate validation in the connection string. Note: the test suites and
   examples use `Trust Server Certificate=true`, which is acceptable only for local development.
 - Risk: **Medium** without encryption.
 
@@ -117,35 +118,35 @@ resource groups, and unbounded growth of the client table.
 - Threat D1: client rows are never deleted. Each process start inserts a new `ClientId`, and terminated rows stay,
   so the table grows with every restart.
 - Affected flow/asset: flows 3, 5; `GetActiveClientsAsync` filters on status but the table keeps growing.
-- Mitigation(s): since 3.0, the coordinator expires rows older than `ClientOptions.ClientRecordRetention` (default
+- Mitigation (s): since 3.0, the coordinator expires rows older than `ClientOptions.ClientRecordRetention` (default
   10 × the keep-alive expiry), and a clean stop deletes the node's own row (ADR-0014). Cleanup is best effort: if it
   fails (e.g. missing `DELETE`), a warning is logged and coordination continues.
 - Risk: **Low** (revision 1: Low to Medium).
 - Threat D2: lock contention or a held serializable transaction blocks lease renewal, so coordinators flap.
-- Mitigation(s): short transactions; lease expiry well above the worst expected blocking.
+- Mitigation (s): short transactions; lease expiry well above the worst expected blocking.
 - Risk: **Low**.
 - Threat D3 (revision 2): a principal with `DELETE` on `RBR.Clients` deletes live client rows. Each affected node stops
   its activity (`OnUnassignment`) and registers again (ADR-0014); repeated deletes keep the group rebalancing.
-- Mitigation(s): `DELETE` granted on `RBR.Clients` only, to the dedicated Rebalancer login; no other principal with
+- Mitigation (s): `DELETE` granted on `RBR.Clients` only, to the dedicated Rebalancer login; no other principal with
   write access to `RBR`. Safety holds: a node whose row disappears stops before it registers again.
 - Risk: **Low** with a dedicated login; **Medium** if the login is shared.
 
 ### Elevation of Privilege
 
 - Threat: all resource groups share one schema, so a node (or its credentials) for group A can modify group B.
-- Mitigation(s): none within one database. Use separate databases or logins per trust domain. Row-level security on
+- Mitigation (s): none within one database. Use separate databases or logins per trust domain. Row-level security on
   `ResourceGroup` is possible but not designed for (unverified – please confirm before relying on it).
 - Risk: **Medium** where groups of different trust share a database; **Low** otherwise.
 
 ## Controls mapping
 
-| Threat / Risk                         | Control (design or runtime)                                                                  | Evidence / Reference                                     |
-|---------------------------------------|----------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Spoofing / tampering, D3              | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL) | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant) |
-| SQL injection                         | Parameterized statements                                                                     | `ClientService`, `LeaseService`, `ResourceService`       |
-| Credential and traffic disclosure     | Secret store; `Encrypt=True`; no connection strings in logs                                  | US-005 Security & compliance; deployment responsibility  |
-| Client table growth (D1)              | Coordinator expiry under the fencing token; own-row delete on clean stop                     | ADR-0014; `tests/Rebalancer.IntegrationTests/Sql/SqlServerClientRecordTests.cs` |
-| Cross-group tampering                 | Separate database or login per trust domain                                                  | Deployment responsibility                                |
+| Threat / Risk                     | Control (design or runtime)                                                                                             | Evidence / Reference                                                                        |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| Spoofing / tampering, D3          | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL) | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant) |
+| SQL injection                     | Parameterized statements                                                                                                | `ClientService`, `LeaseService`, `ResourceService`                                          |
+| Credential and traffic disclosure | Secret store; `Encrypt=True`; no connection strings in logs                                                             | US-005 Security & compliance; deployment responsibility                                     |
+| Client table growth (D1)          | Coordinator expiry under the fencing token; own-row delete on clean stop                                                | ADR-0014; `tests/Rebalancer.IntegrationTests/Sql/SqlServerClientRecordTests.cs`             |
+| Cross-group tampering             | Separate database or login per trust domain                                                                             | Deployment responsibility                                                                   |
 
 ## Residual risk and acceptance
 
@@ -173,8 +174,8 @@ resource groups, and unbounded growth of the client table.
 
 ## Approvals
 
-| Role                    | Name | Date |
-|-------------------------|------|------|
+| Role                                 | Name      | Date       |
+|--------------------------------------|-----------|------------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-19 |
@@ -189,5 +190,4 @@ resource groups, and unbounded growth of the client table.
 - Change records: `docs/change-records/CR-0003-release-3-0-0.md`
 - Related user stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`
 - Code: `src/Rebalancer.SqlServer/`, `db/RebalanserSchema.sql`, `db/RebalanserTables.sql`
-- External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped
-  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)
+- External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

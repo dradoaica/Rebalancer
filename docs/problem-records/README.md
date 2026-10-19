@@ -17,11 +17,11 @@ Use the template:
 On 2026-10-19 the maintainer renumbered the existing records chronologically, an explicit exception to "never
 reused". Commit messages and other text written before that date use the old identifiers:
 
-| Old identifier (before 2026-10-19)                       | Current identifier |
-|----------------------------------------------------------|--------------------|
-| `PRB-2026-10-18-demoted-coordinator-keeps-resources`     | `PRB-0001`         |
-| `PRB-2026-10-18-zookeeper-tests-ignored-their-provider`  | `PRB-0002`         |
-| `PRB-0001`                                               | `PRB-0003`         |
+| Old identifier (before 2026-10-19)                      | Current identifier |
+|---------------------------------------------------------|--------------------|
+| `PRB-2026-10-18-demoted-coordinator-keeps-resources`    | `PRB-0001`         |
+| `PRB-2026-10-18-zookeeper-tests-ignored-their-provider` | `PRB-0002`         |
+| `PRB-0001`                                              | `PRB-0003`         |
 
 ## Metadata
 

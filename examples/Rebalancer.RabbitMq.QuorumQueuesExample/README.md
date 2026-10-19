@@ -1,7 +1,8 @@
 # Ordered consumer group on RabbitMQ with Rebalancer (option A)
 
 A chatbot-style example: many conversations, each a sequence of turns that must be handled in order, spread over
-several consumer nodes ([US-0022](../../docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md)).
+several consumer nodes
+([US-0022](../../docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md)).
 For when to choose this setup or RabbitMQ super streams instead, see the
 [guide](../../docs/guides/rabbitmq-ordered-consumer-groups.md).
 
@@ -52,15 +53,15 @@ Then stop one node (Ctrl+C, or kill it) while it is working: the other takes ove
 continues in order. Ctrl+C and SIGTERM stop a node cleanly; after a kill, the others wait for the lease to expire
 (`LeaseExpirySeconds`).
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `EXAMPLE_SQL` | (required) | SQL Server connection string (Rebalancer and the conversation table) |
-| `EXAMPLE_RABBIT_HOST`, `_PORT`, `_USER`, `_PASSWORD` | `localhost`, `5672`, `guest`, `guest` | RabbitMQ connection |
-| `EXAMPLE_GROUP` | `NotificationsGroup` | Rebalancer resource group (`--ConsumerGroup` of `create`) |
-| `EXAMPLE_NODE` | machine name | Name in the log |
-| `EXAMPLE_DELIVERY_LIMIT` | `5` | Attempts of a turn before it is dead-lettered (use `--DeliveryLimit`) |
-| `EXAMPLE_WORK_MS` | `50` | Simulated work per turn |
-| `EXAMPLE_FAIL_CONVERSATION`, `EXAMPLE_FAIL_TURN` | none | That turn always fails |
+| Variable                                             | Default                               | Meaning                                                               |
+|------------------------------------------------------|---------------------------------------|-----------------------------------------------------------------------|
+| `EXAMPLE_SQL`                                        | (required)                            | SQL Server connection string (Rebalancer and the conversation table)  |
+| `EXAMPLE_RABBIT_HOST`, `_PORT`, `_USER`, `_PASSWORD` | `localhost`, `5672`, `guest`, `guest` | RabbitMQ connection                                                   |
+| `EXAMPLE_GROUP`                                      | `NotificationsGroup`                  | Rebalancer resource group (`--ConsumerGroup` of `create`)             |
+| `EXAMPLE_NODE`                                       | machine name                          | Name in the log                                                       |
+| `EXAMPLE_DELIVERY_LIMIT`                             | `5`                                   | Attempts of a turn before it is dead-lettered (use `--DeliveryLimit`) |
+| `EXAMPLE_WORK_MS`                                    | `50`                                  | Simulated work per turn                                               |
+| `EXAMPLE_FAIL_CONVERSATION`, `EXAMPLE_FAIL_TURN`     | none                                  | That turn always fails                                                |
 
 ## A blocked conversation
 

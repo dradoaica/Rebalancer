@@ -8,7 +8,8 @@
         <Project
                 Path="examples/Rebalancer.RabbitMq.QuorumQueuesExample/Rebalancer.RabbitMq.QuorumQueuesExample.csproj"/>
         <Project Path="examples/Rebalancer.RabbitMq.Tools/Rebalancer.RabbitMq.Tools.csproj"/>
-        <Project Path="examples/Rebalancer.RabbitMq.SuperStreamsExample/Rebalancer.RabbitMq.SuperStreamsExample.csproj"/>
+        <Project
+                Path="examples/Rebalancer.RabbitMq.SuperStreamsExample/Rebalancer.RabbitMq.SuperStreamsExample.csproj"/>
     </Folder>
     <Folder Name="/Solution Items/">
         <File Path=".editorconfig"/>

@@ -17,7 +17,7 @@ superseded-by: ""
 
 ## Context and Problem Statement
 
-The **ZooKeeper** backend implements coordination using znodes, watches, and ephemeral nodes. Rebalancing must not assign the same resource to two clients simultaneously; two algorithms—**Resource Barrier** and **Global Barrier**—trade off RPC count and complexity. Leader stability must handle session loss, epoch/version conflicts, and concurrent coordinator attempts.
+The **ZooKeeper** backend implements coordination using znodes, watches, and ephemeral nodes. Rebalancing must not assign the same resource to two clients simultaneously; two algorithms— **Resource Barrier** and **Global Barrier**—trade off RPC count and complexity. Leader stability must handle session loss, epoch/version conflicts, and concurrent coordinator attempts.
 
 This decision captures the **as-built** approach documented in detail in [`src/Rebalancer.ZooKeeper/README.md`](../../src/Rebalancer.ZooKeeper/README.md) and implemented in `ZooKeeperProvider` and related types.
 

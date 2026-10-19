@@ -29,14 +29,12 @@ This record decides whether the library exposes such a token to resource handler
 **What a token must guarantee.** For any resource, a handler that is given the resource later must get a strictly
 greater token than every handler that held it before. A token that is only unique is not enough.
 
-**Finding while drafting (verified in code, 2026-10-19).** On SQL Server and Redis the existing fencing token is per
-**coordinator lease**: it increases when a new coordinator acquires the lease, and stays the same across every
+**Finding while drafting (verified in code, 2026-10-19).** On SQL Server and Redis the existing fencing token is per **coordinator lease**: it increases when a new coordinator acquires the lease, and stays the same across every
 rebalance within one tenure (`Roles/Coordinator.cs` passes `clientEvent.FencingToken` to `StartActivityAsync` and
 `StopActivityAsync`; `ClientService.StartActivityAsync` stores it). In the PRB-0003 scenario the **same** coordinator
 reassigns the resource, so the stale follower and the new holder carry the same token. Exposing that token unchanged,
 as ADR-0019 option C reads, would not fence the case it is meant to fix. ZooKeeper behaves the same way: its epoch is
-the version of the group's `epoch` znode, which a coordinator increments once, when it takes over
-(`BecomeCoordinatorAsync` → `IncrementAndWatchEpochAsync` in `ResourceBarrier/Coordinator.cs` and
+the version of the group's `epoch` znode, which a coordinator increments once, when it takes over (`BecomeCoordinatorAsync` → `IncrementAndWatchEpochAsync` in `ResourceBarrier/Coordinator.cs` and
 `GlobalBarrier/Coordinator.cs`); rebalances within one tenure keep it. (Corrected 2026-10-19, see Erratum.)
 
 ## Decision Drivers

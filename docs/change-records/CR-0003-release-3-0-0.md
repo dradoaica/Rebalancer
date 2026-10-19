@@ -16,6 +16,7 @@ depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-00
 ## Summary
 
 Releases 3.0.0 of all five packages:
+
 - ADR-0011 and ADR-0013 remove the APIs deprecated in 2.2.0 (CR-0002).
 - ZooKeeper entry points require credentials or an explicit ACL.
 - Stale client records expire, and nodes re-register safely (ADR-0014).
@@ -57,13 +58,13 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                                                  |
-|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Area                  | Impact                                                                                                                                                                                          |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Users / customers     | Breaking: callers of the removed APIs must migrate (guide). ZooKeeper users without credentials must pass `OPEN_ACL_UNSAFE` explicitly. Custom `IClientService` implementations keep compiling. |
-| Services / components | Coordinators delete expired client records each heartbeat (best effort; failures only logged). Nodes re-register after their record expired.                                         |
-| Data / schema         | SQL Server: no schema change. Redis: client records move to `RBR:Clients:{group}`; the 2.x hash keeps other groups' entries until those groups upgrade.                                 |
-| Security              | SQL login needs `DELETE` on `RBR.Clients` (relaxes TM-0002). ZooKeeper can no longer be open by accident (TM-0001). Redis per-group client keys (TM-0003).                             |
-| Operations            | Redis groups: all nodes at once. SQL Server and ZooKeeper: node by node. Grant `DELETE` before or with the upgrade.                                                                     |
+| Services / components | Coordinators delete expired client records each heartbeat (best effort; failures only logged). Nodes re-register after their record expired.                                                    |
+| Data / schema         | SQL Server: no schema change. Redis: client records move to `RBR:Clients:{group}`; the 2.x hash keeps other groups' entries until those groups upgrade.                                         |
+| Security              | SQL login needs `DELETE` on `RBR.Clients` (relaxes TM-0002). ZooKeeper can no longer be open by accident (TM-0001). Redis per-group client keys (TM-0003).                                      |
+| Operations            | Redis groups: all nodes at once. SQL Server and ZooKeeper: node by node. Grant `DELETE` before or with the upgrade.                                                                             |
 
 ## Preconditions
 
@@ -90,6 +91,7 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
 ## Rollback plan
 
 Redeploy 2.2.0 (callers must still compile against 2.2, i.e. use explicit providers; no 3.0-only APIs).
+
 - **Redis:** stop the group and start 2.2; 2.x registers new records in the shared hash, nothing moves back; the
   group's `RBR:Clients:{group}` key may be deleted.
 - **SQL Server:** no data change to undo; the `DELETE` grant may stay.

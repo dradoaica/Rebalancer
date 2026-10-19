@@ -66,8 +66,7 @@ worth deciding on its own, because it is the only full fix and it needs consumer
 * Good, because a reassigned resource is released by a resumed follower at its first tick, through the same path a live
   follower uses.
 * Good, because no public API or data format changes; behavior changes only for records of non-live clients.
-* Bad, because the window is shortened, not closed; release notes and PRB-0003 must say so, and the operational advice
-  (keep-alive expiry well above the longest pause) stays.
+* Bad, because the window is shortened, not closed; release notes and PRB-0003 must say so, and the operational advice (keep-alive expiry well above the longest pause) stays.
 * Bad, because `StopActivityAsync` on SQL Server reports a fencing-token violation when fewer rows than requested are
   updated. A non-live record deleted between the read and the stop (e.g. by ADR-0014 expiry, which the same
   coordinator runs earlier in the same heartbeat) must not be counted as a violation. The implementation must keep the

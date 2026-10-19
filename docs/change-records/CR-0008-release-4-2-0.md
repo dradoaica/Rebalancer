@@ -15,8 +15,7 @@ depends-on: [ "US-0021", "ADR-0023", "ADR-0020", "ADR-0022", "TM-0001", "TM-0002
 
 ## Summary
 
-Releases 4.2.0 of all six packages. SQL Server and Redis clients report `ClientState.Aborted` after a final error
-(US-0021); the health check recovers after a recovered error (4.1.0 defect); malformed Redis resource entries are
+Releases 4.2.0 of all six packages. SQL Server and Redis clients report `ClientState.Aborted` after a final error (US-0021); the health check recovers after a recovered error (4.1.0 defect); malformed Redis resource entries are
 skipped (ADR-0020 move and reads). Release notes: `docs/release-notes/4.2.0.md`.
 
 ## Motivation / drivers
@@ -43,13 +42,13 @@ skipped (ADR-0020 move and reads). Release notes: `docs/release-notes/4.2.0.md`.
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                    |
-|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| Users / customers     | SQL Server / Redis hosts without auto-recovery see `Aborted` after a final error; `BlockAsync` returns.   |
-| Services / components | None at runtime besides the state; malformed Redis entries are skipped instead of failing.               |
-| Data / schema         | None.                                                                                                     |
-| Security              | None (threat-model revisions for 4.1.0 telemetry accepted with this release).                             |
-| Operations            | None. Any upgrade order.                                                                                  |
+| Area                  | Impact                                                                                                  |
+|-----------------------|---------------------------------------------------------------------------------------------------------|
+| Users / customers     | SQL Server / Redis hosts without auto-recovery see `Aborted` after a final error; `BlockAsync` returns. |
+| Services / components | None at runtime besides the state; malformed Redis entries are skipped instead of failing.              |
+| Data / schema         | None.                                                                                                   |
+| Security              | None (threat-model revisions for 4.1.0 telemetry accepted with this release).                           |
+| Operations            | None. Any upgrade order.                                                                                |
 
 ## Preconditions
 
@@ -82,8 +81,8 @@ Release notes `docs/release-notes/4.2.0.md`.
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date       |
+|------------------------|-----------|------------|
 | Maintainer (code)      | dradoaica | 2026-10-19 |
 | Release / CAB (or org) | dradoaica | 2026-10-19 |
 

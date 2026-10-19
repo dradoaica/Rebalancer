@@ -27,8 +27,11 @@ internal sealed class Settings
         new()
         {
             Node = Get("EXAMPLE_NODE", Environment.MachineName),
-            SqlConnectionString = Get("EXAMPLE_SQL",
-                "Server=localhost;Database=RabbitMqScaling;User Id=sa;Password=<set EXAMPLE_SQL>;TrustServerCertificate=true"),
+            SqlConnectionString =
+                Get(
+                    "EXAMPLE_SQL",
+                    "Server=localhost;Database=RabbitMqScaling;User Id=sa;Password=<set EXAMPLE_SQL>;TrustServerCertificate=true"
+                ),
             StreamHost = Get("EXAMPLE_STREAM_HOST", "localhost"),
             StreamPort = int.Parse(Get("EXAMPLE_STREAM_PORT", "5552")),
             User = Get("EXAMPLE_RABBIT_USER", "guest"),

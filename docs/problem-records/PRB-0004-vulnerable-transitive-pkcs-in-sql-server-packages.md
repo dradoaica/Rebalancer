@@ -25,18 +25,17 @@ affected.
 - **Symptoms:** none observed; found by `dotnet list package --vulnerable --include-transitive` and NuGet audit
   warnings (NU1902, NU1903) while building the examples (2026-10-19).
 - **Impact:** a host that uses the SQL Server backend carries the vulnerable assembly. Whether it is reachable depends
-  on whether attacker-controlled certificate data is parsed through `System.Security.Cryptography.Pkcs` in that host
-  (SQL Server TLS certificates come from the server the host connects to). Not analysed further: please confirm the
+  on whether attacker-controlled certificate data is parsed through `System.Security.Cryptography.Pkcs` in that host (SQL Server TLS certificates come from the server the host connects to). Not analysed further: please confirm the
   exposure for your deployments. Other backends (Redis, ZooKeeper) and `Rebalancer.Core` are not affected.
 
 ## Timeline
 
-| When       | Event                                                                                             |
-|------------|---------------------------------------------------------------------------------------------------|
+| When       | Event                                                                                              |
+|------------|----------------------------------------------------------------------------------------------------|
 | 2026-10-19 | Detected while verifying US-0022 (NuGet audit warnings in the examples; full scan of the solution) |
 | 2026-10-19 | Problem record drafted; no mitigation yet                                                          |
 | 2026-10-20 | Fix prepared: ADR-0025 (Pkcs 10.0.13 pinned), CR-0009 (release 4.2.1); scan clean on the branch    |
-| 2026-10-20 | Released in 4.2.1 (`732ecd7`)                                                                       |
+| 2026-10-20 | Released in 4.2.1 (`732ecd7`)                                                                      |
 | 2026-10-20 | Closed by dradoaica (closure review)                                                               |
 
 ## Evidence
@@ -59,12 +58,12 @@ nor a vulnerability scan (open topic: CI test job).
 
 ## Corrective actions
 
-| Action                                                                                                                 | Owner | Status |
-|------------------------------------------------------------------------------------------------------------------------|-------|--------|
-| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Decided: ADR-0025 (Accepted) |
-| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Done: released in 4.2.1 (CR-0009, `732ecd7`) |
-| Pin or upgrade in the examples and test projects as well                                                              |       | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
-| Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 | dradoaica | Open (follow-up; ADR-0025 Consequences) |
+| Action                                                                                                                                                                                                                                | Owner     | Status                                                                                  |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------|
+| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |           | Decided: ADR-0025 (Accepted)                                                            |
+| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE                                                                                                                           |           | Done: released in 4.2.1 (CR-0009, `732ecd7`)                                            |
+| Pin or upgrade in the examples and test projects as well                                                                                                                                                                              |           | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
+| Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                                                                                                                                 | dradoaica | Open (follow-up; ADR-0025 Consequences)                                                 |
 
 ## Preventive measures
 
@@ -90,8 +89,7 @@ later (9.0.21 / 10.0.13 for net9 / net10 hosts); NuGet then resolves the patched
 - **Corrective action verification:** `dotnet list Rebalancer.slnx package --vulnerable --include-transitive` reports no
   vulnerable package in any project (2026-10-20); the packed `Rebalancer.SqlServer` 4.2.1 declares Pkcs >= 10.0.13; the
   "Release Packages" run for `732ecd7` succeeded.
-- **Owned follow-ups (dradoaica):** (1) remove the direct Pkcs reference once SqlClient depends on a patched version;
-  (2) a dependency vulnerability scan that fails on High or Critical in the CI test job (open topic).
+- **Owned follow-ups (dradoaica):** (1) remove the direct Pkcs reference once SqlClient depends on a patched version; (2) a dependency vulnerability scan that fails on High or Critical in the CI test job (open topic).
 - **Governance change (proposed, not applied):** the pre-MR gate in `.agents/AGENTS.md` lists static analysis
   "(e.g., Sonar, SAST, secrets scanning)" but not dependency vulnerability scanning, which is how this defect went
   unnoticed. Proposal: name a dependency scan (`dotnet list package --vulnerable --include-transitive`, or an

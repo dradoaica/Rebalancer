@@ -61,16 +61,16 @@ gain; D leaves US-0017 unmet.
 **Contract (names are final once this record is Accepted; changing one later needs a superseding ADR and a major
 version):**
 
-| Kind      | Name                                   | Unit  | Tags                                         | Meaning                                                    |
-|-----------|----------------------------------------|-------|----------------------------------------------|------------------------------------------------------------|
-| Meter     | `Rebalancer`                           |       |                                              | version = the `Rebalancer.Core` assembly version           |
-| Counter   | `rebalancer.rebalances`                | `{rebalance}` | `rebalancer.backend`, `rebalancer.group`, `rebalancer.outcome` (`completed` / `aborted`) | rebalances run by this node as coordinator |
-| Counter   | `rebalancer.coordinator.elections`     | `{election}`  | `rebalancer.backend`, `rebalancer.group`      | this node became coordinator                               |
-| Counter   | `rebalancer.assignments`               | `{event}`     | `rebalancer.backend`, `rebalancer.group`      | `OnAssignment` raised on this node                         |
-| Counter   | `rebalancer.unassignments`             | `{event}`     | `rebalancer.backend`, `rebalancer.group`      | `OnUnassignment` raised on this node                       |
-| Histogram | `rebalancer.unassigned.duration`       | `s`           | `rebalancer.backend`, `rebalancer.group`      | from an unassignment to the next assignment on this node   |
-| Source    | `Rebalancer`                           |       |                                              | activity source, same version as the meter                 |
-| Activity  | `rebalancer.rebalance`                 |       | `rebalancer.backend`, `rebalancer.group`, `rebalancer.fencing_token` (SQL Server, Redis) or `rebalancer.epoch` (ZooKeeper) | one per rebalance, on the coordinator |
+| Kind      | Name                               | Unit          | Tags                                                                                                                       | Meaning                                                  |
+|-----------|------------------------------------|---------------|----------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| Meter     | `Rebalancer`                       |               |                                                                                                                            | version = the `Rebalancer.Core` assembly version         |
+| Counter   | `rebalancer.rebalances`            | `{rebalance}` | `rebalancer.backend`, `rebalancer.group`, `rebalancer.outcome` (`completed` / `aborted`)                                   | rebalances run by this node as coordinator               |
+| Counter   | `rebalancer.coordinator.elections` | `{election}`  | `rebalancer.backend`, `rebalancer.group`                                                                                   | this node became coordinator                             |
+| Counter   | `rebalancer.assignments`           | `{event}`     | `rebalancer.backend`, `rebalancer.group`                                                                                   | `OnAssignment` raised on this node                       |
+| Counter   | `rebalancer.unassignments`         | `{event}`     | `rebalancer.backend`, `rebalancer.group`                                                                                   | `OnUnassignment` raised on this node                     |
+| Histogram | `rebalancer.unassigned.duration`   | `s`           | `rebalancer.backend`, `rebalancer.group`                                                                                   | from an unassignment to the next assignment on this node |
+| Source    | `Rebalancer`                       |               |                                                                                                                            | activity source, same version as the meter               |
+| Activity  | `rebalancer.rebalance`             |               | `rebalancer.backend`, `rebalancer.group`, `rebalancer.fencing_token` (SQL Server, Redis) or `rebalancer.epoch` (ZooKeeper) | one per rebalance, on the coordinator                    |
 
 * `rebalancer.fencing_token` and `rebalancer.epoch` identify the coordinator's tenure: both change when a new
   coordinator takes over, not on every rebalance (ZooKeeper's epoch is the `epoch` znode's version, incremented in
