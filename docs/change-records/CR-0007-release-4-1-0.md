@@ -1,6 +1,6 @@
 ---
 id: CR-0007
-status: Approved
+status: Implemented
 date: 2026-10-19
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -99,9 +99,15 @@ Release notes `docs/release-notes/4.1.0.md`; README sections "Metrics and traces
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled after the release}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-19):** `agent/release-4.1.0` merged into `main` as `a340daf` ("Release 4.1.0"), merged
+  locally by the agent at dradoaica's request and pushed by dradoaica. The "Release Packages" run on that push
+  succeeded at 19:15:10 UTC, including "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39309293112). Published package versions, and whether all six
+  packages were pushed, were not listed from the agent session (the package listing needs credentials).
+- **Deviations:** the rollback rehearsal found a defect in the 4.0 migration guide's rollback and in the 4.0.0 move
+  (a leftover per-group resource list was appended to); fixed in this release before approval of the merge (`7732407`).
+- **Follow-ups:** confirm the new package `Rebalancer.Extensions.Diagnostics.HealthChecks` 4.1.0 appears in GitHub
+  Packages; a CI test job (still not planned); ZooKeeper telemetry has no automated test.
 
 ## Sources
 
