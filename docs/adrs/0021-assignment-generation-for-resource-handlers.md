@@ -34,9 +34,10 @@ greater token than every handler that held it before. A token that is only uniqu
 rebalance within one tenure (`Roles/Coordinator.cs` passes `clientEvent.FencingToken` to `StartActivityAsync` and
 `StopActivityAsync`; `ClientService.StartActivityAsync` stores it). In the PRB-0003 scenario the **same** coordinator
 reassigns the resource, so the stale follower and the new holder carry the same token. Exposing that token unchanged,
-as ADR-0019 option C reads, would not fence the case it is meant to fix. ZooKeeper is different: its coordinator
-increments the group's `epoch` znode on every rebalance (`ResourceBarrier/Coordinator.cs`,
-`GlobalBarrier/Coordinator.cs` → `IncrementAndWatchEpochAsync`).
+as ADR-0019 option C reads, would not fence the case it is meant to fix. ZooKeeper behaves the same way: its epoch is
+the version of the group's `epoch` znode, which a coordinator increments once, when it takes over
+(`BecomeCoordinatorAsync` → `IncrementAndWatchEpochAsync` in `ResourceBarrier/Coordinator.cs` and
+`GlobalBarrier/Coordinator.cs`); rebalances within one tenure keep it. (Corrected 2026-10-19, see Erratum.)
 
 ## Decision Drivers
 
@@ -50,6 +51,7 @@ increments the group's `epoch` znode on every rebalance (`ResourceBarrier/Coordi
 ## Considered Options
 
 * **A. Expose the lease fencing token as-is** (SQL Server, Redis) and the epoch (ZooKeeper) on `OnAssignmentArgs`.
+  All three change per coordinator tenure, not per rebalance.
 * **B. A persisted assignment generation per group**, incremented by the coordinator on every rebalance under the
   fencing-token guard, written with each client's assignment, and exposed on `OnAssignmentArgs`.
 * **C. A derived generation** `(lease fencing token << 32) | per-tenure rebalance counter`, held in the coordinator's
@@ -71,7 +73,7 @@ downstream system can store and compare a token per resource (RabbitMQ consumers
 cannot). ADR-0019's fix and the operational advice (keep the keep-alive expiry well above the longest expected pause)
 already reduce the risk for every consumer, at no cost.
 
-A is rejected for good: it is wrong for SQL Server and Redis (see the finding above) and would advertise a guarantee
+A is rejected for good: it is wrong for all three backends (see the finding above) and would advertise a guarantee
 the token does not give. C is rejected because its counter can go backwards; fixing that is B.
 
 **When to revisit:** a consumer reports duplicate processing after a long pause, or asks for a token. B is then the
@@ -84,8 +86,8 @@ starting point, as sketched here:
   same guarded statement that checks its fencing token, then writes it with each `StartActivity`.
 * Redis: an `AssignmentGeneration` field in the group's lease record and in each client record, incremented with the
   same compare-and-set as the lease (ADR-0017). Missing fields read as 0.
-* ZooKeeper: the epoch under which the assignment was made (unverified – please confirm that a follower always
-  observes the epoch of the rebalance that produced its assignment, in both rebalancing modes).
+* ZooKeeper: a persisted generation as well (for example a counter znode the coordinator increments on every
+  rebalance); the epoch changes per coordinator tenure only, so it is not enough. (Corrected 2026-10-19, see Erratum.)
 
 ### Consequences
 
@@ -142,3 +144,12 @@ starting point, as sketched here:
   [US-007](../user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md).
 * External: M. Kleppmann, "How to do distributed locking" (2016), fencing tokens.
 * Outcome D: no implementation, story or change record follows from this record.
+
+## Erratum (2026-10-19)
+
+The accepted text said that ZooKeeper's coordinator increments the `epoch` znode on every rebalance. The code shows it
+increments it once per coordinator tenure (`BecomeCoordinatorAsync`), like the SQL Server and Redis fencing token;
+verified while implementing ADR-0022. Corrected in place in Context ("Finding"), option A, the rejection of A, and the
+option-B sketch for ZooKeeper. The decision (option D) is unchanged; the correction only strengthens the case against
+A. Corrected in place rather than superseded, at dradoaica's explicit request (2026-10-19), as an exception to the
+immutability of accepted records.
