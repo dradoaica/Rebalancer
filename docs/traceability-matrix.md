@@ -26,7 +26,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0017](adrs/0017-redis-lease-timing-and-atomic-updates.md) | Redis leases: server clock, compare-and-set | US-006 | `src/Rebalancer.Redis/Leases/` | `tests/Rebalancer.UnitTests` (`RedisLeaseDecisionTests`) | **Accepted**; supersedes 0006 |
 | [0018](adrs/0018-opt-in-zookeeper-acls-in-2x.md) | Opt-in ZooKeeper ACLs in 2.x | US-007 | `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs`, `ZooKeeperProvider.cs` | `tests/Rebalancer.UnitTests` (`ZooKeeperAclApiTests`), `tests/Rebalancer.IntegrationTests/ZooKeeper/AclTests.cs` | **Accepted**; supersedes 0006 |
 | [0019](adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md) | Stop unresponsive followers holding reassigned resources | US-005, US-006, US-013 | `src/Rebalancer.SqlServer/Roles/Coordinator.cs`, `src/Rebalancer.Redis/Roles/Coordinator.cs` | `tests/Rebalancer.UnitTests` (`UnresponsiveFollowerTests`), `tests/Rebalancer.IntegrationTests` (`*PausedNodeTests`) | **Accepted**; released in 3.1.0 (CR-0004); option C declined for now (ADR-0021) |
-| [0020](adrs/0020-per-group-redis-leases-and-resources.md) | Per-group Redis keys for leases and resource lists | US-0016 (Draft, 3.x deprecation part) | not implemented | not implemented | **Accepted**; 3.x deprecation and 4.0 layout change not started |
+| [0020](adrs/0020-per-group-redis-leases-and-resources.md) | Per-group Redis keys for leases and resource lists | US-0016 (3.x warning) | `src/Rebalancer.Redis/RedisProvider.cs` (`StartAsync`), `docs/release-notes/migrating-to-4.0.md` | `tests/Rebalancer.UnitTests` (`PerGroupKeysDeprecationTests`) | **Accepted**; 3.x warning in 3.2.0 (CR-0005, Submitted); 4.0 layout on a separate branch |
 | [0021](adrs/0021-assignment-generation-for-resource-handlers.md) | No fencing token for resource handlers for now | US-002 | none (option D) | `*PausedNodeTests` (window of ADR-0019) | **Accepted** (2026-10-19), option D; revisit on consumer demand |
 
 ### Release records
@@ -37,6 +37,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [CR-0002](change-records/CR-0002-release-2-2-0-deprecations.md) | **Implemented** (2.2.0, `ac6587a`); [release notes](release-notes/2.2.0.md) | Deprecations of ADR 0011, 0012, 0013 |
 | [CR-0003](change-records/CR-0003-release-3-0-0.md) | **Implemented** (3.0.0, `f3efbcb`); [release notes](release-notes/3.0.0.md), [migration guide](release-notes/migrating-to-3.0.md) | ADR 0011–0015, US-0015 |
 | [CR-0004](change-records/CR-0004-release-3-1-0.md) | **Implemented** (3.1.0, `dd094d4`); [release notes](release-notes/3.1.0.md) | ADR-0019, PRB-0003 |
+| [CR-0005](change-records/CR-0005-release-3-2-0.md) | **Submitted** (3.2.0); [release notes](release-notes/3.2.0.md) | US-0016, ADR-0021, operator scripts, paused-node tests |
 | [PRB-0001](problem-records/PRB-0001-demoted-coordinator-keeps-resources.md) | Closed (2.1.0) | US-005, US-006, US-013 |
 | [PRB-0002](problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md) | Closed (2.1.0) | US-010 |
 | [PRB-0003](problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md) | Closed (3.1.0); follow-ups owned by dradoaica | US-005, US-006, US-013 |
