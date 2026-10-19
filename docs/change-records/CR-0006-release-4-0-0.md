@@ -103,6 +103,16 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
 - **Deviations:** one precondition was open at approval (recorded under Preconditions): the manual rollback to 3.x is
   not rehearsed. The validation step on a staging Redis is the operators' and is not recorded here.
 - **Follow-ups:** rehearse the 4.0 → 3.2 rollback from the migration guide before the first production group moves.
+- **Rollback rehearsal (performed after release, 2026-10-19):** released 3.2.0 (`860b3d3`), 4.0.0 (`b9b5f3f`) and 4.1.0
+  (branch `agent/release-4.1.0`) built side by side and run as single clients against shared containers (Redis
+  `redis:7.0`, SQL Server 2022-CU14), lease expiry 5 s, one resource `r1`, a second Redis group left in the shared keys:
+  - **Redis:** a 3.2.0-provisioned group moved on the first 4.0.0 start (6.3 s to assignment); the other group stayed
+    shared. The reverse move as the guide then described (copy back, delete only `RBR:Lease:{group}`) let 3.2.0 assign
+    `r1`, but the next 4.0.0 start **appended** to the leftover `RBR:Resources:{group}` and assigned `[r1,r1]`.
+    Corrected: the guide now deletes both per-group keys (re-rehearsed: 4.0.0 → 3.2.0 → 4.0.0 gives `[r1]`), and 4.1.0
+    replaces a leftover list (rehearsed with the old steps: `[r1]`; regression test
+    `MovingAgainAfterARollback_ReplacesALeftoverResourceList`). Released 4.0.0 keeps the defect; fixed in 4.1.0 (CR-0007).
+  - **SQL Server:** 4.0.0 clean stop, then 3.2.0 assigned `r1` after 6.4 s; no data to move back.
 
 ## Sources
 

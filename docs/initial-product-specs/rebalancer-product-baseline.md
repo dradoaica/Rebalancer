@@ -35,7 +35,7 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 
 - **SemVer** for NuGet packages when published; breaking public API or behavior changes require a **major** bump and, per governance, a **superseding ADR** or new ADR plus change record.
 - [ADR 0005](../adrs/0005-dependency-injection-for-provider-registration-v2.md) is **accepted**; `Rebalancer.Extensions.DependencyInjection` is the recommended host registration path ([US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry was removed in 3.0; without DI, pass the provider to `RebalancerClient` ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **4.0.0** (breaking for Redis provisioning only: per-group keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)). Release history and change records: [`docs/release-notes/`](../release-notes/), [`docs/change-records/`](../change-records/).
+- Current release: **4.1.0** (metrics, traces, health check; additive). Previous: **4.0.0** (breaking for Redis provisioning only: per-group keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)). Release history and change records: [`docs/release-notes/`](../release-notes/), [`docs/change-records/`](../change-records/).
 
 ## Security baseline
 
@@ -48,4 +48,5 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 
 1. **DI-first registration** — shipped: ADR 0005, US-012, `Rebalancer.Extensions.DependencyInjection`.  
 2. **Assignment-safety tests for SqlServer + Redis** — shipped: US-013, `tests/Rebalancer.IntegrationTests` (Docker).  
-3. **Next** — OpenTelemetry ([US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md)), health checks ([US-0018](../user-stories/US-0018-report-client-health-to-the-host.md)), CI matrix with Docker, deeper randomized parity with ZK tests ([US-0019](../user-stories/US-0019-randomised-assignment-safety-tests-for-sql-server-and-redis.md)) (backlog, Draft).
+3. **4.1.0** — metrics and traces (ADR-0022), health check package (ADR-0023), randomised SQL Server / Redis tests.
+4. **Next** — CI matrix with Docker (backlog). Formerly listed here: OpenTelemetry ([US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md)), health checks ([US-0018](../user-stories/US-0018-report-client-health-to-the-host.md)), CI matrix with Docker, deeper randomized parity with ZK tests ([US-0019](../user-stories/US-0019-randomised-assignment-safety-tests-for-sql-server-and-redis.md)) (implemented in 4.1.0).

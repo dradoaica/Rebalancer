@@ -605,11 +605,22 @@ public class ZooKeeperProvider : IRebalancerProvider
                 break;
         }
 
+        switch (coordinator)
+        {
+            case GB.Coordinator gb:
+                gb.ResourceGroup = resourceGroup;
+                break;
+            case RB.Coordinator rb:
+                rb.ResourceGroup = resourceGroup;
+                break;
+        }
+
         var hasBecome = await coordinator.BecomeCoordinatorAsync(epoch);
         switch (hasBecome)
         {
             case BecomeCoordinatorResult.Ok:
                 logger.Info(clientId, "Have successfully become the coordinator");
+                RebalancerTelemetry.RecordElection("zookeeper", resourceGroup);
 
                 // this blocks until coordinator terminates (due to failure, session expiry or detects it is a zombie)
                 var coordinatorExitReason = await coordinator.StartEventLoopAsync();

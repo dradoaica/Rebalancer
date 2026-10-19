@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +14,11 @@ public class RebalancerClient : IDisposable
 
     private bool disposed;
     private bool stopped;
+
+    // telemetry (ADR-0022): set by StartAsync; unassignedSince is a Stopwatch timestamp, 0 while assigned
+    private string backend;
+    private string resourceGroup;
+    private long unassignedSince;
 
     /// <summary>Uses the supplied provider, created directly or by the dependency injection extensions (ADR-0013).</summary>
     /// <param name="rebalancerProvider">Non-null coordination backend.</param>
@@ -71,6 +77,8 @@ public class RebalancerClient : IDisposable
     public async Task StartAsync(string resourceGroup, ClientOptions clientOptions)
     {
         cts = new CancellationTokenSource();
+        backend = RebalancerTelemetry.BackendOf(rebalancerProvider);
+        this.resourceGroup = resourceGroup;
         OnChangeActions onChangeActions = new();
         onChangeActions.AddOnStartAction(StartActivity);
         onChangeActions.AddOnStopAction(StopActivity);
@@ -192,7 +200,12 @@ public class RebalancerClient : IDisposable
         }
     }
 
-    private void StopActivity() => RaiseOnUnassignment(EventArgs.Empty);
+    private void StopActivity()
+    {
+        RebalancerTelemetry.RecordUnassignment(backend, resourceGroup);
+        Interlocked.CompareExchange(ref unassignedSince, Stopwatch.GetTimestamp(), 0);
+        RaiseOnUnassignment(EventArgs.Empty);
+    }
 
     protected virtual void RaiseOnUnassignment(EventArgs e) => OnUnassignment?.Invoke(this, e);
 
@@ -200,7 +213,20 @@ public class RebalancerClient : IDisposable
 
     protected virtual void RaiseOnAbort(OnAbortedArgs e) => OnAborted?.Invoke(this, e);
 
-    private void StartActivity(IList<string> resources) => RaiseOnAssignments(new OnAssignmentArgs(resources));
+    private void StartActivity(IList<string> resources)
+    {
+        RebalancerTelemetry.RecordAssignment(backend, resourceGroup);
+        var since = Interlocked.Exchange(ref unassignedSince, 0);
+        if (since != 0)
+        {
+            RebalancerTelemetry.RecordUnassignedDuration(
+                backend, resourceGroup,
+                TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - since) / (double)Stopwatch.Frequency)
+            );
+        }
+
+        RaiseOnAssignments(new OnAssignmentArgs(resources));
+    }
 
     protected virtual void RaiseOnAssignments(OnAssignmentArgs e) => OnAssignment?.Invoke(this, e);
 }

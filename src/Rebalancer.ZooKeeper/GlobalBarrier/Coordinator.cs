@@ -1,3 +1,4 @@
+using Rebalancer.Core;
 using org.apache.zookeeper;
 using Rebalancer.Core.Logging;
 using Rebalancer.ZooKeeper.ResourceManagement;
@@ -35,6 +36,10 @@ public class Coordinator : Watcher, ICoordinator
     private Task rebalancingTask;
     private int resourcesVersion;
 
+    // telemetry (ADR-0022): the epoch this coordinator holds, and its group (set by the provider; not public API)
+    private int coordinatorEpoch;
+    internal string ResourceGroup { get; set; }
+
     // mutable state
     private StatusZnode status;
 
@@ -67,7 +72,7 @@ public class Coordinator : Watcher, ICoordinator
         try
         {
             ignoreWatches = false;
-            await zooKeeperService.IncrementAndWatchEpochAsync(currentEpoch, this);
+            coordinatorEpoch = await zooKeeperService.IncrementAndWatchEpochAsync(currentEpoch, this);
             await zooKeeperService.WatchNodesAsync(this);
 
             var getResourcesRes = await zooKeeperService.GetResourcesAsync(this, null);
@@ -296,6 +301,9 @@ public class Coordinator : Watcher, ICoordinator
 
     private async Task TriggerRebalancing(CancellationToken rebalancingToken)
     {
+        using var activity = RebalancerTelemetry.StartRebalance(
+            "zookeeper", ResourceGroup, RebalancerTelemetry.EpochTag, coordinatorEpoch
+        );
         try
         {
             await zooKeeperService.WatchResourcesChildrenAsync(this);
@@ -361,6 +369,14 @@ public class Coordinator : Watcher, ICoordinator
             lastRebalancingResult = RebalancingResult.Failed;
             logger.Error(clientId, "Coordinator - An unexpected error has occurred, aborting rebalancing.", e);
             events.Add(CoordinatorEvent.PotentialInconsistentState);
+        }
+
+        // a rebalance that was not required did not run, so it is not counted
+        if (lastRebalancingResult != RebalancingResult.NotRequired)
+        {
+            RebalancerTelemetry.RecordRebalance(
+                "zookeeper", ResourceGroup, lastRebalancingResult == RebalancingResult.Complete
+            );
         }
     }
 

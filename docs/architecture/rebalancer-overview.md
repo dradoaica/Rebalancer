@@ -41,7 +41,7 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.0.0** (all five packages). Release history: [`docs/release-notes/`](../release-notes/).
+Current version: **4.1.0** (six packages, including `Rebalancer.Extensions.Diagnostics.HealthChecks`). Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 
@@ -54,7 +54,7 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
 |------------|------------------------------------------------|-----------------------------------|----------------------------------|
 | SQL Server | `RBR.ResourceGroups` (row per group)           | `RBR.Resources`                   | `RBR.Clients`                    |
 | Redis 4.0  | `RBR:Lease:{group}` (hash, one field)          | `RBR:Resources:{group}` (list)    | `RBR:Clients:{group}` (hash)     |
-| ZooKeeper  | leader: lowest `{root}/{group}/clients/c_*`; `epoch` increments per rebalance | children of `{root}/{group}/resources`; its data holds the assignment table | ephemeral sequential `{root}/{group}/clients/c_*` |
+| ZooKeeper  | leader: lowest `{root}/{group}/clients/c_*`; `epoch` (znode version) increments per coordinator tenure | children of `{root}/{group}/resources`; its data holds the assignment table | ephemeral sequential `{root}/{group}/clients/c_*` |
 
 - **Redis:** since 4.0 every key belongs to one group ([ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md));
   `{group}` is percent-encoded ([ADR-0015](../adrs/0015-store-redis-clients-per-resource-group.md)). The first 4.0 node
@@ -77,6 +77,15 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
 
 Keep the lease expiry (`LeaseExpirySeconds`) well above the longest pause a node can have (GC, VM freeze); see the
 3.1.0 release notes.
+
+## Observability
+
+- **Metrics and traces** ([ADR-0022](../adrs/0022-rebalancing-telemetry-contract.md)): meter and activity source
+  `Rebalancer` in `Rebalancer.Core` (`RebalancerTelemetry`). `RebalancerClient` records assignments, unassignments and
+  the unassigned duration; the backends' coordinators record rebalances (with an activity per rebalance) and
+  elections. Tags: backend and group; never resource names.
+- **Health** ([ADR-0023](../adrs/0023-health-check-for-a-rebalancer-client.md)): `RebalancerClientHealthCheck` in its own
+  package observes the host's client (state and `OnAborted`); it never calls the backend.
 
 ## Access control
 
