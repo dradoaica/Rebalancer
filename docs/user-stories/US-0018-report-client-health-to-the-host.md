@@ -3,7 +3,7 @@ id: US-0018
 status: In progress
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Could"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0023", "ADR-0005", "US-003", "US-012" ]
@@ -61,7 +61,7 @@ Health output must not include resource names or connection details; status and 
 
 - [x] Acceptance criteria met – `src/Rebalancer.Extensions.Diagnostics.HealthChecks/`; `RebalancerClientHealthCheckTests`
   (each state, the abort while `Assigned`, no backend call, registration)
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [x] Docs / runbooks updated if needed – release notes 4.1.0, README
 - [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
 

@@ -1,9 +1,9 @@
 ---
 id: CR-0007
-status: Submitted
+status: Approved
 date: 2026-10-19
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -58,7 +58,7 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
 
 - [x] Decision records in place: ADR-0022 and ADR-0023 (Accepted by dradoaica, 2026-10-19; on the shared trunk with
   this release's merge).
-- [ ] Readiness approval (`approved-by`) of US-0017, US-0018 and US-0019 recorded by a human.
+- [x] Readiness approval (`approved-by`) of US-0017, US-0018 and US-0019 recorded (dradoaica, 2026-10-19).
 - [x] Tests on branch `agent/release-4.1.0`: see the evidence line below.
 - [ ] Rollback procedure validated: redeploy 4.0.0 (no data change); not rehearsed.
 - [x] Pre-change test suite passing cleanly.
@@ -88,8 +88,8 @@ Release notes `docs/release-notes/4.1.0.md`; README sections "Metrics and traces
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-10-19 |
+| Release / CAB (or org) | dradoaica | 2026-10-19 |
 
 ## Post-implementation
 

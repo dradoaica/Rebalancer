@@ -3,7 +3,7 @@ id: US-0019
 status: In progress
 date: 2026-10-19
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Should"
 ssdlc-phase: Coding
 depends-on: [ "ADR-0002", "US-010", "US-013" ]
@@ -62,7 +62,7 @@ N/A – test code with disposable containers and credentials.
 
 - [x] Acceptance criteria met – `tests/Rebalancer.IntegrationTests/RandomisedScenario.cs`, `SqlServerRandomisedTests`,
   `RedisRandomisedTests` (default 3 minutes each; both passed 2026-10-19, seeds 255688184 and 1583717275)
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [x] Docs / runbooks updated if needed – README
 - [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
 
