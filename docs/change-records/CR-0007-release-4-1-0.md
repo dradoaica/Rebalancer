@@ -38,6 +38,9 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
 - Tests: `RebalancerClientTelemetryTests`, `RebalancerClientHealthCheckTests` (unit); `*TelemetryTests`,
   `*RandomisedTests` (integration, Docker); shared `tests/Shared/TelemetryRecorder.cs`.
 - Versions 4.1.0; release notes; README; architecture overview; stories US-0017..0019.
+- Fix found by the rollback rehearsal (US-0020 criterion 2, "move once"): `Utils/PerGroupKeyMigration.cs` replaces a
+  leftover `RBR:Resources:{group}` instead of appending to it; regression test in `RedisPerGroupKeysTests`; migration
+  guide's rollback deletes both per-group keys.
 
 **Out of scope:**
 
@@ -60,11 +63,14 @@ traces (ADR-0022, US-0017), a health check package (ADR-0023, US-0018), and rand
   this release's merge).
 - [x] Readiness approval (`approved-by`) of US-0017, US-0018 and US-0019 recorded (dradoaica, 2026-10-19).
 - [x] Tests on branch `agent/release-4.1.0`: see the evidence line below.
-- [ ] Rollback procedure validated: redeploy 4.0.0 (no data change); not rehearsed.
+- [x] Rollback procedure validated (2026-10-19): 4.1.0 → 4.0.0 on Redis and SQL Server, clean stop and killed client;
+  4.0.0 assigned `r1` after 6.3–6.5 s (clean) and 10.3–10.5 s (killed; lease expiry 5 s). Details in CR-0006
+  (Post-implementation, rollback rehearsal).
 - [x] Pre-change test suite passing cleanly.
 
-Evidence (2026-10-19): all six libraries build with warnings as errors; unit 56/56; SQL Server + Redis integration
-20/20 (Docker), including both randomised runs (3 minutes each). ZooKeeper integration not run (no ensemble); the
+Evidence (2026-10-19, final run after the rehearsal fix): all six libraries build with warnings as errors; unit 56/56;
+SQL Server + Redis integration 21/21 (Docker), including both randomised runs (3 minutes each) and the rollback
+regression test. ZooKeeper integration not run (no ensemble); the
 ZooKeeper telemetry is covered by build and inspection only. No other package references the health-check packages.
 
 ## Implementation plan

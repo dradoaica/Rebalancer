@@ -1,6 +1,6 @@
 ---
 id: US-0017
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
@@ -65,7 +65,7 @@ Telemetry leaves the process; criterion 4 keeps resource names (which may be sen
   (integration, Docker: elections, rebalances and activity are emitted by the backends, not by `RebalancerClient`)
 - [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [x] Docs / runbooks updated if needed – release notes 4.1.0, README
-- [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md`
 
 ## Sources
 

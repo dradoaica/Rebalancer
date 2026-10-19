@@ -50,6 +50,9 @@ internal static class PerGroupKeyMigration
                 _ = transaction.HashDeleteAsync(SharedResourceGroupsKey, field);
                 if (own.Any())
                 {
+                    // the shared list is the group's truth while its lease key is missing; a per-group list left over
+                    // from an earlier 4.x run (e.g. after a rollback to 3.x) is replaced, not appended to
+                    _ = transaction.KeyDeleteAsync(resourcesKey);
                     _ = transaction.ListRightPushAsync(resourcesKey, own);
                     foreach (var value in own.Distinct())
                     {

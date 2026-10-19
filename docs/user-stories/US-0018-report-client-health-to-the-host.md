@@ -1,6 +1,6 @@
 ---
 id: US-0018
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
@@ -63,7 +63,7 @@ Health output must not include resource names or connection details; status and 
   (each state, the abort while `Assigned`, no backend call, registration)
 - [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
 - [x] Docs / runbooks updated if needed – release notes 4.1.0, README
-- [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md`
 
 ## Sources
 

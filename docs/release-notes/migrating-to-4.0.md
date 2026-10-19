@@ -63,5 +63,15 @@ For 3.x, keep `~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` in the user u
 
 3.x reads only the shared keys. Stop the group's nodes, then either move the group back (copy the field of
 `RBR:Lease:{group}` into `Dictionary:RBR:ResourceGroups` and the entries of `RBR:Resources:{group}` into
-`List:RBR:Resources`) or provision the group in the shared keys again, and start 3.x. Delete `RBR:Lease:{group}`
-before a later 4.0 start, or that start will not move the group again and will use the old per-group copy.
+`List:RBR:Resources`) or provision the group in the shared keys again, then delete **both** `RBR:Lease:{group}` and
+`RBR:Resources:{group}`, and start 3.x. With either key left, a later 4.x start goes wrong: a leftover lease key keeps
+the old per-group copy, and with 4.0.0 a leftover resource list doubles the group's resources (4.1.0 and later replace
+it). Rehearsed on 2026-10-19 (4.0.0 → 3.2.0 → 4.0.0, CR-0006):
+
+```
+HGET RBR:Lease:orders "\"orders\""            # copy the value into the next command
+HSET Dictionary:RBR:ResourceGroups "\"orders\"" "<value>"
+LRANGE RBR:Resources:orders 0 -1               # RPUSH each entry back
+RPUSH List:RBR:Resources "<entry>" ...
+DEL RBR:Lease:orders RBR:Resources:orders
+```

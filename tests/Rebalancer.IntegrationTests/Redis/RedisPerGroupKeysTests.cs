@@ -76,6 +76,35 @@ public sealed class RedisPerGroupKeysTests
         Assert.Equal(0, await db.ListLengthAsync("List:RBR:Resources"));
     }
 
+    // found in the 4.0 -> 3.2 rollback rehearsal (CR-0006 follow-up, 2026-10-19): a per-group list left from an earlier
+    // 4.x run must not duplicate the resources when the group moves again
+    [SkippableFact]
+    public async Task MovingAgainAfterARollback_ReplacesALeftoverResourceList()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await redis.StartAsync();
+        var connectionString = redis.GetConnectionString();
+        await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1"]);
+        using var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
+        var db = mux.GetDatabase();
+        await db.ListRightPushAsync(RedisHash.ResourcesKey(Group), RedisHash.Encode(new Resource { ResourceGroup = Group, ResourceName = "r1", }));
+
+        using var client = new RebalancerClient(new RedisProvider(connectionString));
+        await client.StartAsync(Group, new ClientOptions());
+        try
+        {
+            await WaitUntilAsync(() => client.GetAssignedResources().Resources?.Count > 0);
+            Assert.Equal(["r1"], client.GetAssignedResources().Resources);
+        }
+        finally
+        {
+            await client.StopAsync(TimeSpan.FromSeconds(15));
+        }
+
+        Assert.Equal(["r1"], await ResourceNamesAsync(db, RedisHash.ResourcesKey(Group)));
+    }
+
     [SkippableFact]
     public async Task AUserWithoutSharedKeyAccess_OnAGroupNotMovedYet_GetsAnErrorPointingToTheGuide()
     {
