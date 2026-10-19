@@ -36,6 +36,7 @@ affected.
 | 2026-10-19 | Detected while verifying US-0022 (NuGet audit warnings in the examples; full scan of the solution) |
 | 2026-10-19 | Problem record drafted; no mitigation yet                                                          |
 | 2026-10-20 | Fix prepared: ADR-0025 (Pkcs 10.0.13 pinned), CR-0009 (release 4.2.1); scan clean on the branch    |
+| 2026-10-20 | Released in 4.2.1 (`732ecd7`); closure review pending                                               |
 
 ## Evidence
 
@@ -60,7 +61,7 @@ nor a vulnerability scan (open topic: CI test job).
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
 | Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Decided: ADR-0025 (Accepted) |
-| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Approved: CR-0009 (4.2.1) |
+| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Done: released in 4.2.1 (CR-0009, `732ecd7`) |
 | Pin or upgrade in the examples and test projects as well                                                              |       | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
 | Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 |       | Open |
 

@@ -1,6 +1,6 @@
 ---
 id: CR-0009
-status: Approved
+status: Implemented
 date: 2026-10-20
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -83,9 +83,14 @@ Release notes `docs/release-notes/4.2.1.md`, naming the CVE and the workaround f
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled after the release}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-20):** `agent/security-pkcs-4.2.1` merged into `main` as `732ecd7` ("Release 4.2.1"), merged
+  locally by the agent at dradoaica's request and pushed by dradoaica. The "Release Packages" run on that push
+  succeeded, including "Push to GitHub Packages" (21:22:43 UTC)
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39326897271). Published package versions were not listed from
+  the agent session.
+- **Deviations:** none.
+- **Follow-ups:** close PRB-0004 (closure review by a human); remove the direct Pkcs reference once
+  `Microsoft.Data.SqlClient` depends on a patched version; a vulnerability scan in CI (open topic: CI test job).
 
 ## Sources
 
