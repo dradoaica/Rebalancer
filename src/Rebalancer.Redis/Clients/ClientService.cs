@@ -13,7 +13,6 @@ internal class ClientService : IClientService
     private const int MaxCompareAndSetAttempts = 10;
     // 2.x kept every group's clients in one hash; 3.0 uses one hash per group and moves old entries over (ADR-0015)
     private static readonly RedisKey LegacyClientsKey = RedisHash.DictionaryKey("Clients");
-    private static readonly RedisKey ResourceGroupsKey = RedisHash.DictionaryKey("ResourceGroups");
     private readonly IDatabase cache;
 
     // one provider, one resource group: set when this provider's client registers
@@ -213,7 +212,7 @@ internal class ClientService : IClientService
 
             // all-or-nothing, and only while this coordinator still holds the same lease (fencing guard, ADR-0014)
             var transaction = cache.CreateTransaction();
-            transaction.AddCondition(Condition.HashEqual(ResourceGroupsKey, RedisHash.Encode(resourceGroup), lease));
+            transaction.AddCondition(Condition.HashEqual(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup), lease));
             foreach (var entry in expired)
             {
                 transaction.AddCondition(Condition.HashEqual(groupKey, entry.Name, entry.Value));
@@ -257,7 +256,7 @@ internal class ClientService : IClientService
             if (legacy.Any())
             {
                 var transaction = cache.CreateTransaction();
-                transaction.AddCondition(Condition.HashEqual(ResourceGroupsKey, RedisHash.Encode(resourceGroup), lease));
+                transaction.AddCondition(Condition.HashEqual(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup), lease));
                 foreach (var entry in legacy)
                 {
                     transaction.AddCondition(Condition.HashEqual(LegacyClientsKey, entry.Name, entry.Value));
@@ -279,7 +278,7 @@ internal class ClientService : IClientService
     // the raw lease record if coordinatorClientId still holds the lease with fencingToken, otherwise RedisValue.Null
     private async Task<RedisValue> GetLeaseIfHeldAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken)
     {
-        var lease = await cache.HashGetAsync(ResourceGroupsKey, RedisHash.Encode(resourceGroup));
+        var lease = await cache.HashGetAsync(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup));
         if (lease.IsNull)
         {
             return RedisValue.Null;

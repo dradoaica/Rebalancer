@@ -110,10 +110,10 @@ public sealed class RedisClientRecordTests
         await redis.StartAsync();
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var adminDb = admin.GetDatabase();
-        new RedisDictionary<string, ResourceGroup>(adminDb, "RBR:ResourceGroups")["orders"] =
-            new ResourceGroup { Name = "orders", LeaseExpirySeconds = 5, HeartbeatSeconds = 1, };
-        new RedisList<Rebalancer.Redis.Resources.Resource>(adminDb, "RBR:Resources")
-            .Add(new Rebalancer.Redis.Resources.Resource { ResourceGroup = "orders", ResourceName = "r1", });
+        // provisioned exactly as docs/release-notes/migrating-to-4.0.md shows (4.0 layout, ADR-0020)
+        await adminDb.ExecuteAsync("HSET", "RBR:Lease:orders", "\"orders\"",
+            "{\"Name\":\"orders\",\"LeaseExpirySeconds\":5,\"HeartbeatSeconds\":1,\"FencingToken\":0}");
+        await adminDb.ExecuteAsync("RPUSH", "RBR:Resources:orders", "{\"ResourceGroup\":\"orders\",\"ResourceName\":\"r1\"}");
         await CreateMinimalGroupUserAsync(adminDb, "orders");
 
         var connectionString = $"{redis.GetConnectionString()},user=orders-user,password=orders-pass,abortConnect=false";
@@ -136,16 +136,23 @@ public sealed class RedisClientRecordTests
 
         // a clean stop deletes the node's own record through the restricted user (ADR-0014)
         Assert.Equal(0, await adminDb.HashLengthAsync(RedisHash.GroupKey("Clients", "orders")));
+
+        // and the user has no access to any shared key (ADR-0020 confirmation)
+        using var limited = await ConnectionMultiplexer.ConnectAsync(connectionString);
+        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().HashLengthAsync("Dictionary:RBR:ResourceGroups"));
+        await Assert.ThrowsAsync<RedisServerException>(() => limited.GetDatabase().ListLengthAsync("List:RBR:Resources"));
     }
 
-    // The documented minimal Redis ACL user for one resource group (verified 2026-10-18 against redis:7.0 and
+    // The documented minimal Redis ACL user for one resource group in 4.0, with no shared keys (ADR-0020; command set
+    // verified 2026-10-18 against redis:7.0 and
     // StackExchange.Redis 3.4.5): data and transaction commands, TIME for the server clock, and ECHO, which the
     // client library's connection handshake requires. Its other handshake commands (CLIENT, CLUSTER, CONFIG GET,
     // INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
     private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
         adminDb.ExecuteAsync(
             "ACL", "SETUSER", $"{group}-user", "on", $">{group}-pass", "resetchannels",
-            $"~RBR:Clients:{RedisHash.EscapeKeySegment(group)}", "~Dictionary:RBR:ResourceGroups", "~List:RBR:Resources",
+            $"~RBR:Clients:{RedisHash.EscapeKeySegment(group)}", $"~RBR:Lease:{RedisHash.EscapeKeySegment(group)}",
+            $"~RBR:Resources:{RedisHash.EscapeKeySegment(group)}",
             "+@read", "+@write", "+@transaction", "+time", "+echo"
         );
 
@@ -154,7 +161,7 @@ public sealed class RedisClientRecordTests
         Assert.Equal("RBR:Clients:a%2Ab%20c%C3%A9", (string)RedisHash.GroupKey("Clients", "a*b cé")!);
 
     private static void SeedLease(IDatabase db, string group, Guid coordinator, int fencingToken) =>
-        new RedisDictionary<string, ResourceGroup>(db, "RBR:ResourceGroups")[group] = new ResourceGroup
+        db.HashSet(RedisHash.LeaseKey(group), RedisHash.Encode(group), RedisHash.Encode(new ResourceGroup
         {
             Name = group,
             CoordinatorId = coordinator,
@@ -162,7 +169,7 @@ public sealed class RedisClientRecordTests
             LastCoordinatorRenewal = DateTime.UtcNow,
             LeaseExpirySeconds = 60,
             HeartbeatSeconds = 25,
-        };
+        }));
 
     private static Task SeedClientAsync(IDatabase db, RedisKey key, Guid id, string group, DateTime lastKeepAlive) =>
         db.HashSetAsync(

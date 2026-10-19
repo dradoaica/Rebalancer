@@ -117,14 +117,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
 
         this.resourceGroup = resourceGroup;
         this.clientOptions = clientOptions;
-        // ADR-0020: once per client session (a provider starts once; recovery restarts happen inside mainTask)
-        logger.Warn(
-            clientId.ToString(),
-            $"Resource group '{resourceGroup}' is provisioned in the shared Redis keys. Rebalancer.Redis 4.0 moves its " +
-            $"lease to {RedisHash.GroupKey("Lease", resourceGroup)} and its resources to " +
-            $"{RedisHash.GroupKey("Resources", resourceGroup)}; update provisioning scripts and Redis ACL users before " +
-            "upgrading. See docs/release-notes/migrating-to-4.0.md."
-        );
+        await PerGroupKeyMigration.MoveToPerGroupKeysAsync(cache, resourceGroup, logger, clientId.ToString());
         await clientService.CreateClientAsync(this.resourceGroup, clientId);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed

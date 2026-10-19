@@ -34,6 +34,17 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 **Revision 3 (3.1.0, CR-0004):** the minimal ACL command set is verified, and an end-to-end test covers it. Leases
 and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 
+**Revision 4 (4.0.0, CR-0006; accepted by dradoaica, 2026-10-19):**
+- Leases and settings move to `RBR:Lease:{group}` (hash, one field) and resources to `RBR:Resources:{group}` (list),
+  ADR-0020. A moved group touches no shared key, so a Redis ACL user can be confined to its group completely
+  (`~RBR:Lease:{g} ~RBR:Resources:{g} ~RBR:Clients:{g}`), verified end to end by `RedisClientRecordTests`.
+- Heartbeats read only the group's own resource list (residual risk "resources list read in full" resolved).
+- New, transitional: the first 4.0 node of a group moves its entries out of the shared keys, so it needs read and write
+  access to them once. The move is one transaction guarded by the per-group key's absence and the shared entries'
+  values, so a concurrent writer makes it retry instead of losing or duplicating entries (`RedisPerGroupKeysTests`).
+  Mitigation: run the first start with a temporary user that has shared-key access, or provision the per-group keys as
+  an operator (`docs/release-notes/migrating-to-4.0.md`).
+
 ## System context and boundaries
 
 - **In scope:** `RedisProvider`, `LeaseService`, `ClientService`, `ResourceService`, `RedisHash`; the three keys above;
@@ -163,10 +174,10 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 
 - Residual risks after mitigations:
   - **Partial per-group isolation** inside one Redis database: client records can be isolated (3.0), leases and
-    resources cannot.
+    resources cannot. Revision 4: resolved in 4.0 for groups that have moved (ADR-0020).
   - ~~**Unbounded growth of the clients hash**~~ Resolved in 3.0 (ADR-0014, ADR-0015).
   - **The resources list is still read in full** on every heartbeat (`LRANGE`); it grows with the resources of all
-    groups, not with restarts.
+    groups, not with restarts. Revision 4: resolved in 4.0 (one list per group).
   - **No audit trail.**
 - Follow-ups of revision 1, both decided and implemented in 3.0.0: expiry of client entries (ADR-0014); one client hash
   per group with a migration (ADR-0015). Per-group keys for leases and resources: ADR-0020 (Accepted; not
@@ -194,6 +205,8 @@ and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 | Security / architecture (revision 2) | dradoaica | 2026-10-18 |
 | Service owner (revision 3)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 3) | dradoaica | 2026-10-19 |
+| Service owner (revision 4)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 4) | dradoaica | 2026-10-19 |
 
 ## Sources
 
