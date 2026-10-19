@@ -55,7 +55,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 
 | Record | Status | Covers |
 |--------|--------|--------|
-| [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Approved** (4.2.0); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
+| [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Implemented** (4.2.0, `7bd4ad8`); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
 
 ### Threat models
 

@@ -1,6 +1,6 @@
 ---
 id: CR-0008
-status: Approved
+status: Implemented
 date: 2026-10-19
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -89,9 +89,14 @@ Release notes `docs/release-notes/4.2.0.md`.
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled after the release}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-19):** `agent/followups-2026-10-19` merged into `main` as `7bd4ad8` ("Release 4.2.0"),
+  merged locally by the agent at dradoaica's request and pushed by dradoaica. The "Release Packages" run on that push
+  succeeded at 19:48:17 UTC, including "Push to GitHub Packages" (19:48:13 UTC)
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39313883799). Published package versions were not listed from
+  the agent session.
+- **Deviations:** none.
+- **Follow-ups:** `OnAborted` semantics on SQL Server and Redis: documented as they behave (XML docs, README,
+  architecture overview, 2026-10-19) instead of changed; a CI test job (not planned).
 
 ## Sources
 
