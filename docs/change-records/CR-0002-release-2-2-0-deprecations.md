@@ -1,5 +1,5 @@
 ---
-id: CR-0001
+id: CR-0002
 status: Implemented
 date: 2026-10-18
 owner: "dradoaica"
@@ -99,7 +99,7 @@ Release notes `docs/release-notes/2.2.0.md`: deprecation table with replacements
 - **Deviations:** the rollback dry-run precondition was not performed. The test preconditions were not ticked in the
   approved record (immutable once approved); their evidence is recorded here and in the commit message of `ac6587a`.
 - **Follow-ups:** TM-0001 update for ADR-0012 (caller-supplied service bypasses the credentials rule); 3.0 change
-  record (CR-0002).
+  record (CR-0003).
 
 ## Sources
 

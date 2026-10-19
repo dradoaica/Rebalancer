@@ -37,7 +37,7 @@ Leases must not depend on client clock skew, and two coordinators must not both 
 Proposed option: **A**, as already in force since 2.1.0: Redis lease and keep-alive times use Redis server time
 (`TIME`), and lease and client updates are compare-and-set transactions. The stored data format did not change
 (`Dictionary:` / `List:` keys, Newtonsoft JSON). The strongest argument against A: a group that mixes versions would
-judge leases with two clocks. That is why Redis groups are upgraded all nodes at once (CR-2026-10-18).
+judge leases with two clocks. That is why Redis groups are upgraded all nodes at once (CR-0001).
 
 ### Consequences
 

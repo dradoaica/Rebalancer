@@ -1,12 +1,12 @@
 ---
-id: PRB-0001
+id: PRB-0003
 status: Closed
 date: 2026-10-18
 opened: 2026-10-18
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # closure review; set by a human only
 severity: "High (assignment safety, short window)"
-depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013", "CR-0003" ]
+depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013", "CR-0004" ]
 ---
 
 # Problem record: A resumed SQL Server / Redis follower keeps processing resources that were reassigned
@@ -30,8 +30,8 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 |------------|--------------------------------------------------------------------------------------------|
 | 2026-10-18 | Found by code review while designing ADR-0014's re-registration safety (3.0.0 work)        |
 | 2026-10-18 | Reproduced by a unit test; fix proposed in ADR-0019                                        |
-| 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0003)                |
-| 2026-10-18 | 3.1.0 released (CR-0003 Implemented); closure prepared for human review                    |
+| 2026-10-18 | ADR-0019 accepted; fix and regression tests implemented for 3.1.0 (CR-0004)                |
+| 2026-10-18 | 3.1.0 released (CR-0004 Implemented); closure prepared for human review                    |
 
 ## Evidence
 
@@ -51,7 +51,7 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 
 A follower decides whether it may keep processing only from its own record. Nothing tells it that the coordinator
 considered it dead in the meantime. The record does not carry the fencing token or epoch of the assignment it
-holds, compared with the coordinator's current one. The demoted-coordinator fix (PRB-2026-10-18) and ADR-0014's
+holds, compared with the coordinator's current one. The demoted-coordinator fix (PRB-0001) and ADR-0014's
 re-registration both cover related cases, but not this one: the record has not expired yet.
 
 ### Contributing factors
@@ -64,10 +64,10 @@ re-registration both cover related cases, but not this one: the record has not e
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
 | Decide the fix in a decision record                                                                                    |       | Done: ADR-0019 (Accepted), option A |
-| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (released in 3.1.0, CR-0003) |
+| Coordinator records stop for non-live clients that still hold an assignment (both backends)                           |       | Done (released in 3.1.0, CR-0004) |
 | Regression tests: `tests/Rebalancer.UnitTests/UnresponsiveFollowerTests.cs` (fail without the fix, pass with it)       |       | Done (released in 3.1.0) |
-| Integration test that pauses a real follower past the keep-alive expiry                                               |       | Open (follow-up)         |
-| Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                            |       | Open (needs its own decision record) |
+| Integration test that pauses a real follower past the keep-alive expiry                                               |       | Done, not released: `*PausedNodeTests` (2026-10-19; pauses the node's store calls, not the process) |
+| Optional full fix: fencing token for resource handlers (ADR-0019 option C)                                            |       | Decided: ADR-0021 (Accepted, option D: no token) |
 
 ## Preventive measures
 
@@ -75,7 +75,7 @@ re-registration both cover related cases, but not this one: the record has not e
 - **Tests / automation:** the pause test above.
 - **Monitoring / alerts:** N/A (library).
 - **Runbooks / docs:** until fixed, set `LeaseExpirySeconds` well above the worst expected pause, as for
-  PRB-2026-10-18-demoted-coordinator-keeps-resources.
+  PRB-0001.
 - **Decision records:** required for the fix (Tier 1: changes the coordination protocol).
 
 ## Known errors / workarounds
@@ -85,7 +85,7 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
 ## Closure
 
 - **Closed:** 2026-10-18 (follow-ups owned by dradoaica)
-- **Resolution summary:** fixed in 3.1.0 (CR-0003, ADR-0019). During a rebalance the coordinator records
+- **Resolution summary:** fixed in 3.1.0 (CR-0004, ADR-0019). During a rebalance the coordinator records
   `StopActivity` for unresponsive clients that still hold an assignment, so a resumed follower stops at its first tick.
   The window is shortened, not closed: a resumed process can still run its handlers until that tick (ADR-0019,
   release notes 3.1.0).
@@ -101,6 +101,6 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
 - `docs/adrs/0014-expire-stale-client-records.md`
 - `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md`
-- `docs/change-records/CR-0003-release-3-1-0.md`
+- `docs/change-records/CR-0004-release-3-1-0.md`
 - `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
   `US-013-cross-backend-assignment-safety-tests.md`

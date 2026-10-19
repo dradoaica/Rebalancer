@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.ZooKeeper provider and its znodes, including its ACL and credential handling"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-2026-10-18-coordination-safety-and-provider-ownership", "CR-0002" ]
+depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-0001", "CR-0003" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -23,7 +23,7 @@ ADR 0006 adds opt-in digest authentication and ACLs. They protect the znodes the
 the operator creates: the root, the group node, and the `resources` node with its children. The `resources` node
 matters most, because its data holds the assignment table.
 
-**Revision 2 (3.0.0, CR-0002).**
+**Revision 2 (3.0.0, CR-0003).**
 - Since 3.0 every ZooKeeper entry point requires credentials or an explicit `OPEN_ACL_UNSAFE` (ADR-0011), so an open
   ensemble is now a deliberate, visible choice, not a default.
 - ADR-0010 (2.1.0) logs a warning when the operator-created group or `resources` znode is open although credentials
@@ -146,7 +146,7 @@ matters most, because its data holds the assignment table.
 | Spoofing / tampering of provider-created znodes   | Digest auth + `CREATOR_ALL_ACL` via the ACL overloads; since 3.0 an open ACL must be explicit | ADR-0018, ADR-0011; `tests/Rebalancer.IntegrationTests/ZooKeeper/AclTests.cs`, `tests/Rebalancer.UnitTests/DeprecationContractTests.cs` |
 | Tampering of the assignment table (`resources`)   | Create `resources` with the group's credentials, or `setAcl` it before starting secured nodes | `src/Rebalancer.ZooKeeper/README.md` (operator notes); detected and logged once per session (ADR 0010), **not enforced** |
 | Credential disclosure                             | Secret store for `authData`; transport encryption at the ensemble                              | README operator notes; deployment responsibility                                      |
-| Misconfiguration DoS                              | Same credentials on every node; all-nodes-first upgrade before enabling ACLs                  | CR-2026-10-18 (Implementation plan, step 5)                                          |
+| Misconfiguration DoS                              | Same credentials on every node; all-nodes-first upgrade before enabling ACLs                  | CR-0001 (Implementation plan, step 5)                                          |
 | Caller-supplied service with open ACLs (T4)       | Documented ownership of ACLs by the custom service; review before production use              | ADR-0012; `src/Rebalancer.ZooKeeper/README.md`; release notes 2.2.0                 |
 
 ## Residual risk and acceptance
@@ -162,7 +162,8 @@ matters most, because its data holds the assignment table.
   1. Warn when `{group}/resources` or the group node is open although credentials are configured: ADR-0010 (2.1.0).
   2. Credentials or an explicit ACL by default: ADR-0011 (deprecation 2.2.0, removal 3.0.0).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
+  2026-10-18. Revision 2 accepted by dradoaica (in session 2026-10-19; also recorded in
+  commit `e868155` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
@@ -171,10 +172,10 @@ matters most, because its data holds the assignment table.
   `docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md`,
   `docs/adrs/0012-zookeeper-provider-entry-point-for-a-custom-service.md` (all Accepted).
 - Required SDPs: N/A (library).
-- Change records to implement mitigations: `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`,
-  `docs/change-records/CR-0002-release-3-0-0.md`.
-- Runbooks / monitors to add: an operator procedure to create or secure a resource group's znodes with the group's
-  credentials (ZooKeeper CLI `addauth` + `create` / `setAcl`).
+- Change records to implement mitigations: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
+  `docs/change-records/CR-0003-release-3-0-0.md`.
+- Runbooks / monitors: "Runbook: create or secure a resource group's znodes" in `src/Rebalancer.ZooKeeper/README.md`
+  (ZooKeeper CLI `addauth` + `create` / `setAcl`; verified with ZooKeeper 3.8 on 2026-10-19).
 
 ## Approvals
 
@@ -182,8 +183,8 @@ matters most, because its data holds the assignment table.
 |-------------------------|------|------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 
 ## Sources
 
@@ -194,8 +195,8 @@ matters most, because its data holds the assignment table.
   `docs/adrs/0018-opt-in-zookeeper-acls-in-2x.md`
 - SDP: N/A
 - Related user stories: `docs/user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md`
-- Change records: `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`
+- Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`
 - Code: `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs` (`InitializeGlobalBarrierAsync`,
   `InitializeResourceBarrierAsync`, `EnsurePathAsync`, `SetResourcesAsync`)
 - External standards: STRIDE (Microsoft threat modeling); OWASP ASVS V4 (access control) – mapping to specific control
-  IDs not done (unverified – please confirm if required)
+  IDs not done (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

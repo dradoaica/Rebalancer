@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0002" ]
+depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0003" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -21,7 +21,7 @@ statements are parameterized. One query builds an `IN (...)` list, but it concat
 placeholder names, never values. The main risks are over-privileged or shared logins, the lack of isolation between
 resource groups, and unbounded growth of the client table.
 
-**Revision 2 (3.0.0, CR-0002):**
+**Revision 2 (3.0.0, CR-0003):**
 - Since 3.0 the coordinator deletes stale client records, and a node deletes its own record on a clean stop
   (ADR-0014). This resolves the unbounded growth (D1).
 - The login now needs `DELETE` on `RBR.Clients`, which brings a new availability threat (D3).
@@ -144,18 +144,21 @@ resource groups, and unbounded growth of the client table.
   - ~~**Unbounded `Clients` growth**~~ Resolved in 3.0 (ADR-0014).
   - **Client-row deletes by the login holder** cause rebalancing churn (D3), not double assignment.
   - **No audit trail** unless the database provides one.
-- Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). Still open: a
-  least-privilege role script next to `db/` (no decision record needed; documentation).
+- Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). The
+  least-privilege role script is `db/RebalanserLeastPrivilege.sql` (2026-10-19, verified by
+  `SqlServerLeastPrivilegeTests`).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18. Revision 2: {Accepted by <role> on <date>} – pending human review.
+  2026-10-18. Revision 2 accepted by dradoaica (in session 2026-10-19; also recorded in
+  commit `e868155` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
 - Required ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0014-expire-stale-client-records.md` (Accepted).
 - Required SDPs: N/A (library).
-- Change records to implement mitigations: `docs/change-records/CR-0002-release-3-0-0.md`.
-- Runbooks / monitors to add: least-privilege role script (the client-table cleanup procedure is no longer needed).
+- Change records to implement mitigations: `docs/change-records/CR-0003-release-3-0-0.md`.
+- Runbooks / monitors: `db/RebalanserLeastPrivilege.sql` (role `rebalancer_node`); the client-table cleanup procedure is
+  no longer needed.
 
 ## Approvals
 
@@ -163,15 +166,15 @@ resource groups, and unbounded growth of the client table.
 |-------------------------|------|------|
 | Service owner (revision 1)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 
 ## Sources
 
 - ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0014-expire-stale-client-records.md`
-- Change records: `docs/change-records/CR-0002-release-3-0-0.md`
+- Change records: `docs/change-records/CR-0003-release-3-0-0.md`
 - Related user stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`
 - Code: `src/Rebalancer.SqlServer/`, `db/RebalanserSchema.sql`, `db/RebalanserTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped
-  (unverified – please confirm if required)
+  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

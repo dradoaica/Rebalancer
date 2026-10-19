@@ -3,7 +3,7 @@ id: US-014
 status: Done
 date: 2026-04-11
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Should"
 ssdlc-phase: Planning
 depends-on: [ "ADR-0000", "ADR-0001", "ADR-0002", "ADR-0003", "ADR-0004", "ADR-0005" ]

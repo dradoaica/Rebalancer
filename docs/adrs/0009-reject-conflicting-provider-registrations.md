@@ -8,7 +8,7 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "ADR-0005", "US-001", "PRB-2026-10-18-zookeeper-tests-ignored-their-provider" ]
+depends-on: [ "ADR-0001", "ADR-0005", "US-001", "PRB-0002" ]
 supersedes: [ ]
 superseded-by: "ADR-0013"
 ---
@@ -21,7 +21,7 @@ superseded-by: "ADR-0013"
 0001 recorded this as a drawback ("can surprise tests or mis-ordered startup"). On 2026-10-18 it did exactly that: every
 ZooKeeper integration test registered its own factory, but all of them ran with the first test's provider. The
 ResourceBarrier mode was not exercised at all, and the suite still passed
-(`docs/problem-records/PRB-2026-10-18-zookeeper-tests-ignored-their-provider.md`).
+(`docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md`).
 
 The tests now pass providers explicitly, but the trap remains for applications: a second, different registration is
 silently lost. ADR 0005 keeps `Providers` (not `[Obsolete]`) in this milestone, so the fix has to stay compatible with

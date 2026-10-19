@@ -14,7 +14,7 @@ public class RandomisedResourceBarrierTests : IDisposable
     private readonly ZkHelper zkHelper = new();
     private RandomConfig currentConfig = null!; // set by each test before it creates clients
 
-    // each test sets the provider it needs; clients get it explicitly (see PRB-2026-10-18-zookeeper-tests-ignored-their-provider)
+    // each test sets the provider it needs; clients get it explicitly (see PRB-0002)
     private Func<IRebalancerProvider> providerFactory = null!;
 
     public void Dispose()

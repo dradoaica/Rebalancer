@@ -1,12 +1,12 @@
 ---
-id: PRB-2026-10-18-zookeeper-tests-ignored-their-provider
+id: PRB-0002
 status: Closed
 date: 2026-10-18
 opened: 2026-10-18
 owner: ""
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 severity: "High (false confidence in assignment-safety coverage)"
-depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-010", "CR-2026-10-18-coordination-safety-and-provider-ownership" ]
+depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-010", "CR-0001" ]
 ---
 
 # Problem record: ZooKeeper integration tests ran with the first test's provider
@@ -65,7 +65,7 @@ factory is also bound to the first test class instance, so the randomised tests 
 | Re-run the ZooKeeper suites so both modes are actually exercised                                                           |       | Done: single/multi/ACL all passed; randomised smoke (2-min cap) 6/13 passed, 0 failed, both modes, then stopped by decision of dradoaica as sufficient |
 | Startup-race assertions in 4 multi-client tests replaced by settled-outcome checks (`AssertSettledAssigned`)                |       | Done (2.1.0)       |
 | Randomised tests write their event log under the OS temp directory; `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` caps runtime   |       | Done (2.1.0)       |
-| Release with `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`                              |       | Done (2.1.0)       |
+| Release with `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`                              |       | Done (2.1.0)       |
 
 ## Preventive measures
 

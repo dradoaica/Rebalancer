@@ -12,6 +12,18 @@ Use the template:
 - `NNNN` is the next free number on the **shared trunk**, never reused (see
   `.agents/protocols/multi-human-collaboration.md`).
 
+### Renumbering of 2026-10-19
+
+On 2026-10-19 the maintainer renumbered the existing records chronologically, an explicit exception to "never
+reused". Commit messages and other text written before that date use the old identifiers:
+
+| Old identifier (before 2026-10-19)                         | Current identifier |
+|------------------------------------------------------------|--------------------|
+| `CR-2026-10-18-coordination-safety-and-provider-ownership` | `CR-0001` (2.1.0)  |
+| `CR-0001`                                                  | `CR-0002` (2.2.0)  |
+| `CR-0002`                                                  | `CR-0003` (3.0.0)  |
+| `CR-0003`                                                  | `CR-0004` (3.1.0)  |
+
 ## Metadata
 
 Copy the front matter from `change-record-template.md` and keep every key.

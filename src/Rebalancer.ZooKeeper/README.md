@@ -50,6 +50,39 @@ Operator notes:
 - **Switching an existing resource group to an ACL** does not change znodes that already exist. Recreate the group, or
   set the ACL on its znodes with the ZooKeeper CLI (`setAcl`), before starting secured nodes.
 - **Treat the credentials as a secret.** Load them from your secret store, not from source code or command lines.
+
+### Runbook: create or secure a resource group's znodes
+
+Verified with the ZooKeeper 3.8 CLI (`zkCli.sh`) on 2026-10-19. Example: root path `/rebalancer`, group `orders`,
+credentials `orders:secret` (the same `user:password` the nodes pass as `authData`), resources `r1`, `r2`.
+`auth::cdrwa` gives all permissions to the identities added with `addauth` in this CLI session, and to no one else.
+
+**New group:**
+
+```
+addauth digest orders:secret
+create /rebalancer "" auth::cdrwa
+create /rebalancer/orders "" auth::cdrwa
+create /rebalancer/orders/resources "" auth::cdrwa
+create /rebalancer/orders/resources/r1 "" auth::cdrwa
+create /rebalancer/orders/resources/r2 "" auth::cdrwa
+```
+
+Skip the first `create` if the root path exists, and leave its ACL as it is if other groups use it.
+
+**Existing open group** (stop its nodes first, so no node holds a znode while its ACL changes):
+
+```
+addauth digest orders:secret
+setAcl -R /rebalancer/orders auth::cdrwa
+```
+
+**Check:** `getAcl /rebalancer/orders/resources` in the same session shows only `'digest,'orders:…` with `cdrwa`.
+In a session without `addauth`, `get /rebalancer/orders/resources` fails with "Insufficient permission". Then start the
+nodes with the same credentials; the provider's open-znode warning (ADR 0010) must not appear in their logs.
+
+**Rollback:** `setAcl -R /rebalancer/orders world:anyone:cdrwa` (with the credentials added) makes the group open again;
+the nodes then need the explicit open-ACL overload shown above.
 - Recent ZooKeeper versions (verified with 3.8) also require read permission to read a znode's ACL, so tools without
   the credentials cannot inspect it.
 

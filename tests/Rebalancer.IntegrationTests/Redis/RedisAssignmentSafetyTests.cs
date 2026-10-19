@@ -1,9 +1,5 @@
 using Rebalancer.Core;
 using Rebalancer.Redis;
-using Rebalancer.Redis.Resources;
-using Rebalancer.Redis.Utils;
-using StackExchange.Redis;
-using StackExchange.Redis.DataTypes.Collections;
 using Testcontainers.Redis;
 using Xunit;
 
@@ -27,7 +23,7 @@ public sealed class RedisAssignmentSafetyTests
         var group = "it-redis-" + Guid.NewGuid().ToString("N");
         const string resourceName = "only-resource";
 
-        await SeedRedisResourceAsync(connectionString, group, resourceName);
+        await RedisSeed.SeedResourceGroupAsync(connectionString, group, [resourceName]);
 
         var options = new ClientOptions
         {
@@ -70,35 +66,6 @@ public sealed class RedisAssignmentSafetyTests
         {
             await client1.StopAsync(TimeSpan.FromSeconds(15));
             await client2.StopAsync(TimeSpan.FromSeconds(15));
-        }
-    }
-
-    private static async Task SeedRedisResourceAsync(string connectionString, string group, string resourceName)
-    {
-        var mux = await ConnectionMultiplexer.ConnectAsync(connectionString);
-        try
-        {
-            var db = mux.GetDatabase();
-            // without a resource group no node can obtain the lease, so nothing would ever be assigned
-            new RedisDictionary<string, ResourceGroup>(db, $"{Constants.SCHEMA}:ResourceGroups")[group] =
-                new ResourceGroup
-                {
-                    Name = group,
-                    LeaseExpirySeconds = 5,
-                    HeartbeatSeconds = 1,
-                };
-            var list = new RedisList<Resource>(db, $"{Constants.SCHEMA}:Resources");
-            list.Add(
-                new Resource
-                {
-                    ResourceGroup = group,
-                    ResourceName = resourceName,
-                }
-            );
-        }
-        finally
-        {
-            mux.Dispose();
         }
     }
 }

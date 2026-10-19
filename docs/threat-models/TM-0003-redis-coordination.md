@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-2026-10-18-coordination-safety-and-provider-ownership", "CR-0002" ]
+depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-0001", "CR-0003" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -26,13 +26,13 @@ Values are Newtonsoft JSON. Lease and client updates are compare-and-set transac
 (ADR-0017, formerly ADR 0006). The library has no access control of its own: it relies on the Redis connection
 (password or ACL user, TLS). Anyone who can write these keys controls the assignments of the groups they cover.
 
-**Revision 2 (3.0.0, CR-0002):**
+**Revision 2 (3.0.0, CR-0003):**
 - Client records are per group (ADR-0015), and stale ones expire under the coordinator's fencing token (ADR-0014).
   Heartbeat reads no longer grow with other groups or with past restarts (D1 resolved).
 - A Redis ACL user can now be limited to one group's client hash. Leases and resources stay shared.
 
-**Revision 3 (3.1.0, CR-0003):** the minimal ACL command set is verified, and an end-to-end test covers it. Leases
-and resources per group are proposed in ADR-0020.
+**Revision 3 (3.1.0, CR-0004):** the minimal ACL command set is verified, and an end-to-end test covers it. Leases
+and resources per group are decided in ADR-0020 (Accepted; not implemented yet).
 
 ## System context and boundaries
 
@@ -43,7 +43,7 @@ and resources per group are proposed in ADR-0020.
 - **Assumptions:**
   - The connection string is supplied by the host application and is a secret.
   - The operator seeds `ResourceGroups` and `Resources`.
-  - All nodes of a group run the same version: a mixed group would mix client and server clocks (CR-2026-10-18).
+  - All nodes of a group run the same version: a mixed group would mix client and server clocks (CR-0001).
 - **Trust boundaries:**
   1. Application process ↔ Redis (network, RESP).
   2. Rebalancer nodes ↔ other Redis clients and other applications using the same Redis database.
@@ -157,7 +157,7 @@ and resources per group are proposed in ADR-0020.
 | Unsafe deserialization             | Newtonsoft default settings (no `TypeNameHandling`)                                                               | `src/Rebalancer.Redis/Utils/RedisHash.cs`              |
 | Clients hash growth (D1)           | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                   | ADR-0014, ADR-0015; `RedisClientRecordTests`           |
 | State loss                         | `noeviction` (or equivalent) on the database used                                                                 | Deployment responsibility                              |
-| Mixed-version clocks               | All-nodes-at-once upgrade of Redis groups                                                                         | CR-2026-10-18 (Implementation plan, step 3)            |
+| Mixed-version clocks               | All-nodes-at-once upgrade of Redis groups                                                                         | CR-0001 (Implementation plan, step 3)            |
 
 ## Residual risk and acceptance
 
@@ -169,17 +169,18 @@ and resources per group are proposed in ADR-0020.
     groups, not with restarts.
   - **No audit trail.**
 - Follow-ups of revision 1, both decided and implemented in 3.0.0: expiry of client entries (ADR-0014); one client hash
-  per group with a migration (ADR-0015). Per-group keys for leases and resources: proposed in ADR-0020.
+  per group with a migration (ADR-0015). Per-group keys for leases and resources: ADR-0020 (Accepted; not
+  implemented yet).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
-  2026-10-18; revision 2 accepted by dradoaica on 2026-10-18. Revision 3: {Accepted by <role> on <date>} – pending
-  human review.
+  2026-10-18; revision 2 accepted by dradoaica on 2026-10-18. Revision 3 accepted by dradoaica (in session
+  2026-10-19; also recorded in commit `acce411` of 2026-10-18).
 
 ## Dependencies and follow-ups
 
 - Required ADRs: `docs/adrs/0002-…`, `docs/adrs/0008-…`, `docs/adrs/0014-…`, `docs/adrs/0015-…`, `docs/adrs/0016-…`,
   `docs/adrs/0017-…` (all Accepted; ADR 0006 is superseded by ADR-0016 and ADR-0017 for the parts used here).
 - Required SDPs: N/A (library).
-- Change records to implement mitigations: `docs/change-records/CR-0002-release-3-0-0.md`.
+- Change records to implement mitigations: `docs/change-records/CR-0003-release-3-0-0.md`.
 - Runbooks / monitors to add: none for ACLs (the verified per-group user definition is in
   `docs/release-notes/migrating-to-3.0.md`); the clients-hash cleanup procedure is no longer needed.
 
@@ -191,8 +192,8 @@ and resources per group are proposed in ADR-0020.
 | Security / architecture (revision 1) | dradoaica | 2026-10-18 |
 | Service owner (revision 2)           | dradoaica | 2026-10-18 |
 | Security / architecture (revision 2) | dradoaica | 2026-10-18 |
-| Service owner (revision 3)           |           |            |
-| Security / architecture (revision 3) |           |            |
+| Service owner (revision 3)           | dradoaica | 2026-10-19 |
+| Security / architecture (revision 3) | dradoaica | 2026-10-19 |
 
 ## Sources
 
@@ -202,8 +203,8 @@ and resources per group are proposed in ADR-0020.
   `docs/adrs/0017-redis-lease-timing-and-atomic-updates.md`,
   `docs/adrs/0008-replace-redis-datatypes-with-direct-newtonsoft-json.md`
 - Related user stories: `docs/user-stories/US-006-coordinate-via-redis-backend.md`
-- Change records: `docs/change-records/CR-2026-10-18-coordination-safety-and-provider-ownership.md`,
-  `docs/change-records/CR-0002-release-3-0-0.md`
+- Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
+  `docs/change-records/CR-0003-release-3-0-0.md`
 - Code: `src/Rebalancer.Redis/`
 - External standards: STRIDE; OWASP ASVS V4 (access control), V8 (data protection) – control IDs not mapped
-  (unverified – please confirm if required)
+  (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

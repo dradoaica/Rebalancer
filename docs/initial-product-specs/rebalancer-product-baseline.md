@@ -45,4 +45,4 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 
 1. **DI-first registration** — shipped: ADR 0005, US-012, `Rebalancer.Extensions.DependencyInjection`.  
 2. **Assignment-safety tests for SqlServer + Redis** — shipped: US-013, `tests/Rebalancer.IntegrationTests` (Docker).  
-3. **Next** — OpenTelemetry, health checks, CI matrix with Docker, deeper randomized parity with ZK tests (backlog).
+3. **Next** — OpenTelemetry ([US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md)), health checks ([US-0018](../user-stories/US-0018-report-client-health-to-the-host.md)), CI matrix with Docker, deeper randomized parity with ZK tests ([US-0019](../user-stories/US-0019-randomised-assignment-safety-tests-for-sql-server-and-redis.md)) (backlog, Draft).

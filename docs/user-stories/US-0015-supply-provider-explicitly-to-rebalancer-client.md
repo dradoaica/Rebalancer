@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only
 priority: "Must"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0002" ]
+depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0003" ]
 ---
 
 # User story: Supply a provider explicitly to a Rebalancer client
@@ -20,7 +20,7 @@ depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0002" ]
 ## Context
 
 US-001 described joining a resource group through the static `Providers.Register` registry. ADR-0013 removes that
-registry in 3.0 because its process-wide state caused a real defect (PRB-2026-10-18-zookeeper-tests-ignored-their-provider).
+registry in 3.0 because its process-wide state caused a real defect (PRB-0002).
 This story describes the 3.0 way and succeeds US-001 for 3.0 and later.
 
 ## Acceptance criteria
@@ -67,7 +67,7 @@ the tests and the 3.0.0 release; "Tests / checks agreed with a team" needs a hum
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [x] Traceable to change record (if released) - `docs/change-records/CR-0002-release-3-0-0.md` (3.0.0)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0003-release-3-0-0.md` (3.0.0)
 
 ## Sources
 

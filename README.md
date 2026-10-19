@@ -80,7 +80,7 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
-- [Release notes 3.1.0](docs/release-notes/3.1.0.md) — unresponsive followers are told to stop (PRB-0001)
+- [Release notes 3.1.0](docs/release-notes/3.1.0.md) — unresponsive followers are told to stop (PRB-0003)
 - [Release notes 3.0.0](docs/release-notes/3.0.0.md) and [migration guide](docs/release-notes/migrating-to-3.0.md) — breaking changes
 - [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at

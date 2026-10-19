@@ -7,7 +7,7 @@ using SqlServer = Rebalancer.SqlServer;
 namespace Rebalancer.UnitTests;
 
 /// <summary>
-///     Contract of ADR-0019 (PRB-0001): when the coordinator reassigns the resources of a client whose keep-alive has
+///     Contract of ADR-0019 (PRB-0003): when the coordinator reassigns the resources of a client whose keep-alive has
 ///     expired, it also tells that client to stop, so a resumed follower stops at its first tick and never starts again
 ///     with the reassigned resources.
 /// </summary>

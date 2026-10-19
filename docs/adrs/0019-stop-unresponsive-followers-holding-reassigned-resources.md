@@ -8,7 +8,7 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "ADR-0014", "PRB-0001", "US-005", "US-006", "US-013" ]
+depends-on: [ "ADR-0002", "ADR-0014", "PRB-0003", "US-005", "US-006", "US-013" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -17,7 +17,7 @@ superseded-by: ""
 
 ## Context and Problem Statement
 
-PRB-0001 (reproduced 2026-10-18): a SQL Server or Redis follower that pauses longer than the keep-alive expiry is
+PRB-0003 (reproduced 2026-10-18): a SQL Server or Redis follower that pauses longer than the keep-alive expiry is
 declared dead, and the coordinator reassigns its resources. The coordinator sends `StopActivity` only to **live**
 clients, so the paused follower's record still says `ResourcesGranted` / `Active`. When the follower resumes, it keeps
 processing until the coordinator sees it live again, rebalances, and the follower handles that stop. Two nodes process
@@ -66,7 +66,7 @@ worth deciding on its own, because it is the only full fix and it needs consumer
 * Good, because a reassigned resource is released by a resumed follower at its first tick, through the same path a live
   follower uses.
 * Good, because no public API or data format changes; behavior changes only for records of non-live clients.
-* Bad, because the window is shortened, not closed; release notes and PRB-0001 must say so, and the operational advice
+* Bad, because the window is shortened, not closed; release notes and PRB-0003 must say so, and the operational advice
   (keep-alive expiry well above the longest pause) stays.
 * Bad, because `StopActivityAsync` on SQL Server reports a fencing-token violation when fewer rows than requested are
   updated. A non-live record deleted between the read and the stop (e.g. by ADR-0014 expiry, which the same
@@ -75,14 +75,14 @@ worth deciding on its own, because it is the only full fix and it needs consumer
 
 ### Confirmation
 
-* Unit tests (both backends): the PRB-0001 scenario; after a rebalance, the non-live follower's record is
+* Unit tests (both backends): the PRB-0003 scenario; after a rebalance, the non-live follower's record is
   `StopActivity`, and when it resumes it invokes its stop actions once and does not start again with the old resources.
 * Unit test: a non-live client without an assignment (`StopActivity` already) is not written again.
 * The existing coordinator-demotion, expiry and assignment-safety tests stay green.
 
 ## More Information
 
-* Corrective action of [PRB-0001](../problem-records/PRB-0001-resumed-follower-keeps-reassigned-resources.md).
+* Corrective action of [PRB-0003](../problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md).
   Builds on [ADR-0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md) and
   [ADR-0014](0014-expire-stale-client-records.md).
 * Release: next minor (3.1.0). Behavior change for non-live records only; no breaking API change.
