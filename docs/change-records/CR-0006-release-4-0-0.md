@@ -1,6 +1,6 @@
 ---
 id: CR-0006
-status: Approved
+status: Implemented
 date: 2026-10-19
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -95,9 +95,14 @@ Release notes `docs/release-notes/4.0.0.md`; migration guide `docs/release-notes
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled after the release}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-19):** `agent/redis-4.0-per-group-keys` merged into `main` as `b9b5f3f` ("Release 4.0.0"),
+  merged locally by the agent at dradoaica's request and pushed by dradoaica. The "Release Packages" run on that push
+  succeeded at 18:26:25 UTC, including "Push to GitHub Packages" (18:26:23 UTC)
+  (https://github.com/dradoaica/Rebalancer/actions/runs/39302402932). Published package versions were not listed from
+  the agent session.
+- **Deviations:** one precondition was open at approval (recorded under Preconditions): the manual rollback to 3.x is
+  not rehearsed. The validation step on a staging Redis is the operators' and is not recorded here.
+- **Follow-ups:** rehearse the 4.0 → 3.2 rollback from the migration guide before the first production group moves.
 
 ## Sources
 
