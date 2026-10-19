@@ -35,7 +35,7 @@ Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitr
 
 - **SemVer** for NuGet packages when published; breaking public API or behavior changes require a **major** bump and, per governance, a **superseding ADR** or new ADR plus change record.
 - [ADR 0005](../adrs/0005-dependency-injection-for-provider-registration-v2.md) is **accepted**; `Rebalancer.Extensions.DependencyInjection` is the recommended host registration path ([US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry was removed in 3.0; without DI, pass the provider to `RebalancerClient` ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **4.1.0** (metrics, traces, health check; additive). Previous: **4.0.0** (breaking for Redis provisioning only: per-group keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)). Release history and change records: [`docs/release-notes/`](../release-notes/), [`docs/change-records/`](../change-records/).
+- Current release: **4.2.0** (Aborted state on SQL Server / Redis, health-check and Redis fixes). Previous: **4.1.0** (metrics, traces, health check), **4.0.0** (breaking for Redis provisioning only: per-group keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)). Release history and change records: [`docs/release-notes/`](../release-notes/), [`docs/change-records/`](../change-records/).
 
 ## Security baseline
 

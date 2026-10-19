@@ -1,6 +1,6 @@
 ---
 id: US-0021
-status: In progress
+status: Done
 date: 2026-10-19
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
@@ -66,8 +66,8 @@ None: state reporting only.
   tests `AbortedStateTests` (unit, SQL Server), `RedisAbortedStateTests` (integration, Redis),
   `RebalancerClientHealthCheckTests.AnAbortFollowedByANewAssignment_IsHealthyAgain` (fails without the fix)
 - [x] Tests / checks agreed with a team (dradoaica, 2026-10-19)
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Docs / runbooks updated if needed – release notes 4.2.0
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0008-release-4-2-0.md`
 
 ## Sources
 

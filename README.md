@@ -80,6 +80,7 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 4.2.0](docs/release-notes/4.2.0.md) — SQL Server / Redis report `Aborted`; health-check and Redis fixes
 - [Release notes 4.1.0](docs/release-notes/4.1.0.md) — metrics and traces, health check package, randomised tests
 - [Release notes 4.0.0](docs/release-notes/4.0.0.md) and [migration guide](docs/release-notes/migrating-to-4.0.md) —
   Redis: each resource group in its own keys (breaking for Redis provisioning)

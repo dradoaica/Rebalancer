@@ -51,6 +51,12 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 |--------|--------|--------|
 | [CR-0007](change-records/CR-0007-release-4-1-0.md) | **Implemented** (4.1.0, `a340daf`); [release notes](release-notes/4.1.0.md) | ADR-0022, ADR-0023, US-0017..0019 (US-0019: `*RandomisedTests`, governed by ADR-0002 / ADR-0019) |
 
+### 4.2.0 records
+
+| Record | Status | Covers |
+|--------|--------|--------|
+| [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Submitted** (4.2.0); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
+
 ### Threat models
 
 | Threat model | Status | Scope |
