@@ -32,6 +32,7 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018, US-0021 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Implemented) |
 | [0025](adrs/0025-runnable-super-streams-example.md) | Runnable super-streams example (`RabbitMQ.Stream.Client`) | US-0023 | `examples/Rebalancer.RabbitMq.SuperStreamsExample` (planned) | not implemented | **Proposed**; supersedes 0024 |
 | [0024](adrs/0024-dependencies-of-the-rabbitmq-examples.md) | Dependencies of the RabbitMQ examples: super-streams example, no `Consul` | US-0022, US-0023 | `examples/Rebalancer.RabbitMq.*`, `docs/guides/rabbitmq-ordered-consumer-groups.md` | manual run (example READMEs) | **Proposed** (revised 2026-10-20: runnable super-streams example; `Consul` already removed) |
+| [0025](adrs/0025-pin-patched-system-security-cryptography-pkcs.md) | Pin patched System.Security.Cryptography.Pkcs (CVE-2026-84008) | US-005 | `src/Rebalancer.SqlServer/Rebalancer.SqlServer.csproj` | vulnerability scan; unit and SQL Server integration tests | **Proposed**; 4.2.1 (CR-0009, Submitted) |
 
 ### Release records
 
