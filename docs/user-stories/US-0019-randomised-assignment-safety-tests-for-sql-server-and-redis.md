@@ -1,11 +1,11 @@
 ---
 id: US-0019
-status: Draft
+status: In progress
 date: 2026-10-19
 owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Should"
-ssdlc-phase: Planning
+ssdlc-phase: Coding
 depends-on: [ "ADR-0002", "US-010", "US-013" ]
 ---
 
@@ -60,10 +60,11 @@ N/A – test code with disposable containers and credentials.
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
+- [x] Acceptance criteria met – `tests/Rebalancer.IntegrationTests/RandomisedScenario.cs`, `SqlServerRandomisedTests`,
+  `RedisRandomisedTests` (default 3 minutes each; both passed 2026-10-19, seeds 255688184 and 1583717275)
 - [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Docs / runbooks updated if needed – README
+- [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
 
 ## Sources
 

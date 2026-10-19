@@ -360,6 +360,7 @@ public class SqlServerProvider : IRebalancerProvider
                         var response = await TryAcquireLeaseAsync(request, token);
                         if (response.Result == LeaseResult.Granted) // is now the Coordinator
                         {
+                            RebalancerTelemetry.RecordElection("sqlserver", resourceGroup);
                             await ExecuteLeaseRenewals(token, clientEvents, response.Lease);
                         }
                         else if (response.Result == LeaseResult.Denied) // is a Follower

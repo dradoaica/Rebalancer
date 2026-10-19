@@ -146,7 +146,32 @@ internal class Coordinator
         return liveClientsNow;
     }
 
+    // telemetry (ADR-0022): one activity and one outcome per rebalance; an exception counts as aborted
     private async Task TriggerRebalancingAsync(
+        Guid coordinatorClientId,
+        ClientEvent clientEvent,
+        List<Client> clients,
+        List<string> resources,
+        OnChangeActions onChangeActions,
+        CancellationToken token
+    )
+    {
+        using var activity = RebalancerTelemetry.StartRebalance(
+            "sqlserver", clientEvent.ResourceGroup, RebalancerTelemetry.FencingTokenTag, clientEvent.FencingToken
+        );
+        var completed = false;
+        try
+        {
+            completed = await RebalanceAsync(coordinatorClientId, clientEvent, clients, resources, onChangeActions, token);
+        }
+        finally
+        {
+            RebalancerTelemetry.RecordRebalance("sqlserver", clientEvent.ResourceGroup, completed);
+        }
+    }
+
+    // returns true when resources were granted, false when the rebalance stopped early
+    private async Task<bool> RebalanceAsync(
         Guid coordinatorClientId,
         ClientEvent clientEvent,
         List<Client> clients,
@@ -165,13 +190,13 @@ internal class Coordinator
             if (result == ModifyClientResult.FencingTokenViolation)
             {
                 clientEvent.CoordinatorToken.FencingTokenViolation = true;
-                return;
+                return false;
             }
 
             if (result == ModifyClientResult.Error)
             {
                 logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
-                return;
+                return false;
             }
         }
 
@@ -224,13 +249,13 @@ internal class Coordinator
                     if (result == ModifyClientResult.FencingTokenViolation)
                     {
                         clientEvent.CoordinatorToken.FencingTokenViolation = true;
-                        return;
+                        return false;
                     }
 
                     if (result == ModifyClientResult.Error)
                     {
                         logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
-                        return;
+                        return false;
                     }
                 }
             }
@@ -241,7 +266,7 @@ internal class Coordinator
         // assign resources first to coordinator then to other live clients
         if (token.IsCancellationRequested)
         {
-            return;
+            return false;
         }
 
         if (allClientsWaiting)
@@ -283,7 +308,7 @@ internal class Coordinator
 
             if (token.IsCancellationRequested)
             {
-                return;
+                return false;
             }
 
             logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Resources assigned");
@@ -291,13 +316,13 @@ internal class Coordinator
             if (startResult == ModifyClientResult.FencingTokenViolation)
             {
                 clientEvent.CoordinatorToken.FencingTokenViolation = true;
-                return;
+                return false;
             }
 
             if (startResult == ModifyClientResult.Error)
             {
                 logger.Error(coordinatorClientId.ToString(), "COORDINATOR: Rebalancing error");
-                return;
+                return false;
             }
 
             store.SetResources(
@@ -322,12 +347,12 @@ internal class Coordinator
             this.clients = clientIds;
             this.resources = resources;
             logger.Info(coordinatorClientId.ToString(), "---------- Activity Started -----------");
+            return true;
         }
-        else
-        {
-            // log it
-            logger.Info(coordinatorClientId.ToString(), "!!!");
-        }
+
+        // log it
+        logger.Info(coordinatorClientId.ToString(), "!!!");
+        return false;
     }
 
     private async Task WaitFor(TimeSpan waitPeriod, CancellationToken rebalancingToken)

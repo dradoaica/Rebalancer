@@ -28,6 +28,8 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [0019](adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md) | Stop unresponsive followers holding reassigned resources | US-005, US-006, US-013 | `src/Rebalancer.SqlServer/Roles/Coordinator.cs`, `src/Rebalancer.Redis/Roles/Coordinator.cs` | `tests/Rebalancer.UnitTests` (`UnresponsiveFollowerTests`), `tests/Rebalancer.IntegrationTests` (`*PausedNodeTests`) | **Accepted**; released in 3.1.0 (CR-0004); option C declined for now (ADR-0021) |
 | [0020](adrs/0020-per-group-redis-leases-and-resources.md) | Per-group Redis keys for leases and resource lists | US-0016 (3.x warning), US-0020 (4.0) | `src/Rebalancer.Redis/Utils/PerGroupKeyMigration.cs`, `Leases/`, `Clients/`, `Resources/` | `tests/Rebalancer.IntegrationTests/Redis/` (`RedisPerGroupKeysTests`, `RedisClientRecordTests`) | **Accepted**; 3.x warning in 3.2.0 (CR-0005, Implemented), layout in 4.0.0 (CR-0006, Implemented) |
 | [0021](adrs/0021-assignment-generation-for-resource-handlers.md) | No fencing token for resource handlers for now | US-002 | none (option D) | `*PausedNodeTests` (window of ADR-0019) | **Accepted** (2026-10-19), option D; revisit on consumer demand |
+| [0022](adrs/0022-rebalancing-telemetry-contract.md) | Telemetry contract: System.Diagnostics metrics and traces | US-0017 | `src/Rebalancer.Core/RebalancerTelemetry.cs`, `RebalancerClient.cs`, backends' coordinators and providers | `tests/Rebalancer.UnitTests` (`RebalancerClientTelemetryTests`), `tests/Rebalancer.IntegrationTests` (`*TelemetryTests`) | **Accepted**; 4.1.0 (CR-0007, Submitted) |
+| [0023](adrs/0023-health-check-for-a-rebalancer-client.md) | Health check for a client in an optional package | US-0018 | `src/Rebalancer.Extensions.Diagnostics.HealthChecks/` | `tests/Rebalancer.UnitTests` (`RebalancerClientHealthCheckTests`) | **Accepted**; 4.1.0 (CR-0007, Submitted) |
 
 ### Release records
 
@@ -42,6 +44,12 @@ Update this file when ADRs are superseded, stories change state, or new test pro
 | [PRB-0001](problem-records/PRB-0001-demoted-coordinator-keeps-resources.md) | Closed (2.1.0) | US-005, US-006, US-013 |
 | [PRB-0002](problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md) | Closed (2.1.0) | US-010 |
 | [PRB-0003](problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md) | Closed (3.1.0); follow-ups owned by dradoaica | US-005, US-006, US-013 |
+
+### 4.1.0 records
+
+| Record | Status | Covers |
+|--------|--------|--------|
+| [CR-0007](change-records/CR-0007-release-4-1-0.md) | **Submitted** (4.1.0); [release notes](release-notes/4.1.0.md) | ADR-0022, ADR-0023, US-0017..0019 (US-0019: `*RandomisedTests`, governed by ADR-0002 / ADR-0019) |
 
 ### Threat models
 

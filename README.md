@@ -80,6 +80,7 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 4.1.0](docs/release-notes/4.1.0.md) — metrics and traces, health check package, randomised tests
 - [Release notes 4.0.0](docs/release-notes/4.0.0.md) and [migration guide](docs/release-notes/migrating-to-4.0.md) —
   Redis: each resource group in its own keys (breaking for Redis provisioning)
 - [Release notes 3.2.0](docs/release-notes/3.2.0.md) — Redis warning ahead of 4.0, SQL Server least-privilege role,
@@ -127,6 +128,22 @@ implements `IDisposable`. `RedisProvider` does, and closes its Redis connection.
 the DI registrations above already resolve a new provider for every client
 ([ADR-0016](docs/adrs/0016-rebalancer-client-owns-its-provider.md)).
 
+### Metrics, traces and health
+
+Rebalancer emits metrics and traces through `System.Diagnostics`
+([ADR-0022](docs/adrs/0022-rebalancing-telemetry-contract.md)); collect them with OpenTelemetry:
+
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(m => m.AddMeter(RebalancerTelemetry.MeterName))
+    .WithTracing(t => t.AddSource(RebalancerTelemetry.ActivitySourceName));
+```
+
+The package `Rebalancer.Extensions.Diagnostics.HealthChecks` adds a health check for a client your host started
+([ADR-0023](docs/adrs/0023-health-check-for-a-rebalancer-client.md)):
+`services.AddHealthChecks().AddRebalancerClient("rebalancer", client)`. Instrument names and health states:
+[release notes 4.1.0](docs/release-notes/4.1.0.md).
+
 ### Operating the backends
 
 - **SQL Server:** create the schema from [`db/`](db/) and give the nodes' login only the role `rebalancer_node`
@@ -148,7 +165,9 @@ the DI registrations above already resolve a new provider for every client
   coordinator demotion, unresponsive followers (no Docker).
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
   unavailable): assignment safety, paused follower and stalled coordinator (`*PausedNodeTests`), client-record expiry,
-  the SQL Server least-privilege role, the Redis per-group key move and ACL user. ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
+  the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, and randomised runs
+  (`*RandomisedTests`, 3 minutes each; replay a run with `REBALANCER_RANDOMISED_SEED`, cap it with
+  `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
@@ -170,6 +189,6 @@ The randomised ZooKeeper tests run 2–8 hours each (about 38 hours in total). S
 
 | Folder                   | Contents                                                                                                    |
 |--------------------------|-------------------------------------------------------------------------------------------------------------|
-| [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`).                |
+| [`src/`](src/)           | Library projects (`Rebalancer.Core`, backends, `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`). |
 | [`examples/`](examples/) | Sample host and CLI tools (`Rebalancer.RabbitMq.ExampleWithSqlServerBackend`, `Rebalancer.RabbitMq.Tools`). |
 | [`tests/`](tests/)       | `Rebalancer.UnitTests`, `Rebalancer.IntegrationTests`.                                                      |

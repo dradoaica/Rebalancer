@@ -1,12 +1,12 @@
 ---
 id: US-0018
-status: Draft
+status: In progress
 date: 2026-10-19
 owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Could"
-ssdlc-phase: Planning
-depends-on: [ "ADR-0005", "US-003", "US-012" ]
+ssdlc-phase: Coding
+depends-on: [ "ADR-0023", "ADR-0005", "US-003", "US-012" ]
 ---
 
 # User story: Report a Rebalancer client's health to the host
@@ -21,15 +21,17 @@ depends-on: [ "ADR-0005", "US-003", "US-012" ]
 
 Product baseline roadmap theme "Next: health checks". `RebalancerClient.GetCurrentState()` already exposes
 `ClientState` (US-003), and `OnAborted` signals a non-recoverable error. A health check that adapts these to
-`Microsoft.Extensions.Diagnostics.HealthChecks` needs that package: a new dependency, so a decision record first
-(Tier 1). A host can already write the same check itself in a few lines; the story is only worth doing if several
-hosts need it.
+`Microsoft.Extensions.Diagnostics.HealthChecks` needs those packages: a new dependency, decided in ADR-0023 (Accepted;
+an optional package). Drafting the ADR showed that `RebalancerClient` is registered transient (no single DI client to
+check), that SQL Server and Redis never report `Aborted`, and that the client does not expose the lease expiry; the
+criteria below reflect that.
 
 ## Acceptance criteria
 
-1. `AddRebalancerHealthCheck()` registers a check for the DI-registered client (US-012).
-2. `Unhealthy` in state `Aborted`, or `Stopped` while the host runs; `Degraded` while `PendingAssignment`
-   lasts longer than a configured period (default: 2 × the group's lease expiry); `Healthy` otherwise.
+1. `AddRebalancerClient(name, client, pendingThreshold)` on `IHealthChecksBuilder` registers a check for the host's
+   own client instance (registration is transient, so the check cannot resolve it from DI).
+2. `Unhealthy` after `OnAborted` (needed for SQL Server and Redis) or in state `Aborted`, `Stopped`, `NotStarted` or
+   `NoProvider`; `Degraded` while `PendingAssignment` lasts longer than the configured threshold; `Healthy` otherwise.
 3. The check never blocks: it reads state only (ADR-0007), with no call to the backend.
 4. Unit tests cover each state mapping.
 
@@ -39,8 +41,8 @@ hosts need it.
 
 ## Dependencies
 
-- Decision records: a new ADR for the `Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions` dependency (not
-  drafted yet); `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md`
+- Decision records: `docs/adrs/0023-health-check-for-a-rebalancer-client.md` (Accepted);
+  `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md`
 - Other stories: `docs/user-stories/US-003-graceful-shutdown-and-read-assignment-state.md`,
   `docs/user-stories/US-012-register-rebalancer-with-dependency-injection.md`
 
@@ -50,19 +52,21 @@ Health output must not include resource names or connection details; status and 
 
 ## Definition of ready
 
-- [ ] Governing ADR referenced (or marked "N/A - non-architectural") – ADR still to be drafted
+- [x] Governing ADR referenced (or marked "N/A - non-architectural") – ADR-0023 (Accepted 2026-10-19)
 - [x] Acceptance criteria are testable, unambiguous, and numbered
 - [x] Security & compliance considerations addressed
 - [x] Dependencies and non-goals are explicitly identified
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
+- [x] Acceptance criteria met – `src/Rebalancer.Extensions.Diagnostics.HealthChecks/`; `RebalancerClientHealthCheckTests`
+  (each state, the abort while `Assigned`, no backend call, registration)
 - [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Docs / runbooks updated if needed – release notes 4.1.0, README
+- [ ] Traceable to change record (if released) - `docs/change-records/CR-0007-release-4-1-0.md` (Submitted)
 
 ## Sources
 
+- `docs/adrs/0023-health-check-for-a-rebalancer-client.md`
 - `docs/initial-product-specs/rebalancer-product-baseline.md` (Roadmap themes)
 - `src/Rebalancer.Core/RebalancerClient.cs` (`GetCurrentState`, `OnAborted`), `src/Rebalancer.Core/ClientState.cs`
