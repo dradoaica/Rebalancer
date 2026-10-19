@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ ]            # readiness approval; set by a human only
 priority: "Could"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0024", "US-0022" ]
+depends-on: [ "ADR-0025", "ADR-0024", "US-0022" ]
 ---
 
 # User story: Show RabbitMQ super streams as the alternative for ordered consumer groups
@@ -36,13 +36,13 @@ If ADR-0024 is accepted with the guide (its option B):
 3. RabbitMQ feature versions are cited with links to RabbitMQ's documentation (verified when written).
 4. The README "Use cases" and the example README link the guide.
 
-If ADR-0024 is accepted with the code example (its option A), instead:
+Added 2026-10-20 (ADR-0025, superseding ADR-0024: the maintainer asked for a runnable example as well), in addition:
 
-1. `examples/Rebalancer.RabbitMq.SuperStreamsExample` publishes M conversations × T turns to a super stream with N
+5. `examples/Rebalancer.RabbitMq.SuperStreamsExample` publishes M conversations × T turns to a super stream with N
    partitions, routed by conversation ID, and consumes it with single active consumer and server-side offset tracking.
-2. Failed turns are retried, then written to a parking stream, and the conversation is blocked; a turn-number guard
+6. Failed turns are retried, then written to a parking stream, and the conversation is blocked; a turn-number guard
    rejects stale and duplicate turns.
-3. Verified manually with two consumers: kill one while publishing; every conversation stays in order.
+7. Verified manually with two consumers: kill one while publishing; every conversation stays in order.
 
 ## Non-goals
 
@@ -51,7 +51,7 @@ If ADR-0024 is accepted with the code example (its option A), instead:
 
 ## Dependencies
 
-- Decision records: `docs/adrs/0024-dependencies-of-the-rabbitmq-examples.md` (Accepted: the guide)
+- Decision records: `docs/adrs/0025-runnable-super-streams-example.md` (Proposed; supersedes ADR-0024, which chose the guide)
 - Other stories: `docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md`
 
 ## Security & compliance
@@ -68,7 +68,7 @@ accepted.
 
 ## Definition of done
 
-- [x] Acceptance criteria met (the guide, ADR-0024 option B) – `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
+- [ ] Acceptance criteria met – criteria 1–4 (the guide) met; 5–7 (the example) wait for ADR-0025. Guide: `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
   from the README "Use cases" and the example README; RabbitMQ facts checked against rabbitmq.com on 2026-10-19
 - [ ] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
