@@ -2,8 +2,8 @@
 
 Only Redis deployments are affected. SQL Server and ZooKeeper have no 4.0 migration steps.
 
-Decision: [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md). Since 3.2.0, every Redis client logs a
-warning once per session that points here (US-0016).
+Decision: [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md); implementation: US-0020. 3.2.x Redis
+clients log a warning once per session that points here (US-0016); 4.0 no longer logs it.
 
 ## What changes
 
@@ -32,7 +32,9 @@ the shared hash.
    it (for example the 3.x per-group user below), or provision the new keys yourself first (next section). Afterwards
    the group needs no access to the shared keys.
 
-A group that exists in neither layout fails to start, as in 3.x ("The resource group … does not exist").
+A group that exists in neither layout fails to start, as in 3.x ("The resource group … does not exist"). A user without
+access to the shared keys, on a group that has not moved yet, fails to start with an error that points here.
+Other groups in the same Redis database are not touched; each group moves when its own nodes first start on 4.0.
 
 ## Provisioning a new group in 4.0
 

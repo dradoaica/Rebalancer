@@ -8,7 +8,6 @@ namespace Rebalancer.Redis.Resources;
 
 internal class ResourceService : IResourceService
 {
-    private static readonly RedisKey ResourcesKey = RedisHash.ListKey("Resources");
     private readonly IDatabase cache;
 
     public ResourceService(IDatabase cache)
@@ -18,10 +17,8 @@ internal class ResourceService : IResourceService
 
     public async Task<List<string>> GetResourcesAsync(string resourceGroup)
     {
-        var values = await cache.ListRangeAsync(ResourcesKey);
-        return values.Select(RedisHash.Decode<Resource>)
-            .Where(x => x.ResourceGroup == resourceGroup)
-            .Select(x => x.ResourceName)
-            .ToList();
+        // only this group's entries since 4.0 (ADR-0020), so the read no longer grows with other groups
+        var values = await cache.ListRangeAsync(RedisHash.ResourcesKey(resourceGroup));
+        return values.Select(x => RedisHash.Decode<Resource>(x).ResourceName).ToList();
     }
 }

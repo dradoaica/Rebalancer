@@ -26,6 +26,12 @@ internal static class RedisHash
     public static RedisKey GroupKey(string name, string resourceGroup) =>
         $"{Constants.SCHEMA}:{name}:{EscapeKeySegment(resourceGroup)}";
 
+    /// <summary>4.0 (ADR-0020): one hash per group holding its settings and lease, field = the encoded group name.</summary>
+    public static RedisKey LeaseKey(string resourceGroup) => GroupKey("Lease", resourceGroup);
+
+    /// <summary>4.0 (ADR-0020): one list per group holding its resource entries.</summary>
+    public static RedisKey ResourcesKey(string resourceGroup) => GroupKey("Resources", resourceGroup);
+
     /// <summary>Percent-encodes (UTF-8) every character outside A-Z, a-z, 0-9, '-', '_', '.', '~'.</summary>
     public static string EscapeKeySegment(string value)
     {

@@ -7,7 +7,6 @@ namespace Rebalancer.Redis.Leases;
 
 internal class LeaseService : ILeaseService
 {
-    private static readonly RedisKey ResourceGroupsKey = RedisHash.DictionaryKey("ResourceGroups");
     private readonly IDatabase cache;
 
     public LeaseService(IDatabase cache)
@@ -21,7 +20,7 @@ internal class LeaseService : ILeaseService
         {
             return await RedisHash.CompareAndSetAsync<ResourceGroup, LeaseResponse>(
                 cache,
-                ResourceGroupsKey,
+                RedisHash.LeaseKey(acquireLeaseRequest.ResourceGroup),
                 RedisHash.Encode(acquireLeaseRequest.ResourceGroup),
                 (resourceGroup, now) => DecideAcquire(resourceGroup, acquireLeaseRequest, now)
             );
@@ -39,7 +38,7 @@ internal class LeaseService : ILeaseService
         {
             return await RedisHash.CompareAndSetAsync<ResourceGroup, LeaseResponse>(
                 cache,
-                ResourceGroupsKey,
+                RedisHash.LeaseKey(renewLeaseRequest.ResourceGroup),
                 RedisHash.Encode(renewLeaseRequest.ResourceGroup),
                 (resourceGroup, now) => DecideRenew(resourceGroup, renewLeaseRequest, now)
             );
@@ -53,7 +52,7 @@ internal class LeaseService : ILeaseService
     public Task RelinquishLeaseAsync(RelinquishLeaseRequest relinquishLeaseRequest) =>
         RedisHash.CompareAndSetAsync<ResourceGroup, bool>(
             cache,
-            ResourceGroupsKey,
+            RedisHash.LeaseKey(relinquishLeaseRequest.ResourceGroup),
             RedisHash.Encode(relinquishLeaseRequest.ResourceGroup),
             (resourceGroup, _) => DecideRelinquish(resourceGroup, relinquishLeaseRequest)
         );
