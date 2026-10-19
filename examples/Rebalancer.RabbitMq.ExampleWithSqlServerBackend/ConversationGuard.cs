@@ -67,6 +67,23 @@ internal sealed class ConversationGuard(string connectionString)
         return TurnOutcome.Processed;
     }
 
+    /// <summary>Creates <c>Example.ConversationTurns</c> if missing (the option A tools create it too).</summary>
+    public async Task EnsureTableAsync()
+    {
+        await using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new SqlCommand(
+            """
+            IF SCHEMA_ID('Example') IS NULL EXEC('CREATE SCHEMA Example');
+            IF OBJECT_ID('Example.ConversationTurns') IS NULL
+                CREATE TABLE Example.ConversationTurns (
+                    ConversationId varchar(200) NOT NULL PRIMARY KEY,
+                    LastTurn int NOT NULL,
+                    Blocked bit NOT NULL);
+            """, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task BlockAsync(string conversationId)
     {
         await using var connection = new SqlConnection(connectionString);

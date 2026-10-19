@@ -68,7 +68,8 @@ accepted.
 
 ## Definition of done
 
-- [ ] Acceptance criteria met – criteria 1–4 (the guide) met; 5–7 (the example) wait for ADR-0024 to be accepted. Guide: `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
+- [x] Acceptance criteria met – criteria 5–7: `examples/Rebalancer.RabbitMq.SuperStreamsExample`, verified manually on
+  2026-10-20 (RabbitMQ 4.3.6, SQL Server 2022; results in its README). Criteria 1–4, the guide: `docs/guides/rabbitmq-ordered-consumer-groups.md`, linked
   from the README "Use cases" and the example README; RabbitMQ facts checked against rabbitmq.com on 2026-10-19
 - [ ] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed

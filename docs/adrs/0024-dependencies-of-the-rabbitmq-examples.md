@@ -8,7 +8,7 @@ approved-by: [ ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "US-0022", "US-0023", "US-008", "US-009" ]
+depends-on: [ "US-0022", "US-0023", "US-008", "US-009", "ADR-0025" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -45,8 +45,10 @@ This record decides which packages the example projects may reference.
 
 ## Considered Options
 
-* **A. Runnable example:** add `RabbitMQ.Stream.Client` 1.12.2 to a new project
-  `examples/Rebalancer.RabbitMq.SuperStreamsExample` only; keep the guide; remove `Consul`.
+* **A. Runnable example:** a new project `examples/Rebalancer.RabbitMq.SuperStreamsExample` references
+  `RabbitMQ.Stream.Client` 1.12.2 (new to the repository) and, for the same SQL Server turn guard as the option A
+  example, `Microsoft.Data.SqlClient` 7.1.1 with the `System.Security.Cryptography.Pkcs` 10.0.13 pin of ADR-0025
+  (both already used by the other examples); keep the guide; remove `Consul`.
 * **B. Guide only:** document super streams in a guide that links RabbitMQ's own examples; no new dependency; remove
   `Consul`.
 * **C. Keep the dependencies as they are:** no super-streams material, `Consul` stays.
@@ -76,8 +78,8 @@ replaced by `System.Text.Json`).
 
 ### Confirmation
 
-* `dotnet list package` shows `RabbitMQ.Stream.Client` only in `examples/Rebalancer.RabbitMq.SuperStreamsExample`, and
-  no `Consul` anywhere.
+* `dotnet list package` shows `RabbitMQ.Stream.Client` only in `examples/Rebalancer.RabbitMq.SuperStreamsExample`, no
+  `Consul` anywhere, and no vulnerable package (`--vulnerable --include-transitive`).
 * The super-streams example is verified manually like US-0022 (RabbitMQ 4.x with the stream plugin): order per
   conversation holds when a consumer is stopped or killed.
 

@@ -10,7 +10,8 @@ conversation), there are two good setups on RabbitMQ. This guide compares them a
   in this repository: [the RabbitMQ example](../../examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/README.md).
 - **Option B, super streams:** a partitioned stream routes each message by its key to one of N partitions; single
   active consumer gives each partition one consumer of a named group, and the broker spreads partitions over the
-  group. No Rebalancer is involved. See RabbitMQ's documentation and examples.
+  group. No Rebalancer is involved. Runnable in this repository:
+  [the super-streams example](../../examples/Rebalancer.RabbitMq.SuperStreamsExample/README.md).
 
 ## Background: what RabbitMQ provides natively
 
@@ -85,4 +86,4 @@ where they are, so a key's order can break during the change; plan it as a migra
   [Quorum queues, poison message handling and dead-lettering](https://www.rabbitmq.com/docs/quorum-queues),
   [RabbitMQ 3.8 release overview](https://www.rabbitmq.com/blog/2019/11/11/rabbitmq-3-8-release-overview) (checked
   2026-10-19).
-- This repository: ADR-0019, ADR-0021, ADR-0024; the example's verification (RabbitMQ 4.3.6) in its README.
+- This repository: ADR-0019, ADR-0021, ADR-0024; both examples' verification (RabbitMQ 4.3.6) in their READMEs.

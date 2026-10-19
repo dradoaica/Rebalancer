@@ -8,6 +8,7 @@
         <Project
                 Path="examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Rebalancer.RabbitMq.ExampleWithSqlServerBackend.csproj"/>
         <Project Path="examples/Rebalancer.RabbitMq.Tools/Rebalancer.RabbitMq.Tools.csproj"/>
+        <Project Path="examples/Rebalancer.RabbitMq.SuperStreamsExample/Rebalancer.RabbitMq.SuperStreamsExample.csproj"/>
     </Folder>
     <Folder Name="/Solution Items/">
         <File Path=".editorconfig"/>
