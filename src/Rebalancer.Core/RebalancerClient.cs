@@ -68,7 +68,23 @@ public class RebalancerClient : IDisposable
     /// <summary>Called once the node has been assigned new resources</summary>
     public event EventHandler<OnAssignmentArgs> OnAssignment;
 
-    /// <summary>Called when a non recoverable error occurs and the client is no longer participating in the resource group.</summary>
+    /// <summary>Called when the provider reports an error.</summary>
+    /// <remarks>
+    ///     Whether the client still takes part afterwards depends on the backend and on
+    ///     <see cref="ClientOptions.AutoRecoveryOnError" />:
+    ///     <list type="bullet">
+    ///         <item>
+    ///             ZooKeeper raises it only when the client gives up; the client no longer takes part, and
+    ///             <see cref="GetCurrentState" /> returns <see cref="ClientState.Aborted" />.
+    ///         </item>
+    ///         <item>
+    ///             SQL Server and Redis raise it for every error. With auto-recovery the client restarts after
+    ///             <see cref="ClientOptions.RestartDelay" /> and takes part again (<see cref="OnAssignment" /> follows); without
+    ///             it the client gives up and, since 4.2.0, reports <see cref="ClientState.Aborted" />.
+    ///         </item>
+    ///     </list>
+    ///     To know whether the client still takes part, check <see cref="GetCurrentState" /> rather than this event.
+    /// </remarks>
     public event EventHandler<OnAbortedArgs> OnAborted;
 
     /// <summary>Starts the node</summary>

@@ -2,7 +2,10 @@
 
 namespace Rebalancer.Core;
 
-/// <summary>EventArgs that describe the cause of an aborted event</summary>
+/// <summary>
+///     EventArgs that describe the error behind <see cref="RebalancerClient.OnAborted" />; the client may recover from it
+///     (see the remarks there).
+/// </summary>
 public sealed class OnAbortedArgs : EventArgs
 {
     public OnAbortedArgs(string abortReason, Exception exception)
@@ -14,6 +17,6 @@ public sealed class OnAbortedArgs : EventArgs
     /// <summary>The reason for aborting the client</summary>
     public string AbortReason { get; }
 
-    /// <summary>The exception caused that caused event, if one exists</summary>
+    /// <summary>The exception that caused the event; null when the provider has none (e.g. "Unknown shutdown reason").</summary>
     public Exception Exception { get; }
 }

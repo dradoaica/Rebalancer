@@ -40,9 +40,10 @@ internal static class Program
             LogInfo("Consumer subscription cancelled");
             StopAllConsumption();
         };
+        // with AutoRecoveryOnError the SQL Server client restarts after an error and is assigned again, so this only logs
         context.OnAborted += (sender, args) =>
         {
-            LogInfo($"Error: {args.AbortReason}, Exception: {args.Exception.Message}");
+            LogInfo($"Error: {args.AbortReason}, Exception: {args.Exception?.Message}");
         };
         await context.StartAsync(
             "NotificationsGroup",

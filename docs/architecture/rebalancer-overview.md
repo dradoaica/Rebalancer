@@ -78,6 +78,13 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
 Keep the lease expiry (`LeaseExpirySeconds`) well above the longest pause a node can have (GC, VM freeze); see the
 3.1.0 release notes.
 
+## Errors
+
+`OnAborted` reports an error. ZooKeeper raises it only when a client gives up; SQL Server and Redis raise it for every
+error, and with auto-recovery the client restarts and is assigned again. A client that gives up reports
+`ClientState.Aborted` on all three backends (SQL Server and Redis since 4.2.0, US-0021). Hosts should judge
+participation by `GetCurrentState()`, not by the event.
+
 ## Observability
 
 - **Metrics and traces** ([ADR-0022](../adrs/0022-rebalancing-telemetry-contract.md)): meter and activity source

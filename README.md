@@ -145,6 +145,14 @@ The package `Rebalancer.Extensions.Diagnostics.HealthChecks` adds a health check
 `services.AddHealthChecks().AddRebalancerClient("rebalancer", client)`. Instrument names and health states:
 [release notes 4.1.0](docs/release-notes/4.1.0.md).
 
+### Errors and `OnAborted`
+
+`OnAborted` reports an error; it does not always mean the client has stopped. ZooKeeper raises it only when the client
+gives up. SQL Server and Redis raise it for every error: with `ClientOptions.AutoRecoveryOnError` the client restarts
+after `RestartDelay` and is assigned again; without it the client gives up and (since 4.2.0) reports
+`ClientState.Aborted`. Check `GetCurrentState()` to know whether a client still takes part; the health check does
+this for you.
+
 ### Operating the backends
 
 - **SQL Server:** create the schema from [`db/`](db/) and give the nodes' login only the role `rebalancer_node`
