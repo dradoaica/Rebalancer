@@ -1,10 +1,10 @@
 ---
 id: ADR-0025
-status: Proposed
+status: Accepted
 date: 2026-10-20
 decides: "which version of System.Security.Cryptography.Pkcs the SQL Server backend and the examples resolve"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -41,7 +41,7 @@ graph.
 
 ## Decision Outcome
 
-Proposed option: **A**.
+Chosen option: **A** (accepted by dradoaica, 2026-10-20).
 
 The strongest argument against A is B: 8.0.2 is the minimal change for the library's own target (netstandard2.1)
 and stays on the 8.x line SqlClient chose. But on a .NET 9 or 10 host SqlClient asks for 9.0.18, which is higher than

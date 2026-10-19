@@ -1,9 +1,9 @@
 ---
 id: CR-0009
-status: Submitted
+status: Approved
 date: 2026-10-20
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -42,12 +42,15 @@ packages are released as 4.2.1. Release notes: `docs/release-notes/4.2.1.md`.
 
 ## Preconditions
 
-- [ ] Decision record in place: ADR-0025 (Proposed; acceptance by a human required).
+- [x] Decision record in place: ADR-0025 (Accepted by dradoaica, 2026-10-20; on the shared trunk with this release's merge).
 - [x] Tests on branch `agent/security-pkcs-4.2.1`: see the evidence line below.
 - [x] `dotnet list Rebalancer.slnx package --vulnerable --include-transitive`: no vulnerable package in any project
   (2026-10-20; before: High in six projects, including both SQL Server packages).
 - [ ] Rollback procedure validated: redeploy 4.2.0 (reintroduces the vulnerability; no data change).
 - [x] Pre-change test suite passing cleanly.
+
+Approved by dradoaica on 2026-10-20 with one precondition open: the rollback to 4.2.0 is not rehearsed (no data
+change; rolling back reintroduces the vulnerability).
 
 Evidence (2026-10-20): all six libraries build with warnings as errors; unit 59/59; SQL Server integration 7/7
 (Docker); the packed `Rebalancer.SqlServer.4.2.1.nupkg` declares `System.Security.Cryptography.Pkcs` >= 10.0.13. Redis
@@ -75,8 +78,8 @@ Release notes `docs/release-notes/4.2.1.md`, naming the CVE and the workaround f
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-10-20 |
+| Release / CAB (or org) | dradoaica | 2026-10-20 |
 
 ## Post-implementation
 

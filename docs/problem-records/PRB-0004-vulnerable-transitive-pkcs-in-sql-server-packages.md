@@ -59,8 +59,8 @@ nor a vulnerability scan (open topic: CI test job).
 
 | Action                                                                                                                 | Owner | Status |
 |------------------------------------------------------------------------------------------------------------------------|-------|--------|
-| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Drafted: ADR-0025 (Proposed) |
-| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Prepared: CR-0009 (4.2.1, Submitted) |
+| Decide the fix in a decision record (Tier 1: dependency change): pin a patched `System.Security.Cryptography.Pkcs` as a direct reference of `Rebalancer.SqlServer`, or move to a `Microsoft.Data.SqlClient` that brings a patched one |       | Decided: ADR-0025 (Accepted) |
+| Release a patch version of all packages with the fix, with a change record and release notes naming the CVE         |       | Approved: CR-0009 (4.2.1) |
 | Pin or upgrade in the examples and test projects as well                                                              |       | Done on the branch: Tools pinned; others resolve 10.0.13 through `Rebalancer.SqlServer` |
 | Remove the direct reference once `Microsoft.Data.SqlClient` depends on a patched Pkcs                                 |       | Open |
 
