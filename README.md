@@ -80,12 +80,18 @@ will be available.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 4.0.0](docs/release-notes/4.0.0.md) and [migration guide](docs/release-notes/migrating-to-4.0.md) —
+  Redis: each resource group in its own keys (breaking for Redis provisioning)
+- [Release notes 3.2.0](docs/release-notes/3.2.0.md) — Redis warning ahead of 4.0, SQL Server least-privilege role,
+  ZooKeeper znode runbook
 - [Release notes 3.1.0](docs/release-notes/3.1.0.md) — unresponsive followers are told to stop (PRB-0003)
 - [Release notes 3.0.0](docs/release-notes/3.0.0.md) and [migration guide](docs/release-notes/migrating-to-3.0.md) — breaking changes
 - [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
   once)
 - [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, and Redis backends
+- [Change records](docs/change-records/) and [problem records](docs/problem-records/) — releases and defects (renumbered
+  on 2026-10-19; the READMEs map the old identifiers)
 
 ### Contributors and AI agents
 
@@ -93,7 +99,7 @@ will be available.
   vendor adapters defer to it.
 - [`docs/initial-product-specs/README.md`](docs/initial-product-specs/README.md) — start here for spec-first product
   work.
-- [`docs/cogov-a-sdlc/README.md`](docs/cogov-a-sdlc/README.md) — overview of the co-governed SDLC layout (single vs.
+- [`README(cogov-a-sdlc).md`](README%28cogov-a-sdlc%29.md) — overview of the co-governed SDLC layout (single vs.
   multi-repo, `docs/` artifacts).
 
 ### Dependency injection (v2)
@@ -119,14 +125,30 @@ Since 3.0 there is no static `Providers.Register` registry and no parameterless 
 A `RebalancerClient` owns its provider: disposing the client (also after `StopAsync`) disposes a provider that
 implements `IDisposable`. `RedisProvider` does, and closes its Redis connection. Use one provider instance per client;
 the DI registrations above already resolve a new provider for every client
-([ADR 0006](docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md)).
+([ADR-0016](docs/adrs/0016-rebalancer-client-owns-its-provider.md)).
+
+### Operating the backends
+
+- **SQL Server:** create the schema from [`db/`](db/) and give the nodes' login only the role `rebalancer_node`
+  ([`db/RebalanserLeastPrivilege.sql`](db/RebalanserLeastPrivilege.sql)).
+- **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first 4.0
+  node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
+  [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once.
+- **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
+  [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md).
+- **All backends:** keep the lease expiry well above the longest pause a node can have (GC, VM freeze); a resumed node
+  stops at its first tick, but its handlers may run briefly before that
+  ([ADR-0019](docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md),
+  [ADR-0021](docs/adrs/0021-assignment-generation-for-resource-handlers.md)).
 
 ### Building and testing
 
 - Solution: [Rebalancer.slnx](Rebalancer.slnx)
-- **`tests/Rebalancer.UnitTests`** — DI registration tests (no Docker).
+- **`tests/Rebalancer.UnitTests`** — DI registration, provider lifecycle, API contract, lease decisions, record expiry,
+  coordinator demotion, unresponsive followers (no Docker).
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
-  unavailable). ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
+  unavailable): assignment safety, paused follower and stalled coordinator (`*PausedNodeTests`), client-record expiry,
+  the SQL Server least-privilege role, the Redis per-group key move and ACL user. ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
