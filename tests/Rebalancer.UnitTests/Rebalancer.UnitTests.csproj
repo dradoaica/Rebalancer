@@ -24,9 +24,4 @@
         <ProjectReference Include="..\..\src\Rebalancer.Extensions.Diagnostics.HealthChecks\Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <!-- shared by both test projects (ADR-0022 telemetry assertions) -->
-        <Compile Include="..\Shared\TelemetryRecorder.cs" Link="Shared\TelemetryRecorder.cs"/>
-    </ItemGroup>
-
 </Project>

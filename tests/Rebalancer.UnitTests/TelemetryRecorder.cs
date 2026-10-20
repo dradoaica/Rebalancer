@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-namespace Rebalancer.Tests.Shared;
+namespace Rebalancer.UnitTests;
 
 /// <summary>
 ///     Collects Rebalancer measurements and activities (ADR-0022) for one resource group. Listeners are process-wide

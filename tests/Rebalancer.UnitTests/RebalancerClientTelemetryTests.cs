@@ -1,5 +1,4 @@
 using Rebalancer.Core;
-using Rebalancer.Tests.Shared;
 using Xunit;
 
 namespace Rebalancer.UnitTests;

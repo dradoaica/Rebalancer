@@ -1,7 +1,7 @@
 using org.apache.zookeeper;
 using Rebalancer.Core;
 using Rebalancer.IntegrationTests.ZooKeeper.Helpers;
-using Rebalancer.Tests.Shared;
+using Rebalancer.UnitTests;
 using Rebalancer.ZooKeeper;
 using Xunit;
 
