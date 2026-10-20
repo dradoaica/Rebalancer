@@ -5,9 +5,9 @@ date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0014", "US-005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
+depends-on: [ "ADR-0002", "ADR-0014", "US-0005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Threat model: SQL Server coordination backend
@@ -144,7 +144,7 @@ resource groups, and unbounded growth of the client table.
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | Spoofing / tampering, D3          | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL) | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant) |
 | SQL injection                     | Parameterized statements                                                                                                | `ClientService`, `LeaseService`, `ResourceService`                                          |
-| Credential and traffic disclosure | Secret store; `Encrypt=True`; no connection strings in logs                                                             | US-005 Security & compliance; deployment responsibility                                     |
+| Credential and traffic disclosure | Secret store; `Encrypt=True`; no connection strings in logs                                                             | US-0005 Security & compliance; deployment responsibility                                    |
 | Client table growth (D1)          | Coordinator expiry under the fencing token; own-row delete on clean stop                                                | ADR-0014; `tests/Rebalancer.IntegrationTests/Sql/SqlServerClientRecordTests.cs`             |
 | Cross-group tampering             | Separate database or login per trust domain                                                                             | Deployment responsibility                                                                   |
 
@@ -188,6 +188,6 @@ resource groups, and unbounded growth of the client table.
 - ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0014-expire-stale-client-records.md`
 - Change records: `docs/change-records/CR-0003-release-3-0-0.md`
-- Related user stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`
+- Related user stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`
 - Code: `src/Rebalancer.SqlServer/`, `db/RebalanserSchema.sql`, `db/RebalanserTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

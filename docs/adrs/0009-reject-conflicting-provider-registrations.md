@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "ADR-0005", "US-001", "PRB-0002" ]
+depends-on: [ "ADR-0001", "ADR-0005", "US-0001", "PRB-0002" ]
 supersedes: [ ]
-superseded-by: "ADR-0013"
+superseded-by: [ "ADR-0013" ]
 ---
 
 # Reject a conflicting second `Providers.Register` call instead of ignoring it
@@ -69,4 +69,4 @@ idempotent startup code. E leaves the trap in place.
 ## More Information
 
 * Related: [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) (drawback recorded),
-  [ADR 0005](0005-dependency-injection-for-provider-registration-v2.md) (`Providers` kept in this milestone), US-001.
+  [ADR 0005](0005-dependency-injection-for-provider-registration-v2.md) (`Providers` kept in this milestone), US-0001.

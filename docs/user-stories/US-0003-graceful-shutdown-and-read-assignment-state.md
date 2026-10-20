@@ -1,12 +1,12 @@
 ---
-id: US-003
+id: US-0003
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0001", "US-001" ]
+depends-on: [ "ADR-0001", "US-0001" ]
 ---
 
 # User story: Graceful shutdown and read assignment state
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0001", "US-001" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- Other stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md`
+- Other stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md`
 
 ## Security & compliance
 

@@ -65,14 +65,17 @@ With an RDBMS we use the global barrier algorithm where:
 Other backends are suited to either.
 
 Leader election determines who the Coordinator is. If the Coordinator dies, then a Follower takes its place. Leader
-election and metadata storage are performed via a consensus service (ZooKeeper, Etcd, Consul, Redis) or an RDBMS with
-serializable transaction support (SQL Server, Oracle, PostgreSQL). All communication between nodes is also performed via
-this backing metadata store.
+election and metadata storage are performed via a backing metadata store; this library implements ZooKeeper, Redis, and
+SQL Server (serializable transactions). Other consensus services (etcd, Consul) or RDBMSs (Oracle, PostgreSQL) would
+fit the same pattern but are not implemented. All communication between nodes is also performed via this backing
+metadata store.
 
 ## Languages and Backends
 
-Rebalancer is a suite of code libraries. It must be implemented in your language to use it. Also, different backends
-will be available.
+This repository is the .NET implementation: `Rebalancer.Core` plus one package per backend (`Rebalancer.ZooKeeper`,
+`Rebalancer.Redis`, `Rebalancer.SqlServer`) and optional packages for dependency injection
+(`Rebalancer.Extensions.DependencyInjection`) and health checks (`Rebalancer.Extensions.Diagnostics.HealthChecks`).
+Other languages would need their own implementation of the protocol.
 
 ## Documentation
 

@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "US-012" ]
+depends-on: [ "ADR-0001", "US-0012" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Dependency injection for provider registration (v2)
@@ -50,7 +50,7 @@ Chosen option: **Dual registration** — **DI extensions** live in `Rebalancer.E
 
 * Compliance: `tests/Rebalancer.UnitTests` (and future integration coverage) resolve `RebalancerClient` or `IRebalancerProvider` from a test `ServiceProvider` without calling `Providers.Register`.
 * Documentation: README and [docs/traceability-matrix.md](../traceability-matrix.md) updated when implementation ships.
-* Link to implementation story: [US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md).
+* Link to implementation story: [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md).
 
 ## Pros and Cons of the Options
 
@@ -67,4 +67,4 @@ Chosen option: **Dual registration** — **DI extensions** live in `Rebalancer.E
 ## More Information
 
 * Does not supersede [0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md); both registration styles coexist until a future ADR deprecates static `Providers`.
-* Implementation: [US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md).
+* Implementation: [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md).

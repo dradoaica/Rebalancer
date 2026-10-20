@@ -8,7 +8,7 @@ risk: "High"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 3.0.0"
-depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-0001", "TM-0002", "TM-0003", "US-0015", "US-005", "US-006", "US-007", "CR-0002" ]
+depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "ADR-0014", "ADR-0015", "TM-0001", "TM-0002", "TM-0003", "US-0015", "US-0005", "US-0006", "US-0007", "CR-0002" ]
 ---
 
 # Change record: Rebalancer 3.0.0
@@ -48,7 +48,7 @@ Release notes: `docs/release-notes/3.0.0.md`; migration guide: `docs/release-not
   - a clean stop deletes the node's own record;
   - Redis per-group client hash with a lease-guarded migration of the 2.x entries; the migration is skipped (expiry
     still runs) when the Redis user may not read the 2.x hash, e.g. a per-group ACL user.
-- Tests, example, READMEs, release notes, migration guide, US-0015 (successor of US-001), version 3.0.0.
+- Tests, example, READMEs, release notes, migration guide, US-0015 (successor of US-0001), version 3.0.0.
 
 **Out of scope:**
 
@@ -151,6 +151,6 @@ before publishing.
 - ADRs: `docs/adrs/0011-…`, `0012-…`, `0013-…`, `0014-expire-stale-client-records.md`,
   `0015-store-redis-clients-per-resource-group.md`
 - Threat models: `docs/threat-models/TM-0001-…`, `TM-0002-…`, `TM-0003-…`
-- User stories: `docs/user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md`, `US-005-…`, `US-006-…`,
-  `US-007-…`
+- User stories: `docs/user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md`, `US-0005-…`, `US-0006-…`,
+  `US-0007-…`
 - Previous release: `docs/change-records/CR-0002-release-2-2-0-deprecations.md`

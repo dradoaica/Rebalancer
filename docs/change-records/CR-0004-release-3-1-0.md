@@ -8,7 +8,7 @@ risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 3.1.0"
-depends-on: [ "ADR-0019", "ADR-0002", "ADR-0014", "PRB-0003", "US-005", "US-006", "US-013", "CR-0003", "TM-0003" ]
+depends-on: [ "ADR-0019", "ADR-0002", "ADR-0014", "PRB-0003", "US-0005", "US-0006", "US-0013", "CR-0003", "TM-0003" ]
 ---
 
 # Change record: Rebalancer 3.1.0 – stop unresponsive followers
@@ -23,7 +23,7 @@ resumed follower stops at its first tick. No API, configuration or data format c
 ## Motivation / drivers
 
 - PRB-0003 (reproduced): after a pause longer than the keep-alive expiry, a follower kept processing resources that
-  had been reassigned, until the coordinator's next rebalance. That breaks the single-owner guarantee (ADR-0002, US-013)
+  had been reassigned, until the coordinator's next rebalance. That breaks the single-owner guarantee (ADR-0002, US-0013)
   for that window.
 
 ## Scope
@@ -104,8 +104,8 @@ its handlers briefly; keep the keep-alive expiry above the longest expected paus
   `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0014-expire-stale-client-records.md`
 - Problem record: `docs/problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md`
-- User stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`,
-  `docs/user-stories/US-006-coordinate-via-redis-backend.md`,
-  `docs/user-stories/US-013-cross-backend-assignment-safety-tests.md`
+- User stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`,
+  `docs/user-stories/US-0006-coordinate-via-redis-backend.md`,
+  `docs/user-stories/US-0013-cross-backend-assignment-safety-tests.md`
 - Previous release: `docs/change-records/CR-0003-release-3-0-0.md`
 - Threat model: `docs/threat-models/TM-0003-redis-coordination.md` (revision 3)

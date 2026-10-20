@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # ZooKeeper backend: leader election, barrier algorithms, and rebalancing modes

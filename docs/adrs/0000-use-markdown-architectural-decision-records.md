@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Use Markdown Architectural Decision Records

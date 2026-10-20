@@ -1,12 +1,12 @@
 ---
-id: US-004
+id: US-0004
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Should"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0004", "US-001" ]
+depends-on: [ "ADR-0004", "US-0001" ]
 ---
 
 # User story: Configure recovery and assignment delay
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0004", "US-001" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0004-client-options-recovery-and-assignment-delay.md`
-- Other stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md`
+- Other stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md`
 
 ## Security & compliance
 
@@ -59,7 +59,8 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — N/A (accepted by dradoaica, 2026-10-20): delivered before change records were introduced; later changes
+  in its scope are traced in `docs/change-records/CR-0003-release-3-0-0.md` (3.0.0, `ClientRecordRetention`)
 
 ## Sources
 
@@ -67,3 +68,8 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - `src/Rebalancer.Core/ClientOptions.cs`
 - `src/Rebalancer.Core/RebalancerClient.cs`
 - `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
+
+## Note (2026-10-20)
+
+On 2026-10-20 the example project was renamed to `examples/Rebalancer.RabbitMq.QuorumQueuesExample`; criterion 3
+now refers to its `Program.cs`, which still sets `AutoRecoveryOnError` and `RestartDelay`.

@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Coordinator, follower, lease, and resource store pattern for SQL Server and Redis backends

@@ -1,12 +1,12 @@
 ---
-id: US-009
+id: US-0009
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Could"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0002", "US-008" ]
+depends-on: [ "ADR-0002", "US-0008" ]
 ---
 
 # User story: RabbitMQ tools CLI for queue and group setup
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0002", "US-008" ]
 ## Dependencies
 
 - Decision records: N/A (tooling only; optional link to `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` if backend argument maps to store setup)
-- Other stories: `docs/user-stories/US-008-run-rabbitmq-example-with-sql-server-backend.md`
+- Other stories: `docs/user-stories/US-0008-run-rabbitmq-example-with-sql-server-backend.md`
 
 ## Security & compliance
 
@@ -59,7 +59,8 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — N/A (accepted by dradoaica, 2026-10-20): delivered before change records were introduced; later changes
+  to the tools project are traced in `docs/change-records/CR-0009-release-4-2-1.md` (4.2.1)
 
 ## Sources
 

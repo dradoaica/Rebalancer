@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only
 priority: "Must"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0003" ]
+depends-on: [ "ADR-0013", "ADR-0005", "US-0001", "US-0012", "CR-0003" ]
 ---
 
 # User story: Supply a provider explicitly to a Rebalancer client
@@ -17,9 +17,9 @@ depends-on: [ "ADR-0013", "ADR-0005", "US-001", "US-012", "CR-0003" ]
 
 ## Context
 
-US-001 described joining a resource group through the static `Providers.Register` registry. ADR-0013 removes that
+US-0001 described joining a resource group through the static `Providers.Register` registry. ADR-0013 removes that
 registry in 3.0 because its process-wide state caused a real defect (PRB-0002).
-This story describes the 3.0 way and succeeds US-001 for 3.0 and later.
+This story describes the 3.0 way and succeeds US-0001 for 3.0 and later.
 
 ## Acceptance criteria
 
@@ -38,8 +38,8 @@ This story describes the 3.0 way and succeeds US-001 for 3.0 and later.
 
 - Decision records: `docs/adrs/0013-explicit-providers-only-remove-static-registry.md`,
   `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md`
-- Other stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md` (predecessor),
-  `docs/user-stories/US-012-register-rebalancer-with-dependency-injection.md`
+- Other stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md` (predecessor),
+  `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md`
 
 ## Security & compliance
 

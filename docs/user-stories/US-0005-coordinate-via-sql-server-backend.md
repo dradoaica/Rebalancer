@@ -1,12 +1,12 @@
 ---
-id: US-005
+id: US-0005
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0001", "ADR-0002", "US-001" ]
+depends-on: [ "ADR-0001", "ADR-0002", "US-0001" ]
 ---
 
 # User story: Coordinate via SQL Server backend
@@ -24,7 +24,7 @@ The SQL Server backend mirrors the Redis layout: `SqlServerProvider`, `Coordinat
 ## Acceptance criteria
 
 1. `SqlServerProvider` can be constructed with a connection string and optional injected services (`ILeaseService`, `IResourceService`, `IClientService`, `IRebalancerLogger`) per constructor signature in `SqlServerProvider.cs`.
-2. The provider implements `IRebalancerProvider` and participates in the same lifecycle as described in US-001 and US-003.
+2. The provider implements `IRebalancerProvider` and participates in the same lifecycle as described in US-0001 and US-0003.
 3. The example application registers `SqlServerProvider` against a sample database (`examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`).
 
 ## Non-goals
@@ -35,7 +35,7 @@ The SQL Server backend mirrors the Redis layout: `SqlServerProvider`, `Coordinat
 ## Dependencies
 
 - Decision records: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`, `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- Other stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md`
+- Other stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md`
 
 ## Security & compliance
 
@@ -67,3 +67,8 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - `src/Rebalancer.SqlServer/SqlServerProvider.cs`
 - `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
 - `README.md`
+
+## Note (2026-10-20)
+
+On 2026-10-20 the example project was renamed to `examples/Rebalancer.RabbitMq.QuorumQueuesExample`; criterion 3
+now refers to its `Program.cs`, which passes a `SqlServerProvider` to `RebalancerClient`.

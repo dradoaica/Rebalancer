@@ -6,7 +6,7 @@ opened: 2026-10-18
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # closure review; set by a human only
 severity: "High (assignment safety, short window)"
-depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-005", "US-006", "US-013", "CR-0004" ]
+depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "US-0005", "US-0006", "US-0013", "CR-0004" ]
 ---
 
 # Problem record: A resumed SQL Server / Redis follower keeps processing resources that were reassigned
@@ -22,7 +22,7 @@ coordinator's next rebalance stops it. Two nodes can process the same resource d
 - **Symptoms:** after a long GC pause, VM freeze, or network stall on one node, two nodes report the same resource as
   assigned for up to about one coordinator heartbeat interval after the paused node resumes.
 - **Impact:** duplicate processing of a resource for a few seconds, which breaks the core guarantee of ADR-0002 /
-  US-013 in that window. It exists in 2.x and is unchanged by 3.0.
+  US-0013 in that window. It exists in 2.x and is unchanged by 3.0.
 
 ## Timeline
 
@@ -105,5 +105,5 @@ Keep the keep-alive expiry well above the longest expected pause of a node.
 - `docs/adrs/0014-expire-stale-client-records.md`
 - `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md`
 - `docs/change-records/CR-0004-release-3-1-0.md`
-- `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
-  `US-013-cross-backend-assignment-safety-tests.md`
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`, `US-0006-coordinate-via-redis-backend.md`,
+  `US-0013-cross-backend-assignment-safety-tests.md`

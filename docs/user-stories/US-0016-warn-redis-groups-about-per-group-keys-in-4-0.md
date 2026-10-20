@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Should"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0020", "ADR-0015", "TM-0003", "US-006" ]
+depends-on: [ "ADR-0020", "ADR-0015", "TM-0003", "US-0006" ]
 ---
 
 # User story: Warn Redis operators that 4.0 moves leases and resources to per-group keys
@@ -57,7 +57,7 @@ smallest-complete rule: keep the Warning as ADR-0020 states it, with no opt-out 
 - Decision records: `docs/adrs/0020-per-group-redis-leases-and-resources.md` (Accepted; Decision Outcome, Confirmation),
   `docs/adrs/0015-store-redis-clients-per-resource-group.md` (key escaping)
 - Threat model: `docs/threat-models/TM-0003-redis-coordination.md` (residual risk "partial per-group isolation")
-- Other stories: `docs/user-stories/US-006-coordinate-via-redis-backend.md`
+- Other stories: `docs/user-stories/US-0006-coordinate-via-redis-backend.md`
 - Release: a 3.x minor with its own change record.
 
 ## Security & compliance
@@ -87,6 +87,11 @@ No change to data or access in 3.x. The documentation in criterion 4 is the firs
 - `docs/adrs/0020-per-group-redis-leases-and-resources.md` (Considered Options C, Decision Outcome, Confirmation)
 - `docs/adrs/0015-store-redis-clients-per-resource-group.md`
 - `docs/threat-models/TM-0003-redis-coordination.md` (Residual risk and acceptance)
-- `docs/user-stories/US-006-coordinate-via-redis-backend.md`
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md`
 - Code: `src/Rebalancer.Redis/RedisProvider.cs`, `src/Rebalancer.Redis/Resources/ResourceService.cs`,
   `src/Rebalancer.Redis/Leases/LeaseService.cs`
+
+## Note (2026-10-20)
+
+The warning and `PerGroupKeysDeprecationTests` were removed in 4.0.0, when the per-group layout shipped (US-0020,
+CR-0006).

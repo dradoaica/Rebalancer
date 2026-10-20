@@ -1,5 +1,5 @@
 ---
-id: US-014
+id: US-0014
 status: Done
 date: 2026-04-11
 owner: ""
@@ -23,7 +23,7 @@ depends-on: [ "ADR-0000", "ADR-0001", "ADR-0002", "ADR-0003", "ADR-0004", "ADR-0
 
 ## Acceptance criteria
 
-1. `docs/traceability-matrix.md` exists and maps **accepted** ADRs **0000–0004** to user stories **US-001–US-011** and primary repository paths (`src/`, `examples/`, `tests/`); **proposed** ADR 0005 and **US-012–US-014** appear with clear **Planned** / **Draft** status in the matrix notes.
+1. `docs/traceability-matrix.md` exists and maps **accepted** ADRs **0000–0004** to user stories **US-0001–US-0011** and primary repository paths (`src/`, `examples/`, `tests/`); **proposed** ADR 0005 and **US-0012–US-0014** appear with clear **Planned** / **Draft** status in the matrix notes.
 2. `docs/initial-product-specs/rebalancer-product-baseline.md` states product intent, in-scope backends, explicit non-goals for the current .NET library, and links to ADRs and the traceability matrix.
 3. `docs/initial-product-specs/README.md` links to the baseline document.
 4. Root `README.md` includes a **Documentation** subsection linking to the matrix, baseline, architecture overview, and `docs/adrs/`.
@@ -57,7 +57,7 @@ were verified by an agent against this story's text on 2026-10-18; the human rea
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team (N/A — documentation story)
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — N/A (accepted by dradoaica, 2026-10-20): documentation only; not part of a release
 
 ## Sources
 

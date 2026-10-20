@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "ADR-0006", "US-006" ]
+depends-on: [ "ADR-0002", "ADR-0006", "US-0006" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Redis leases use the server clock and compare-and-set updates

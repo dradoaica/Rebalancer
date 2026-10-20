@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0006", "ADR-0010", "TM-0001", "US-007" ]
+depends-on: [ "ADR-0006", "ADR-0010", "TM-0001", "US-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Require ZooKeeper credentials by default in the next major version (3.0)
@@ -68,4 +68,4 @@ This decision does not change 2.x behavior. It supersedes ADR 0006 only for 3.0 
 
 * Related: [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md) (superseded for 3.0+ on this point),
   [ADR 0010](0010-warn-on-open-operator-znodes-when-acls-are-configured.md),
-  [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md), US-007.
+  [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md), US-0007.

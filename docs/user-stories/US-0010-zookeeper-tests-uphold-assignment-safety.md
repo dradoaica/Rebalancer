@@ -1,12 +1,12 @@
 ---
-id: US-010
+id: US-0010
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0003", "US-007" ]
+depends-on: [ "ADR-0003", "US-0007" ]
 ---
 
 # User story: ZooKeeper tests uphold assignment safety invariants
@@ -36,7 +36,7 @@ depends-on: [ "ADR-0003", "US-007" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md`
-- Other stories: `docs/user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md`
+- Other stories: `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md`
 
 ## Security & compliance
 

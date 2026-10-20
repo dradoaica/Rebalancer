@@ -8,7 +8,7 @@ risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 2.1.0"
-depends-on: [ "ADR-0002", "ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "TM-0001", "PRB-0001", "PRB-0002", "US-001", "US-003", "US-005", "US-006", "US-007", "US-010", "US-011", "US-012", "US-013" ]
+depends-on: [ "ADR-0002", "ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "TM-0001", "PRB-0001", "PRB-0002", "US-0001", "US-0003", "US-0005", "US-0006", "US-0007", "US-0010", "US-0011", "US-0012", "US-0013" ]
 ---
 
 # Change record: Coordination safety fixes, provider ownership, and ZooKeeper ACLs
@@ -149,13 +149,15 @@ Added after this record was approved, and approved separately on 2026-10-18 for 
   "Push to GitHub Packages" step (https://github.com/dradoaica/Rebalancer/actions/runs/39130690089). The published package versions were not listed from the agent session (the GitHub Packages API requires authentication).
 - **Deviations:** the rollback dry-run was not performed (see Preconditions). No consumer upgrades are recorded here;
   they follow the implementation plan per resource group.
-- **Follow-ups (done 2026-10-18):** both problem records closed; "Traceable to change record" ticked in US-001,
-  US-003, US-005, US-006, US-007, US-010, US-011, US-012 and US-013.
+- **Follow-ups (done 2026-10-18):** both problem records closed; "Traceable to change record" ticked in US-0001,
+  US-0003, US-0005, US-0006, US-0007, US-0010, US-0011, US-0012 and US-0013.
+- **Rollback rehearsal (reported done by dradoaica, 2026-10-20):** rollback to 2.0.3 rehearsed; the rehearsal
+  date and results were not recorded here.
 
 ## Sources
 
-- User stories: `docs/user-stories/US-001-…`, `US-003-…`, `US-005-…`, `US-006-…`, `US-007-…`, `US-010-…`, `US-011-…`, `US-012-…`,
-  `US-013-…`
+- User stories: `docs/user-stories/US-0001-…`, `US-0003-…`, `US-0005-…`, `US-0006-…`, `US-0007-…`, `US-0010-…`, `US-0011-…`, `US-0012-…`,
+  `US-0013-…`
 - ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
   `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md`,
   `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md`, `docs/adrs/0007-non-blocking-get-assigned-resources.md`,

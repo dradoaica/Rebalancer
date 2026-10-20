@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "TM-0003", "US-006" ]
+depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "TM-0003", "US-0006" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Store Redis client records in one hash per resource group

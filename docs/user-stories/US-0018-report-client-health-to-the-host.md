@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Could"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0023", "ADR-0005", "US-003", "US-012" ]
+depends-on: [ "ADR-0023", "ADR-0005", "US-0003", "US-0012" ]
 ---
 
 # User story: Report a Rebalancer client's health to the host
@@ -20,7 +20,7 @@ depends-on: [ "ADR-0023", "ADR-0005", "US-003", "US-012" ]
 ## Context
 
 Product baseline roadmap theme "Next: health checks". `RebalancerClient.GetCurrentState()` already exposes
-`ClientState` (US-003), and `OnAborted` signals a non-recoverable error. A health check that adapts these to
+`ClientState` (US-0003), and `OnAborted` signals a non-recoverable error. A health check that adapts these to
 `Microsoft.Extensions.Diagnostics.HealthChecks` needs those packages: a new dependency, decided in ADR-0023 (Accepted;
 an optional package). Drafting the ADR showed that `RebalancerClient` is registered transient (no single DI client to
 check), that SQL Server and Redis never report `Aborted`, and that the client does not expose the lease expiry; the
@@ -43,8 +43,8 @@ criteria below reflect that.
 
 - Decision records: `docs/adrs/0023-health-check-for-a-rebalancer-client.md` (Accepted);
   `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md`
-- Other stories: `docs/user-stories/US-003-graceful-shutdown-and-read-assignment-state.md`,
-  `docs/user-stories/US-012-register-rebalancer-with-dependency-injection.md`
+- Other stories: `docs/user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md`,
+  `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md`
 
 ## Security & compliance
 

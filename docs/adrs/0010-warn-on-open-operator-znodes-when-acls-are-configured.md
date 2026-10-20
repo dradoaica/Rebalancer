@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0006", "TM-0001", "US-007" ]
+depends-on: [ "ADR-0006", "TM-0001", "US-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Warn when ZooKeeper ACLs are configured but operator-created znodes are still open
@@ -69,4 +69,4 @@ leaves room for B in the next major version (see ADR 0011).
 
 * Related: [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md),
   [ADR 0011](0011-zookeeper-acls-by-default-in-next-major-version.md),
-  [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (Tampering T1, residual risks), US-007.
+  [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (Tampering T1, residual risks), US-0007.

@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "PRB-0004", "TM-0002", "US-005" ]
+depends-on: [ "PRB-0004", "TM-0002", "US-0005" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Pin a patched System.Security.Cryptography.Pkcs (CVE-2026-84008)

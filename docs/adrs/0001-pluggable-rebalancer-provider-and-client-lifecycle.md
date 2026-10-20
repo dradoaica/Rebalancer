@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: "ADR-0013"
+superseded-by: [ "ADR-0013" ]
 ---
 
 # Pluggable Rebalancer provider and client lifecycle

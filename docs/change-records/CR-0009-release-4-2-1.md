@@ -89,6 +89,10 @@ Release notes `docs/release-notes/4.2.1.md`, naming the CVE and the workaround f
 - **Deviations:** none.
 - **Follow-ups:** close PRB-0004 (closure review by a human); remove the direct Pkcs reference once
   `Microsoft.Data.SqlClient` depends on a patched version; a vulnerability scan in CI (open topic: CI test job).
+- **Rollback rehearsal (reported done by dradoaica, 2026-10-20):** rollback to 4.2.0 rehearsed; the rehearsal
+  date and results were not recorded here.
+- **Note (2026-10-20):** Scope names the tools project as `examples/Rebalancer.RabbitMq.Tools/…csproj`; the full path
+  is `examples/Rebalancer.RabbitMq.Tools/Rebalancer.RabbitMq.Tools.csproj`.
 
 ## Sources
 

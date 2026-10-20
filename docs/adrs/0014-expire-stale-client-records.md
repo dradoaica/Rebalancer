@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "TM-0002", "TM-0003", "US-005", "US-006" ]
+depends-on: [ "ADR-0002", "TM-0002", "TM-0003", "US-0005", "US-0006" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Expire stale client records in the SQL Server and Redis stores

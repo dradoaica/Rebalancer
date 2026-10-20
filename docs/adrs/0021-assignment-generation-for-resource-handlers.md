@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0019", "ADR-0002", "ADR-0003", "PRB-0003", "TM-0002", "TM-0003", "US-002", "US-005", "US-006", "US-007" ]
+depends-on: [ "ADR-0019", "ADR-0002", "ADR-0003", "PRB-0003", "TM-0002", "TM-0003", "US-0002", "US-0005", "US-0006", "US-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # No fencing token for resource handlers for now (assignment generation deferred)
@@ -136,10 +136,10 @@ starting point, as sketched here:
   [ADR-0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md) (ZooKeeper).
 * Threat models: [TM-0002](../threat-models/TM-0002-sql-server-coordination.md),
   [TM-0003](../threat-models/TM-0003-redis-coordination.md).
-* Handler API: [US-002](../user-stories/US-002-react-to-assignment-unassignment-and-abort.md); backends:
-  [US-005](../user-stories/US-005-coordinate-via-sql-server-backend.md),
-  [US-006](../user-stories/US-006-coordinate-via-redis-backend.md),
-  [US-007](../user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md).
+* Handler API: [US-0002](../user-stories/US-0002-react-to-assignment-unassignment-and-abort.md); backends:
+  [US-0005](../user-stories/US-0005-coordinate-via-sql-server-backend.md),
+  [US-0006](../user-stories/US-0006-coordinate-via-redis-backend.md),
+  [US-0007](../user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md).
 * External: M. Kleppmann, "How to do distributed locking" (2016), fencing tokens.
 * Outcome D: no implementation, story or change record follows from this record.
 

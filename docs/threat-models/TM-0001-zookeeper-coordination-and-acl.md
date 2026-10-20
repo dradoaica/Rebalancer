@@ -5,9 +5,9 @@ date: 2026-10-18
 scope: "Rebalancer.ZooKeeper provider and its znodes, including its ACL and credential handling"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-007", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
+depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-0007", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Threat model: ZooKeeper coordination backend and znode ACLs
@@ -208,7 +208,7 @@ matters most, because its data holds the assignment table.
   `docs/adrs/0012-zookeeper-provider-entry-point-for-a-custom-service.md`,
   `docs/adrs/0018-opt-in-zookeeper-acls-in-2x.md`
 - SDP: N/A
-- Related user stories: `docs/user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md`
+- Related user stories: `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md`
 - Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`
 - Code: `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs` (`InitializeGlobalBarrierAsync`,
   `InitializeResourceBarrierAsync`, `EnsurePathAsync`, `SetResourcesAsync`)

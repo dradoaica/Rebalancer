@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0005", "ADR-0007", "ADR-0016", "US-0018", "US-003", "US-012" ]
+depends-on: [ "ADR-0005", "ADR-0007", "ADR-0016", "US-0018", "US-0003", "US-0012" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Health check for a Rebalancer client in its own optional package
@@ -50,7 +50,7 @@ and how it finds the client it checks.
   and that `IHealthChecksBuilder` lives in the second one).
 * **B. The same check inside `Rebalancer.Extensions.DependencyInjection`.** Every DI user takes the health-check
   packages, whether they use health checks or not.
-* **C. Register `RebalancerClient` as a singleton** so a check can resolve it. A behavior change of the DI contract (ADR-0005, US-012) for every host that resolves several clients; Tier 1 on its own.
+* **C. Register `RebalancerClient` as a singleton** so a check can resolve it. A behavior change of the DI contract (ADR-0005, US-0012) for every host that resolves several clients; Tier 1 on its own.
 * **D. Documentation only:** a sample check of about 20 lines in the README, which the host copies. No package, no
   dependency, no maintained API.
 
@@ -122,9 +122,9 @@ or connection details.
 * Story: [US-0018](../user-stories/US-0018-report-client-health-to-the-host.md) (criteria 1 and 2 need the changes in
   the findings above).
 * DI contract: [ADR-0005](0005-dependency-injection-for-provider-registration-v2.md),
-  [US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md); provider ownership:
+  [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md); provider ownership:
   [ADR-0016](0016-rebalancer-client-owns-its-provider.md); non-blocking state:
-  [ADR-0007](0007-non-blocking-get-assigned-resources.md), [US-003](../user-stories/US-003-graceful-shutdown-and-read-assignment-state.md).
+  [ADR-0007](0007-non-blocking-get-assigned-resources.md), [US-0003](../user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md).
 * Out of scope here: making SQL Server and Redis report `ClientState.Aborted`; that would be a behavior change worth its
   own story.
 * Release: a minor version (new package, additive). Implementation follows only after this record is Accepted.

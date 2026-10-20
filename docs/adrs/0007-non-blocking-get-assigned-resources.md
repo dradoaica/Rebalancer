@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "US-003" ]
+depends-on: [ "ADR-0001", "US-0003" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Make `GetAssignedResources()` non-blocking in the SQL Server and Redis providers
@@ -69,4 +69,4 @@ it is unaffected.
 
 ## More Information
 
-* Related: [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) (provider contract), US-003.
+* Related: [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) (provider contract), US-0003.

@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0003", "ADR-0006", "US-007" ]
+depends-on: [ "ADR-0003", "ADR-0006", "US-0007" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Opt-in ZooKeeper ACLs in 2.x

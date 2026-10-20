@@ -6,7 +6,7 @@ opened: 2026-10-18
 owner: ""
 approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 severity: "High (assignment safety)"
-depends-on: [ "ADR-0002", "US-005", "US-006", "US-013", "CR-0001" ]
+depends-on: [ "ADR-0002", "US-0005", "US-0006", "US-0013", "CR-0001" ]
 ---
 
 # Problem record: Demoted SQL Server / Redis coordinator keeps processing its resources
@@ -21,7 +21,7 @@ running them after another node becomes coordinator and gives those resources to
 - **Symptoms:** After a coordinator stall (longer than the lease expiry, e.g., GC pause or network partition), two nodes
   report the same resource as assigned. `OnAssignment` can fire on the old coordinator without a prior `OnUnassignment`.
 - **Impact:** Duplicate processing of a resource (e.g., two consumers on one RabbitMQ queue), which breaks the core
-  guarantee in ADR 0002 and US-013.
+  guarantee in ADR 0002 and US-0013.
 
 ## Timeline
 
@@ -79,10 +79,13 @@ Before the fix: set `LeaseExpirySeconds` well above the worst expected pause of 
 - **Closed:** 2026-10-18
 - **Resolution summary:** Fixed in 2.1.0 (`2952de6`, released through CR-0001): the SQL Server and Redis coordinators record their own `Waiting` / `Active` status and clear their local state when they stop, so a successor's stop barrier includes a demoted coordinator.
 - **Preventive action verification:** Regression tests `CoordinatorDemotionTests` (both backends) run in the unit suite. The optional integration test that stalls a coordinator past lease expiry is not implemented and is not tracked as a story yet. Governance change: N/A (code defect covered by the existing regression-test rule).
+- **Status of the optional follow-up (appended 2026-10-20):** implemented in 3.2.0 (CR-0005) as
+  `CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume` in `SqlServerPausedNodeTests` and
+  `RedisPausedNodeTests`; this record stays closed.
 
 ## Sources
 
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
-- `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `US-006-coordinate-via-redis-backend.md`,
-  `US-013-cross-backend-assignment-safety-tests.md`
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`, `US-0006-coordinate-via-redis-backend.md`,
+  `US-0013-cross-backend-assignment-safety-tests.md`
 - `src/Rebalancer.Redis/Roles/Coordinator.cs`, `src/Rebalancer.SqlServer/Roles/Coordinator.cs`

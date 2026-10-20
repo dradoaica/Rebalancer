@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-001", "US-012", "PRB-0002" ]
+depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-0001", "US-0012", "PRB-0002" ]
 supersedes: [ "ADR-0001", "ADR-0009" ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Explicit providers only: deprecate in 2.2, remove the static `Providers` registry in 3.0
@@ -62,7 +62,7 @@ in 3.0, because the method it governs no longer exists. Until then (2.2.x) its b
 * Good, because the ADR-0001 / ADR-0009 contradiction is resolved by superseding both.
 * Bad, because 3.0 breaks every caller of `Providers.Register` and `new RebalancerClient()`. The migration guide and
   the 3.0 change record must cover it, and the example application must move to an explicit provider.
-* Bad, because US-001 ("register a provider factory") describes the removed path and needs a successor story for 3.0.
+* Bad, because US-0001 ("register a provider factory") describes the removed path and needs a successor story for 3.0.
 
 ### Confirmation
 

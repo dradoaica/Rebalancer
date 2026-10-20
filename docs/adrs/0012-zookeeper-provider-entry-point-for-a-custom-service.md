@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0003", "ADR-0011", "US-007" ]
+depends-on: [ "ADR-0003", "ADR-0011", "US-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Give a caller-supplied `IZooKeeperService` its own `ZooKeeperProvider` constructor
@@ -76,5 +76,5 @@ service is responsible for its ACLs.
 ## More Information
 
 * Implements a prerequisite of [ADR-0011](0011-zookeeper-acls-by-default-in-next-major-version.md). Related:
-  [ADR-0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md), US-007.
+  [ADR-0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md), US-0007.
 * Release: 2.2.0 (additive + deprecation). The removal of the old constructor ships in 3.0 under ADR-0011.

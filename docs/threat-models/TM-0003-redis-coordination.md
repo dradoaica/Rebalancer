@@ -5,9 +5,9 @@ date: 2026-10-18
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-006", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
+depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-0006", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Threat model: Redis coordination backend
@@ -62,7 +62,7 @@ see revision 4.]
 - **In scope:** `RedisProvider`, `LeaseService`, `ClientService`, `ResourceService`, `RedisHash`; the three keys above;
   the `TIME` command used for server time.
 - **Out of scope:** Redis server hardening (persistence, replication, `rename-command`, protected mode); Redis Cluster
-  slot placement (US-006 non-goal).
+  slot placement (US-0006 non-goal).
 - **Assumptions:**
   - The connection string is supplied by the host application and is a secret.
   - The operator seeds `ResourceGroups` and `Resources`.
@@ -135,7 +135,7 @@ see revision 4.]
 - Mitigation (s): the library does not log connection strings (checked 2026-10-18); secret store.
 - Risk: **Medium**.
 - Threat I2: traffic, including the password at `AUTH`, is read on the network.
-- Mitigation (s): `ssl=true` in the connection string with certificate validation (US-006 lists TLS as a deployment
+- Mitigation (s): `ssl=true` in the connection string with certificate validation (US-0006 lists TLS as a deployment
   concern).
 - Risk: **Medium** without TLS.
 
@@ -175,7 +175,7 @@ see revision 4.]
 | Threat / Risk                     | Control (design or runtime)                                                                                                                                                                                                                                                                                                                                                                                                               | Evidence / Reference                                                                                                                                                                |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Spoofing / tampering              | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Clients:{group} ~Dictionary:RBR:ResourceGroups ~List:RBR:Resources`. Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
-| Credential and traffic disclosure | Secret store; `ssl=true`; no connection strings in logs                                                                                                                                                                                                                                                                                                                                                                                   | US-006 Security & compliance                                                                                                                                                        |
+| Credential and traffic disclosure | Secret store; `ssl=true`; no connection strings in logs                                                                                                                                                                                                                                                                                                                                                                                   | US-0006 Security & compliance                                                                                                                                                       |
 | Unsafe deserialization            | Newtonsoft default settings (no `TypeNameHandling`)                                                                                                                                                                                                                                                                                                                                                                                       | `src/Rebalancer.Redis/Utils/RedisHash.cs`                                                                                                                                           |
 | Clients hash growth (D1)          | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                                                                                                                                                                                                                                                                                                                                            | ADR-0014, ADR-0015; `RedisClientRecordTests`                                                                                                                                        |
 | State loss                        | `noeviction` (or equivalent) on the database used                                                                                                                                                                                                                                                                                                                                                                                         | Deployment responsibility                                                                                                                                                           |
@@ -229,7 +229,7 @@ see revision 4.]
   `docs/adrs/0015-store-redis-clients-per-resource-group.md`, `docs/adrs/0016-rebalancer-client-owns-its-provider.md`,
   `docs/adrs/0017-redis-lease-timing-and-atomic-updates.md`,
   `docs/adrs/0008-replace-redis-datatypes-with-direct-newtonsoft-json.md`
-- Related user stories: `docs/user-stories/US-006-coordinate-via-redis-backend.md`
+- Related user stories: `docs/user-stories/US-0006-coordinate-via-redis-backend.md`
 - Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
   `docs/change-records/CR-0003-release-3-0-0.md`
 - Code: `src/Rebalancer.Redis/`

@@ -101,6 +101,8 @@ Release notes `docs/release-notes/3.2.0.md`; migration guide `docs/release-notes
   trunk with this push, and the rollback to 3.1.0 was not rehearsed.
 - **Follow-ups:** 4.0.0 (CR-0006, ADR-0020's layout change) on `agent/redis-4.0-per-group-keys`, after its approvals
   are recorded.
+- **Rollback rehearsal (reported done by dradoaica, 2026-10-20):** rollback to 3.1.0 rehearsed; the rehearsal
+  date and results were not recorded here.
 
 ## Sources
 

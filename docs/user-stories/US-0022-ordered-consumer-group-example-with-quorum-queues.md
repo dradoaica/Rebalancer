@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-20)
 priority: "Should"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0002", "ADR-0019", "ADR-0021", "US-008", "US-009" ]
+depends-on: [ "ADR-0002", "ADR-0019", "ADR-0021", "US-0008", "US-0009" ]
 ---
 
 # User story: RabbitMQ example of an ordered consumer group with quorum queues, single active consumer and dead-lettering
@@ -60,8 +60,8 @@ Project renamed on 2026-10-20 from `Rebalancer.RabbitMq.ExampleWithSqlServerBack
 
 - Decision records: `docs/adrs/0002-…md` (protocol), `docs/adrs/0019-…md`, `docs/adrs/0021-…md` (the overlap window
   the broker-side single active consumer closes for RabbitMQ)
-- Other stories: `docs/user-stories/US-008-run-rabbitmq-example-with-sql-server-backend.md`,
-  `docs/user-stories/US-009-rabbitmq-tools-cli-for-queue-setup.md`. US-008's context still says the example "wires
+- Other stories: `docs/user-stories/US-0008-run-rabbitmq-example-with-sql-server-backend.md`,
+  `docs/user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md`. US-0008's context still says the example "wires
   `Providers.Register`" (removed in 3.0); a dated note there is part of this story.
 
 ## Security & compliance
@@ -81,7 +81,7 @@ Example only. Credentials come from arguments or environment, never from source;
   `examples/Rebalancer.RabbitMq.QuorumQueuesExample` (`QueueConsumers`, `ConversationGuard`, `Settings`); criterion 8
   verified manually on 2026-10-19 (RabbitMQ 4.3.6, SQL Server 2022), results in the example README
 - [x] Tests / checks agreed with a team (dradoaica, 2026-10-20)
-- [x] Docs / runbooks updated if needed – example README, US-008/US-009 notes
+- [x] Docs / runbooks updated if needed – example README, US-0008/US-0009 notes
 - [x] Traceable to change record (if released) - N/A: examples and docs only, not part of a package release
 
 ## Sources

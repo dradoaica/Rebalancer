@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Client options: automatic recovery, restart delay, and assignment delay

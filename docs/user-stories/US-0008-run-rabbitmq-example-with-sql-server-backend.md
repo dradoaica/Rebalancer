@@ -1,12 +1,12 @@
 ---
-id: US-008
+id: US-0008
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Could"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0002", "ADR-0004", "US-002", "US-005" ]
+depends-on: [ "ADR-0002", "ADR-0004", "US-0002", "US-0005" ]
 ---
 
 # User story: Run RabbitMQ sample with SQL Server backend
@@ -24,7 +24,7 @@ depends-on: [ "ADR-0002", "ADR-0004", "US-002", "US-005" ]
 ## Acceptance criteria
 
 1. Sample registers `SqlServerProvider` with a configurable SQL connection string (hardcoded in sample as `(local)` example—documented as developer-local only).
-2. Sample passes `ClientOptions` with `AutoRecoveryOnError` and `RestartDelay` to illustrate US-004 patterns.
+2. Sample passes `ClientOptions` with `AutoRecoveryOnError` and `RestartDelay` to illustrate US-0004 patterns.
 3. On assignment, sample starts consumption for each resource string returned by `GetAssignedResources()`; on unassignment, sample cancels consumer tasks.
 
 ## Non-goals
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0002", "ADR-0004", "US-002", "US-005" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`, `docs/adrs/0004-client-options-recovery-and-assignment-delay.md`
-- Other stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md`, `docs/user-stories/US-002-react-to-assignment-unassignment-and-abort.md`
+- Other stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`, `docs/user-stories/US-0002-react-to-assignment-unassignment-and-abort.md`
 
 ## Security & compliance
 
@@ -59,7 +59,9 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — N/A (accepted by dradoaica, 2026-10-20): delivered before change records were introduced; later changes
+  to the example are traced in `docs/change-records/CR-0002-release-2-2-0-deprecations.md` (2.2.0) and
+  `docs/change-records/CR-0003-release-3-0-0.md` (3.0.0)
 
 ## Sources
 

@@ -6,7 +6,7 @@ opened: 2026-10-18
 owner: ""
 approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 severity: "High (false confidence in assignment-safety coverage)"
-depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-010", "CR-0001" ]
+depends-on: [ "ADR-0001", "ADR-0003", "ADR-0009", "US-0010", "CR-0001" ]
 ---
 
 # Problem record: ZooKeeper integration tests ran with the first test's provider
@@ -23,7 +23,7 @@ not exercised.
 - **Symptoms:** In a 14-test run of `SingleClientTests` + `MultiClientTests` on 2026-10-18, the GlobalBarrier-only log
   line `Coordinator - Get active clients and resources` appeared 40 times. The ResourceBarrier-only line
   `Coordinator - Get clients and resources list` appeared 0 times, although 7 of those tests are named `ResourceBarrier_*`.
-- **Impact:** US-010 and ADR 0003 cite these tests as evidence that both modes uphold the safety invariant; for
+- **Impact:** US-0010 and ADR 0003 cite these tests as evidence that both modes uphold the safety invariant; for
   ResourceBarrier that evidence did not exist. The randomised suite's per-test configurations were also not applied.
 
 ## Timeline
@@ -95,5 +95,5 @@ None after the fix.
 
 - `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (Consequences: first registration wins)
 - `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md`
-- `docs/user-stories/US-010-zookeeper-tests-uphold-assignment-safety.md`
+- `docs/user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md`
 - `tests/Rebalancer.IntegrationTests/ZooKeeper/`

@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0006", "US-003", "US-006" ]
+depends-on: [ "ADR-0006", "US-0003", "US-0006" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # `RebalancerClient` owns and disposes its provider
@@ -62,4 +62,6 @@ supported pattern, and the DI registrations are transient.
   supersedes ADR-0006. On acceptance of all three, a human sets ADR-0006 to `Superseded`. Its single
   `superseded-by` field cannot list three records; record it as `superseded-by: "ADR-0016"` and name ADR-0017 and
   ADR-0018 here.
+* Appended 2026-10-20 at dradoaica's request: `superseded-by` is now a list, and ADR-0006 lists ADR-0016, ADR-0017
+  and ADR-0018. The decision is unchanged.
 * No code change.

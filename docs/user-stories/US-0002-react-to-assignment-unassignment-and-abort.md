@@ -1,12 +1,12 @@
 ---
-id: US-002
+id: US-0002
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0001", "US-001" ]
+depends-on: [ "ADR-0001", "US-0001" ]
 ---
 
 # User story: React to assignment, unassignment, and fatal abort
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0001", "US-001" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- Other stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md`
+- Other stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md`
 
 ## Security & compliance
 
@@ -59,7 +59,9 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - [x] Acceptance criteria met
 - [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) — `docs/change-records/…`
+- [x] Traceable to change record (if released) — N/A (accepted by dradoaica, 2026-10-20): delivered before change records were introduced; later changes
+  in its scope are traced in `docs/change-records/CR-0004-release-3-1-0.md` (3.1.0) and
+  `docs/change-records/CR-0008-release-4-2-0.md` (4.2.0)
 
 ## Sources
 

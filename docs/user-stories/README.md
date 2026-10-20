@@ -12,6 +12,12 @@ Use the template:
 - `NNNN` is the next free number on the **shared trunk**, never reused (see
   `.agents/protocols/multi-human-collaboration.md`).
 
+### Renumbering of 2026-10-20
+
+On 2026-10-20 the maintainer widened the first fourteen identifiers to the four digits of the naming rule:
+`US-001` … `US-014` became `US-0001` … `US-0014`, with the same numbers and titles. Commit messages and other text
+written before that date use the three-digit identifiers.
+
 ## Metadata
 
 Copy the front matter from `user-story-template.md` and keep every key.

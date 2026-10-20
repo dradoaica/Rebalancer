@@ -34,7 +34,7 @@ repository).
   SQL Server least-privilege role, and (4.0) the Redis per-group key move. **`tests/Rebalancer.UnitTests`** — DI
   registration, provider lifecycle, 3.0 API contract, ZooKeeper ACL API, Redis lease decisions, record expiry,
   coordinator demotion and unresponsive followers; no
-  Docker — [US-010](../user-stories/US-010-zookeeper-tests-uphold-assignment-safety.md), [US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md), [US-013](../user-stories/US-013-cross-backend-assignment-safety-tests.md).
+  Docker — [US-0010](../user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md), [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md), [US-0013](../user-stories/US-0013-cross-backend-assignment-safety-tests.md).
 
 ## Out of scope (explicit non-goals for this repo today)
 
@@ -49,7 +49,7 @@ repository).
   per governance, a **superseding ADR** or new ADR plus change record.
 - [ADR 0005](../adrs/0005-dependency-injection-for-provider-registration-v2.md) is **accepted**;
   `Rebalancer.Extensions.DependencyInjection` is the recommended host registration path
-  ([US-012](../user-stories/US-012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
+  ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
 - Current release: **4.2.1** (security patch: CVE-2026-84008 in a SQL Server dependency, ADR-0025). Previous: **4.2.0**
@@ -71,8 +71,8 @@ repository).
 
 ## Roadmap themes (v2)
 
-1. **DI-first registration** — shipped: ADR 0005, US-012, `Rebalancer.Extensions.DependencyInjection`.
-2. **Assignment-safety tests for SqlServer + Redis** — shipped: US-013, `tests/Rebalancer.IntegrationTests` (Docker).
+1. **DI-first registration** — shipped: ADR 0005, US-0012, `Rebalancer.Extensions.DependencyInjection`.
+2. **Assignment-safety tests for SqlServer + Redis** — shipped: US-0013, `tests/Rebalancer.IntegrationTests` (Docker).
 3. **4.1.0** — metrics and traces (ADR-0022), health check package (ADR-0023), randomised SQL Server / Redis tests.
 4. **Next** — CI matrix with Docker (backlog). Formerly listed here: OpenTelemetry
    ([US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md)), health checks

@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "US-0022", "US-0023", "US-008", "US-009", "ADR-0025" ]
+depends-on: [ "US-0022", "US-0023", "US-0008", "US-0009", "ADR-0025" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Dependencies of the RabbitMQ example projects: add a super-streams example, remove Consul
@@ -101,7 +101,7 @@ replaced by `System.Text.Json`).
 * Stories: [US-0022](../user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md) (option A example,
   existing packages), [US-0023](../user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md)
   (guide and super-streams example).
-* Existing examples: [US-008](../user-stories/US-008-run-rabbitmq-example-with-sql-server-backend.md),
-  [US-009](../user-stories/US-009-rabbitmq-tools-cli-for-queue-setup.md).
+* Existing examples: [US-0008](../user-stories/US-0008-run-rabbitmq-example-with-sql-server-backend.md),
+  [US-0009](../user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md).
 * Client documentation: https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 * Guide: [RabbitMQ: ordered consumer groups](../guides/rabbitmq-ordered-consumer-groups.md).

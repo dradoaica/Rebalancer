@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "ADR-0006", "US-006" ]
+depends-on: [ "ADR-0002", "ADR-0006", "US-0006" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Replace the `StackExchange.Redis.DataTypes` dependency with a direct, patched `Newtonsoft.Json` reference
@@ -64,4 +64,4 @@ in the old format is readable.
 ## More Information
 
 * Related: [ADR 0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md),
-  [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md), US-006.
+  [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md), US-0006.

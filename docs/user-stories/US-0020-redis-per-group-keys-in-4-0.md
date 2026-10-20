@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Should"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0020", "ADR-0015", "ADR-0017", "TM-0003", "US-006", "US-0016" ]
+depends-on: [ "ADR-0020", "ADR-0015", "ADR-0017", "TM-0003", "US-0006", "US-0016" ]
 ---
 
 # User story: Keep each Redis resource group's lease and resources in its own keys (4.0)
@@ -67,3 +67,7 @@ Resolves TM-0003's "partial per-group isolation" for moved groups; the move need
 - `docs/adrs/0020-per-group-redis-leases-and-resources.md` (Decision Outcome, Confirmation)
 - `docs/threat-models/TM-0003-redis-coordination.md` (revision 4)
 - `docs/release-notes/migrating-to-4.0.md`
+
+## Note (2026-10-20)
+
+TM-0003 revision 4, "pending review" under Security & compliance, was accepted by dradoaica on 2026-10-19.

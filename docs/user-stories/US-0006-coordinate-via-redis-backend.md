@@ -1,12 +1,12 @@
 ---
-id: US-006
+id: US-0006
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Must"
 ssdlc-phase: Maintenance     # as-built documentation
-depends-on: [ "ADR-0001", "ADR-0002", "US-005" ]
+depends-on: [ "ADR-0001", "ADR-0002", "US-0005" ]
 ---
 
 # User story: Coordinate via Redis backend
@@ -35,7 +35,7 @@ depends-on: [ "ADR-0001", "ADR-0002", "US-005" ]
 ## Dependencies
 
 - Decision records: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`, `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- Other stories: `docs/user-stories/US-005-coordinate-via-sql-server-backend.md` (conceptual sibling)
+- Other stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (conceptual sibling)
 
 ## Security & compliance
 

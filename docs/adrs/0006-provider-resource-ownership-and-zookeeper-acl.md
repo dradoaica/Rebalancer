@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0001", "ADR-0002", "ADR-0003", "US-003", "US-006", "US-007" ]
+depends-on: [ "ADR-0001", "ADR-0002", "ADR-0003", "US-0003", "US-0006", "US-0007" ]
 supersedes: [ ]
-superseded-by: "ADR-0016"
+superseded-by: [ "ADR-0016", "ADR-0017", "ADR-0018" ]
 ---
 
 # Provider resource ownership, Redis server-time leases, and ZooKeeper ACLs
@@ -71,4 +71,4 @@ so always uses `OPEN_ACL_UNSAFE`.
 * Builds on [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md),
   [ADR 0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md),
   [ADR 0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md).
-* Stories: US-003 (shutdown), US-006 (Redis), US-007 (ZooKeeper).
+* Stories: US-0003 (shutdown), US-0006 (Redis), US-0007 (ZooKeeper).

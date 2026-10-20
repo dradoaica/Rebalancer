@@ -8,7 +8,7 @@ risk: "Low"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 2.2.0"
-depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "US-001", "US-007", "US-012", "TM-0001" ]
+depends-on: [ "ADR-0011", "ADR-0012", "ADR-0013", "US-0001", "US-0007", "US-0012", "TM-0001" ]
 ---
 
 # Change record: Rebalancer 2.2.0 – deprecations ahead of 3.0
@@ -106,7 +106,7 @@ Release notes `docs/release-notes/2.2.0.md`: deprecation table with replacements
 - ADRs: `docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md`,
   `docs/adrs/0012-zookeeper-provider-entry-point-for-a-custom-service.md`,
   `docs/adrs/0013-explicit-providers-only-remove-static-registry.md`
-- User stories: `docs/user-stories/US-001-register-provider-and-join-resource-group.md`,
-  `docs/user-stories/US-007-coordinate-via-zookeeper-with-barrier-mode.md`,
-  `docs/user-stories/US-012-register-rebalancer-with-dependency-injection.md`
+- User stories: `docs/user-stories/US-0001-register-provider-and-join-resource-group.md`,
+  `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md`,
+  `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md`
 - Threat model: `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md`

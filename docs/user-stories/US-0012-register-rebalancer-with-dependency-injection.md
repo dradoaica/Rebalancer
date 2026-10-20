@@ -1,5 +1,5 @@
 ---
-id: US-012
+id: US-0012
 status: Done
 date: 2026-04-11
 owner: ""
@@ -66,3 +66,8 @@ were verified by an agent against this story's text on 2026-10-18; the human rea
 - `src/Rebalancer.Core/RebalancerClient.cs`
 - `src/Rebalancer.Extensions.DependencyInjection/`
 - `tests/Rebalancer.UnitTests/`
+
+## Note (2026-10-20)
+
+`src/Rebalancer.Core/Providers.cs` was removed in 3.0 (ADR-0013). A provider is now registered through DI, as this story
+describes, or passed to `RebalancerClient` (US-0015).

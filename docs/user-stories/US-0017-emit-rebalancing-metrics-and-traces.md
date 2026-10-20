@@ -6,7 +6,7 @@ owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19)
 priority: "Could"
 ssdlc-phase: Coding
-depends-on: [ "ADR-0022", "ADR-0002", "ADR-0003", "US-011", "TM-0001" ]
+depends-on: [ "ADR-0022", "ADR-0002", "ADR-0003", "US-0011", "TM-0001" ]
 ---
 
 # User story: Emit rebalancing metrics and traces
@@ -21,7 +21,7 @@ and which node coordinates
 ## Context
 
 Product baseline roadmap theme "Next: OpenTelemetry" (`docs/initial-product-specs/rebalancer-product-baseline.md`).
-Today the library only logs (US-011). `System.Diagnostics.Metrics` and `ActivitySource` come from the
+Today the library only logs (US-0011). `System.Diagnostics.Metrics` and `ActivitySource` come from the
 `System.Diagnostics.DiagnosticSource` package, which `Rebalancer.Core` already resolves transitively (10.0.13, through
 `Microsoft.Extensions.Logging.Abstractions`), so no package is new. The instrument names are a public contract:
 ADR-0022 (Accepted) decides the API and the names.
@@ -45,7 +45,7 @@ ADR-0022 (Accepted) decides the API and the names.
 
 - Decision records: `docs/adrs/0022-rebalancing-telemetry-contract.md` (Accepted); `docs/adrs/0002-…md`,
   `docs/adrs/0003-…md` (protocol events).
-- Other stories: `docs/user-stories/US-011-pluggable-rebalancer-logging.md`
+- Other stories: `docs/user-stories/US-0011-pluggable-rebalancer-logging.md`
 
 ## Security & compliance
 
@@ -71,5 +71,5 @@ Telemetry leaves the process; criterion 4 keeps resource names (which may be sen
 
 - `docs/adrs/0022-rebalancing-telemetry-contract.md`
 - `docs/initial-product-specs/rebalancer-product-baseline.md` (Roadmap themes)
-- `docs/user-stories/US-011-pluggable-rebalancer-logging.md`
+- `docs/user-stories/US-0011-pluggable-rebalancer-logging.md`
 - `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md`

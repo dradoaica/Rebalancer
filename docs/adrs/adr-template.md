@@ -11,7 +11,7 @@ consulted: []              # subject-matter experts consulted (two-way communica
 informed: []               # people kept up to date (one-way communication)
 depends-on: []             # identifiers of records this decision relies on, e.g., [ADR-0003, US-0012]
 supersedes: []             # identifiers of records this decision replaces
-superseded-by: ""          # set when status becomes Superseded, e.g., ADR-0123
+superseded-by: [ ]          # identifiers of the records that replace this one, e.g., [ADR-0123]
 ---
 
 # {short title, representative of a solved problem and found solution}

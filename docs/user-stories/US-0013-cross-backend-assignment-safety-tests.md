@@ -1,12 +1,12 @@
 ---
-id: US-013
+id: US-0013
 status: Done
 date: 2026-04-11
 owner: ""
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-19, retroactive)
 priority: "Should"
 ssdlc-phase: Design
-depends-on: [ "ADR-0002", "US-010" ]
+depends-on: [ "ADR-0002", "US-0010" ]
 ---
 
 # User story: Cross-backend assignment-safety tests
@@ -19,7 +19,7 @@ depends-on: [ "ADR-0002", "US-010" ]
 
 ## Context
 
-Today the ZooKeeper suite under [`tests/Rebalancer.IntegrationTests/ZooKeeper/`](../../tests/Rebalancer.IntegrationTests/ZooKeeper/) provides deep randomized coverage ([US-010](US-010-zookeeper-tests-uphold-assignment-safety.md)). SqlServer and Redis share a structural pattern ([ADR 0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)); dedicated Redis/SQL assignment-safety tests live alongside in the same test project.
+Today the ZooKeeper suite under [`tests/Rebalancer.IntegrationTests/ZooKeeper/`](../../tests/Rebalancer.IntegrationTests/ZooKeeper/) provides deep randomized coverage ([US-0010](US-0010-zookeeper-tests-uphold-assignment-safety.md)). SqlServer and Redis share a structural pattern ([ADR 0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)); dedicated Redis/SQL assignment-safety tests live alongside in the same test project.
 
 ## Acceptance criteria
 
@@ -36,7 +36,7 @@ Today the ZooKeeper suite under [`tests/Rebalancer.IntegrationTests/ZooKeeper/`]
 ## Dependencies
 
 - Decision records: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
-- Other stories: `docs/user-stories/US-010-zookeeper-tests-uphold-assignment-safety.md`
+- Other stories: `docs/user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md`
 
 ## Security & compliance
 

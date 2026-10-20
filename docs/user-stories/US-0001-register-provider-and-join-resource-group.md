@@ -1,5 +1,5 @@
 ---
-id: US-001
+id: US-0001
 status: Done
 date: 2026-04-11
 owner: ""
@@ -68,3 +68,8 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - `src/Rebalancer.Core/RebalancerClient.cs`
 - `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
 - `README.md`
+
+## Note (2026-10-20)
+
+Superseded by [US-0015](US-0015-supply-provider-explicitly-to-rebalancer-client.md): since 3.0 the provider is passed to
+`RebalancerClient` and the static `Providers` registry (`src/Rebalancer.Core/Providers.cs`) no longer exists (ADR-0013). On 2026-10-20 the example project was renamed to `examples/Rebalancer.RabbitMq.QuorumQueuesExample`.

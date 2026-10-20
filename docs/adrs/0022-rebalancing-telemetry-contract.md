@@ -8,9 +8,9 @@ approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
-depends-on: [ "ADR-0002", "ADR-0003", "US-0017", "US-011", "TM-0001" ]
+depends-on: [ "ADR-0002", "ADR-0003", "US-0017", "US-0011", "TM-0001" ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: [ ]
 ---
 
 # Emit metrics and traces through System.Diagnostics, with a fixed instrument contract
@@ -18,7 +18,7 @@ superseded-by: ""
 ## Context and Problem Statement
 
 US-0017 asks for metrics and traces about leadership, rebalances and assignments, so operators can watch a resource
-group in their OpenTelemetry tooling. Today the library only logs (US-011, `IRebalancerLogger`).
+group in their OpenTelemetry tooling. Today the library only logs (US-0011, `IRebalancerLogger`).
 
 This record decides two things together, because the second is what makes the first expensive to reverse:
 the API used to emit telemetry, and the **names** (meter, activity source, instruments, tags). Once dashboards and
@@ -122,7 +122,7 @@ version):**
 
 ## More Information
 
-* Story: [US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md). Logging: [US-011](../user-stories/US-011-pluggable-rebalancer-logging.md).
+* Story: [US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md). Logging: [US-0011](../user-stories/US-0011-pluggable-rebalancer-logging.md).
 * Protocol events: [ADR-0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md),
   [ADR-0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md).
 * Sensitivity of resource names: [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (I1).
