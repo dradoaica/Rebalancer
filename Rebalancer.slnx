@@ -20,6 +20,7 @@
         <File Path="global.json"/>
         <File Path="LICENSE.md"/>
         <File Path="NuGet.Config"/>
+        <File Path="README(cogov-a-sdlc).md"/>
         <File Path="README.md"/>
         <File Path="SECURITY.md"/>
     </Folder>
