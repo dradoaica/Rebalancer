@@ -1,6 +1,6 @@
 ---
 id: CR-0011
-status: Approved
+status: Implemented
 date: 2026-10-24
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only
@@ -87,9 +87,17 @@ Release notes `docs/release-notes/4.3.1.md` (stop logic must tolerate running tw
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled in after execution}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-23 UTC):** `main` fast-forwarded to `76a66ae` ("Release 4.3.1") and pushed by dradoaica.
+  The "Release Packages" run on that push succeeded at 21:32:50 UTC, including "Pack NuGet Packages" and "Push to
+  GitHub Packages" (21:32:47 UTC) (https://github.com/dradoaica/Rebalancer/actions/runs/40027467604). Published
+  package versions were not listed from the agent session.
+- **Deviations:**
+  - The rollback rehearsal 4.3.1 → 4.3.0 was not done before the release.
+  - The ZooKeeper integration suite was not re-run in full on the release head, since no ZooKeeper code changed; the
+    new `ZooKeeper/NetworkFaultTests` (14 cases) and `ZooKeeper/DisconnectionTests` (2/2) were.
+  - The same push carried `1489977`, a formatting-only commit (ADR-0014 note, CR-0010, PRB-0005, TLA+ README,
+    traceability matrix; no wording change).
+- **Follow-ups:** the rollback rehearsal 4.3.1 → 4.3.0 (open), together with 4.3.0 → 4.2.1 (CR-0010).
 
 ## Sources
 

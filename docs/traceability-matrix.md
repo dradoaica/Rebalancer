@@ -81,9 +81,9 @@ test project is added.
 
 ### 4.3.1 records
 
-| Record                                             | Status                                                        | Covers                                       |
-|----------------------------------------------------|---------------------------------------------------------------|----------------------------------------------|
-| [CR-0011](change-records/CR-0011-release-4-3-1.md) | **Approved** (4.3.1); [release notes](release-notes/4.3.1.md) | SQL Server / Redis clean stop; network tests |
+| Record                                             | Status                                                                      | Covers                                       |
+|----------------------------------------------------|-----------------------------------------------------------------------------|----------------------------------------------|
+| [CR-0011](change-records/CR-0011-release-4-3-1.md) | **Implemented** (4.3.1, `76a66ae`); [release notes](release-notes/4.3.1.md) | SQL Server / Redis clean stop; network tests |
 
 ### Threat models
 
