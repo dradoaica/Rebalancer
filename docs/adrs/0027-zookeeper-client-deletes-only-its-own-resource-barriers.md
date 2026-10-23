@@ -1,11 +1,11 @@
 ---
 id: ADR-0027
-status: Proposed
+status: Accepted
 date: 2026-10-23
 decides: "how a ZooKeeper client in resource-barrier mode removes resource barriers, and what it keeps of them across sessions"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]            # set by a human only
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "US-0007", "US-0010" ]
