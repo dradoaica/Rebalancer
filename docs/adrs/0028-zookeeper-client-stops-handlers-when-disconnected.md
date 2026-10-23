@@ -1,11 +1,11 @@
 ---
 id: ADR-0028
-status: Proposed
+status: Accepted
 date: 2026-10-23
 decides: "when a ZooKeeper client stops its resource handlers after losing its connection to the ensemble"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]            # set by a human only
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0021", "ADR-0027" ]
