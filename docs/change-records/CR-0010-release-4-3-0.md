@@ -128,8 +128,7 @@ timeout).
   - **SQL Server:** clean stop: 4.2.1 assigned `r1` after 6.3 s, then 4.3.0 again after 6.3 s. Killed: 4.2.1
     assigned `r1` after 10.3 s (after the lease expired), then 4.3.0 after 6.3 s.
   - **Redis:** clean stop: 4.2.1 after 6.1 s, 4.3.0 again after 6.1 s. Killed: 4.2.1 after 10.1 s, 4.3.0 after 6.1 s.
-  - **ZooKeeper, resource barrier:** clean stop: 4.2.1 after 1.1 s, 4.3.0 after 2.0 s. Killed: 4.2.1 after 8.6 s
-    (after the session expired), 4.3.0 after 0.4 s.
+  - **ZooKeeper, resource barrier:** clean stop: 4.2.1 after 1.1 s, 4.3.0 after 2.0 s. Killed: 4.2.1 after 8.6 s (after the session expired), 4.3.0 after 0.4 s.
   - **ZooKeeper, global barrier:** clean stop: 4.2.1 after 0.8 s, 4.3.0 after 1.4 s. Killed: 4.2.1 after 10.2 s, 4.3.0
     after 1.2 s.
 

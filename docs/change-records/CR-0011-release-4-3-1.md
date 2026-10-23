@@ -107,14 +107,12 @@ Release notes `docs/release-notes/4.3.1.md` (stop logic must tolerate running tw
   - **SQL Server:** clean stop: 4.3.0 assigned `r1` after 6.3 s, then 4.3.1 again after 6.3 s. Killed: 4.3.0
     assigned `r1` after 10.3 s (after the lease expired), then 4.3.1 after 6.3 s.
   - **Redis:** clean stop: 4.3.0 after 6.1 s, 4.3.1 again after 6.1 s. Killed: 4.3.0 after 10.2 s, 4.3.1 after 6.1 s.
-  - **ZooKeeper, resource barrier:** clean stop: 4.3.0 after 1.8 s, 4.3.1 after 1.8 s. Killed: 4.3.0 after 10.2 s
-    (after the session expired), 4.3.1 after 1.8 s.
+  - **ZooKeeper, resource barrier:** clean stop: 4.3.0 after 1.8 s, 4.3.1 after 1.8 s. Killed: 4.3.0 after 10.2 s (after the session expired), 4.3.1 after 1.8 s.
   - **ZooKeeper, global barrier:** clean stop: 4.3.0 after 0.3 s, 4.3.1 after 2.1 s. Killed: 4.3.0 after 9.4 s, 4.3.1
     after 0.9 s.
 
   Result: the rollback plan works as written; no data needs to move back. Found alongside: `db/RebalanserTables.sql`
-  (not packaged; operators install from `db/`) has failed on SQL Server since 4.3.0, because a formatting commit
-  (`972af3b`) split its bracketed names. Fixed in `ed1b953` (catalog identical to the 4.2.1 script's), with a
+  (not packaged; operators install from `db/`) has failed on SQL Server since 4.3.0, because a formatting commit (`972af3b`) split its bracketed names. Fixed in `ed1b953` (catalog identical to the 4.2.1 script's), with a
   regression test that installs from the shipped scripts.
 
 ## Sources
