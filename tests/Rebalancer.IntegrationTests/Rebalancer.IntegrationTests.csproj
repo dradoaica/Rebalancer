@@ -36,6 +36,12 @@
         <Content Include="Sql\rbr-schema.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Include="..\..\db\RebalanserSchema.sql" Link="Sql\RebalanserSchema.sql">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="..\..\db\RebalanserTables.sql" Link="Sql\RebalanserTables.sql">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Content Include="..\..\db\RebalanserLeastPrivilege.sql" Link="Sql\RebalanserLeastPrivilege.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

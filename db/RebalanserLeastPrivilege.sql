@@ -9,7 +9,7 @@
 --   ALTER ROLE [rebalancer_node] ADD MEMBER [rebalancer_orders];
 -- Use a login only Rebalancer nodes use, and give no other principal write access to the RBR schema.
 
-CREATE ROLE [rebalancer_node];
+CREATE ROLE rebalancer_node;
 GO
 GRANT
 SELECT,
@@ -17,12 +17,7 @@ INSERT
 ,
 UPDATE,
 DELETE
-ON [RBR].[Clients] TO [rebalancer_node];
-GRANT
-SELECT,
-UPDATE
-    ON [RBR].[ResourceGroups] TO [rebalancer_node];
-GRANT
-SELECT
-ON [RBR].[Resources] TO [rebalancer_node];
+ON RBR.Clients TO rebalancer_node;
+GRANT SELECT, UPDATE ON RBR.ResourceGroups TO rebalancer_node;
+GRANT SELECT ON RBR.Resources TO rebalancer_node;
 GO

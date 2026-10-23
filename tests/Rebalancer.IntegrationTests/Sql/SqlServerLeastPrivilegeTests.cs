@@ -6,9 +6,9 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.Sql;
 
 /// <summary>
-///     Requires Docker. <c>db/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up):
-///     two nodes whose login holds only that role coordinate, survive a paused follower, and delete their records on a
-///     clean stop (ADR-0014).
+///     Requires Docker. A database installed from the shipped <c>db/</c> scripts works, and
+///     <c>db/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two nodes whose login
+///     holds only that role coordinate, survive a paused follower, and delete their records on a clean stop (ADR-0014).
 /// </summary>
 public sealed class SqlServerLeastPrivilegeTests
 {
@@ -19,7 +19,9 @@ public sealed class SqlServerLeastPrivilegeTests
         await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
         await sql.StartAsync();
         var adminConnectionString = sql.GetConnectionString();
-        await SchemaSetup.ApplyRbrSchemaAsync(adminConnectionString);
+        // installed as an operator would: the shipped scripts, not the tests' rbr-schema.sql
+        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserSchema.sql");
+        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserTables.sql");
         await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserLeastPrivilege.sql");
         var group = "it-sql-role-" + Guid.NewGuid().ToString("N");
         await SchemaSetup.SeedResourceGroupAsync(adminConnectionString, group, PausedNodeScenarios.Resources, 5, 1);
