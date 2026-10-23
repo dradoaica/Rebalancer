@@ -23,6 +23,10 @@ public sealed class SqlServerPausedNodeTests
     public Task FollowerRecoversFromAStoreError_IsAssignedAgain() =>
         RunAsync(PausedNodeScenarios.FollowerRecoversFromAStoreError_IsAssignedAgain);
 
+    [SkippableFact]
+    public Task ACleanStop_RaisesOnUnassignmentBeforeItReturns() =>
+        RunAsync(PausedNodeScenarios.ACleanStop_RaisesOnUnassignmentBeforeItReturns);
+
     private static async Task RunAsync(
         Func<string, Func<IRebalancerProvider>, Func<NodePause, IRebalancerProvider>, Task> scenario
     )

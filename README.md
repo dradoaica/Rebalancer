@@ -191,15 +191,18 @@ this for you.
   coordinator demotion and lease guard, unresponsive followers, ZooKeeper barrier ownership and suspension on
   disconnect (no Docker).
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
-  unavailable): assignment safety, paused follower, stalled coordinator and a follower recovering from a store error
-  (`*PausedNodeTests`), client-record expiry and the coordinator's lease guard,
+  unavailable): assignment safety, paused follower, stalled coordinator, a follower recovering from a store error and
+  a clean stop raising `OnUnassignment` (`*PausedNodeTests`), nodes coming and going over a slow, lossy link
+  (`*NetworkFaultTests`), client-record expiry and the coordinator's lease guard,
   the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, and randomised runs
   (`*RandomisedTests`, 3 minutes each; replay a run with `REBALANCER_RANDOMISED_SEED`, cap it with
   `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live under `ZooKeeper/` and require a running
   **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
-  `ZooKeeper/DisconnectionTests` pauses that cluster's containers (`docker pause`), so it runs alone, and is skipped
-  when the containers below are not running.
+  `ZooKeeper/DisconnectionTests` and `ZooKeeper/NetworkFaultTests` (a partitioned or crashed node, slow lossy links,
+  and the loss of a follower, the leader or the quorum) pause that cluster's containers or cut one node off through a
+  local TCP proxy; they run alone, and are skipped when the containers below are not running. The network-fault tests
+  check what nodes actually process: no resource is ever processed by two nodes at once.
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
 `docker rm -f rbr-it-zk1 rbr-it-zk2 rbr-it-zk3 && docker network rm rbr-it-zk`):

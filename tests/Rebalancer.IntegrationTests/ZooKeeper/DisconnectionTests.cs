@@ -2,7 +2,6 @@ using org.apache.zookeeper;
 using Rebalancer.Core;
 using Rebalancer.IntegrationTests.ZooKeeper.Helpers;
 using Rebalancer.ZooKeeper;
-using System.Diagnostics;
 using Xunit;
 
 namespace Rebalancer.IntegrationTests.ZooKeeper;
@@ -22,8 +21,6 @@ public sealed class EnsemblePauseCollection
 [Collection(EnsemblePauseCollection.Name)]
 public sealed class DisconnectionTests : IDisposable
 {
-    private static readonly string[] EnsembleContainers = ["rbr-it-zk1", "rbr-it-zk2", "rbr-it-zk3",];
-
     // the client sees Disconnected after about two thirds of the session timeout; the pause ends before the session
     // timeout, so ZooKeeper keeps the session and the client's own timer (a third of the timeout later) has not fired
     private static readonly TimeSpan SessionTimeout = TimeSpan.FromSeconds(30);
@@ -40,7 +37,7 @@ public sealed class DisconnectionTests : IDisposable
         RebalancingMode mode
     )
     {
-        Skip.IfNot(EnsembleContainersRunning(), "The ZooKeeper ensemble containers of the README are not running.");
+        Skip.IfNot(ZkEnsemble.ContainersRunning(), "The ZooKeeper ensemble containers of the README are not running.");
         var group = Guid.NewGuid().ToString();
         await zkHelper.InitializeAsync("/rebalancer", TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
         await zkHelper.PrepareResourceGroupAsync(group, "res", 3);
@@ -72,14 +69,14 @@ public sealed class DisconnectionTests : IDisposable
             );
 
             Interlocked.Exchange(ref paused, 1);
-            await DockerAsync("pause");
+            await ZkEnsemble.PauseAsync(ZkEnsemble.Containers);
             try
             {
                 await Task.Delay(Pause);
             }
             finally
             {
-                await DockerAsync("unpause");
+                await ZkEnsemble.UnpauseAsync(ZkEnsemble.Containers);
                 Interlocked.Exchange(ref paused, 0);
             }
 
@@ -109,39 +106,6 @@ public sealed class DisconnectionTests : IDisposable
             Assert.True(DateTime.UtcNow < deadline, failure);
             await Task.Delay(200);
         }
-    }
-
-    private static bool EnsembleContainersRunning()
-    {
-        try
-        {
-            var (exitCode, output) = RunDocker("ps --format {{.Names}}").GetAwaiter().GetResult();
-            return exitCode == 0 && EnsembleContainers.All(output.Split('\n').Select(x => x.Trim()).Contains);
-        }
-        catch (Exception)
-        {
-            return false; // no docker CLI
-        }
-    }
-
-    private static async Task DockerAsync(string command)
-    {
-        var (exitCode, output) = await RunDocker($"{command} {string.Join(" ", EnsembleContainers)}");
-        Assert.True(exitCode == 0, $"docker {command} failed: {output}");
-    }
-
-    private static async Task<(int ExitCode, string Output)> RunDocker(string arguments)
-    {
-        using var process = Process.Start(
-            new ProcessStartInfo("docker", arguments)
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            }
-        )!;
-        var output = await process.StandardOutput.ReadToEndAsync() + await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-        return (process.ExitCode, output);
     }
 
     private static ZooKeeperProvider CreateProvider(RebalancingMode mode) =>

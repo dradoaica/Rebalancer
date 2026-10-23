@@ -201,7 +201,9 @@ public class SqlServerProvider : IRebalancerProvider
 
                         if (parentToken.IsCancellationRequested)
                         {
-                            // clean stop: this client id is never used again (ADR-0014)
+                            // clean stop: the handlers stop before the record goes, so the coordinator reassigns only
+                            // resources nobody processes; this client id is never used again (ADR-0014)
+                            InvokeOnStopForCleanStop(onChangeActions);
                             await clientService.DeleteClientAsync(clientId);
                         }
                         else if (clientService is IFencedClientService fenced)
@@ -351,6 +353,35 @@ public class SqlServerProvider : IRebalancerProvider
         {
             logger.Error(clientId.ToString(), ex.ToString());
         }
+    }
+
+    // StopAsync raises OnUnassignment, as documented and as ZooKeeper does; only if the handlers were started
+    private void InvokeOnStopForCleanStop(OnChangeActions onChangeActions)
+    {
+        if (store.GetResources().AssignmentStatus == AssignmentStatus.AssignmentInProgress)
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var onStopAction in onChangeActions.OnStopActions)
+            {
+                onStopAction.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Error(clientId.ToString(), ex.ToString());
+        }
+
+        store.SetResources(
+            new SetResourcesRequest
+            {
+                AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                Resources = new List<string>(),
+            }
+        );
     }
 
     private void InvokeOnStop(OnChangeActions onChangeActions)

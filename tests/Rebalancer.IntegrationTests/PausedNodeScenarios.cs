@@ -177,6 +177,29 @@ internal static class PausedNodeScenarios
         }
     }
 
+    /// <summary>
+    ///     StopAsync raises OnUnassignment before it returns, as documented: a host that stops its handlers there does
+    ///     not keep processing resources the group gives to another node.
+    /// </summary>
+    public static async Task ACleanStop_RaisesOnUnassignmentBeforeItReturns(
+        string group,
+        Func<IRebalancerProvider> createProvider,
+        Func<NodePause, IRebalancerProvider> createPausableProvider
+    )
+    {
+        using var client = new RebalancerClient(createProvider());
+        var unassigned = 0;
+        client.OnUnassignment += (_, _) => Interlocked.Increment(ref unassigned);
+        await client.StartAsync(group, Options);
+        await WaitUntilAsync(() => Holds(client, Resources), "the node never held both resources");
+        var before = Volatile.Read(ref unassigned);
+
+        await client.StopAsync(TimeSpan.FromSeconds(30));
+
+        Assert.True(Volatile.Read(ref unassigned) > before, "StopAsync returned without raising OnUnassignment");
+        Assert.Empty(Held(client));
+    }
+
     private static IList<string> Held(RebalancerClient client) => client.GetAssignedResources().Resources ?? [];
 
     private static bool Holds(RebalancerClient client, IEnumerable<string> resources) =>
