@@ -8,8 +8,8 @@
 Each folder has `RebalancerStore.tla` (the coordination store) and a protocol module named after the folder. The specs
 document the protocols as implemented; they are not part of the build, and passing them is not a release gate.
 
-Constants that model a **Proposed** decision default to `FALSE` (as built) in every config except the one named after
-the decision; setting them to `TRUE` checks the proposal, which is **not implemented**.
+Constants that model a decision not yet implemented default to `FALSE` (as built) in every config except the one named after
+the decision; setting them to `TRUE` checks the decision as specified.
 
 Running (TLC from `tla2tools.jar`, release page v1.8.0, build 2ef2af8; results below from 2026-10-23):
 

@@ -48,7 +48,7 @@ WithoutSession(s) ==
 DeleteBarriers(res) ==
   [r \in R |-> IF r \in res THEN 0 ELSE barrier[r]]
 
-(* ADR-0027 (Proposed, not implemented): delete only the barriers session s owns. The implementation
+(* ADR-0027 (not implemented): delete only the barriers session s owns. The implementation
    compares the barrier's data with the client id, which is one per session. *)
 DeleteOwnedBarriers(res, s) ==
   [r \in R |-> IF r \in res /\ barrier[r] = s THEN 0 ELSE barrier[r]]

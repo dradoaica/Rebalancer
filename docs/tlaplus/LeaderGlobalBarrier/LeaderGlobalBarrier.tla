@@ -8,7 +8,7 @@
    ZooKeeper's RebalancingMode.GlobalBarrier follows the same barrier; see README.md. *)
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS LongPauses,     \* TRUE: a node can stall longer than the lease / keep-alive expiry (PRB-0001, PRB-0003)
-          LeaseChecks,    \* FALSE: as implemented; TRUE: ADR-0026 (Proposed, not implemented)
+          LeaseChecks,    \* FALSE: as implemented; TRUE: ADR-0026 (not implemented)
           MaxEnvEvents,   \* bound on node starts, stops, crashes and resource changes
           MaxFailures     \* bound on store errors and long pauses
 VARIABLES role,         \* a function of client id to its role: "new" (not started yet), "off" (stopped or crashed),

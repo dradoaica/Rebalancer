@@ -12,8 +12,8 @@
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS P,                 \* the set of processes
           LateExpiryNotice,  \* TRUE: ZooKeeper can expire a session before its process notices
-          BarrierOwnerChecks, \* FALSE: as implemented; TRUE: ADR-0027 (Proposed, not implemented)
-          SuspendOnDisconnect, \* FALSE: as implemented; TRUE: ADR-0028 (Proposed, not implemented)
+          BarrierOwnerChecks, \* FALSE: as implemented; TRUE: ADR-0027 (not implemented)
+          SuspendOnDisconnect, \* FALSE: as implemented; TRUE: ADR-0028 (not implemented)
           MaxSessions,       \* bound on client znodes (sessions) for model checking
           MaxEnvEvents,      \* bound on process starts, stops, crashes and resource changes
           MaxFailures        \* bound on disconnections and errors
