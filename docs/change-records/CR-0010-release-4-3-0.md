@@ -73,7 +73,8 @@ change. Release notes: `docs/release-notes/4.3.0.md`.
   `DisconnectionTests` in both modes (handlers stop while the ensemble is paused and run again when the session
   survives).
 - [x] TLA+: every configuration in `docs/tlaplus/` holds on the code as implemented (2026-10-23).
-- [ ] Rollback procedure validated: 4.3.0 → 4.2.1 on SQL Server, Redis and ZooKeeper (clean stop and killed client).
+- [x] Rollback procedure validated: 4.3.0 → 4.2.1 on SQL Server, Redis and ZooKeeper (clean stop and killed client);
+  after the release, on 2026-10-24 (see Post-implementation).
 - [x] Test suite on the release head (the code of `fix/adr-0028-zookeeper-suspend-on-disconnect`): unit 71/71, SQL
   Server + Redis integration 28/28 (including the randomised runs), ZooKeeper integration 28/28.
 
@@ -117,7 +118,7 @@ timeout).
   - The rollback rehearsal 4.3.0 → 4.2.1 was not done before the release.
   - 2 of the 17 randomised ZooKeeper tests (`LongInterval_SmallClient_LargeResource`, both modes) were stopped
     unfinished at dradoaica's request; the other 15 passed.
-- **Follow-ups:** the rollback rehearsal 4.3.0 → 4.2.1 (open). Done on 2026-10-23: approvals recorded and status set
+- **Follow-ups:** the rollback rehearsal 4.3.0 → 4.2.1, done on 2026-10-24 (below). Done on 2026-10-23: approvals recorded and status set
   to Implemented (at dradoaica's request, after the release); ADR-0014 note; PRB-0005 closed.
 - **Rollback rehearsal (performed after release, 2026-10-24):** the released 4.3.0 (`b39c166`) and 4.2.1 (`732ecd7`)
   built side by side from their release commits and run as single clients against shared containers (SQL Server
