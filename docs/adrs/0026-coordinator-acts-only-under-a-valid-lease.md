@@ -1,11 +1,11 @@
 ---
 id: ADR-0026
-status: Proposed
+status: Accepted
 date: 2026-10-23
 decides: "how a SQL Server or Redis coordinator confirms it still holds the lease before it acts, and what it keeps between tenures"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
-decision-makers: [ ]
+approved-by: [ "dradoaica" ]            # set by a human only
+decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "ADR-0021", "PRB-0001", "PRB-0003", "US-0005", "US-0006" ]
