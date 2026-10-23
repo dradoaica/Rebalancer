@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Rebalancer.Redis.Clients;
 
-internal class ClientService : IClientService
+internal class ClientService : IClientService, IFencedClientService
 {
     private const int MaxCompareAndSetAttempts = 10;
 
@@ -96,10 +96,27 @@ internal class ClientService : IClientService
             }
         );
 
-    public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> clientStartRequests)
+    public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> clientStartRequests) =>
+        StartActivityAsync(null, Guid.Empty, fencingToken, clientStartRequests);
+
+    public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
+        StopActivityAsync(null, Guid.Empty, fencingToken, clients);
+
+    public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken) =>
+        !(await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken)).IsNull;
+
+    // resourceGroup null: no lease guard (the public IClientService members)
+    public Task<ModifyClientResult> StartActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        List<ClientStartRequest> clientStartRequests
+    )
     {
         var requests = clientStartRequests.ToDictionary(x => x.ClientId);
         return ModifyClientsAsync(
+            resourceGroup,
+            coordinatorClientId,
             fencingToken,
             requests.Keys.ToList(),
             client =>
@@ -110,14 +127,41 @@ internal class ClientService : IClientService
         );
     }
 
-    public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
+    // resourceGroup null: no lease guard (the public IClientService members)
+    public Task<ModifyClientResult> StopActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        List<Client> clients
+    ) =>
         ModifyClientsAsync(
+            resourceGroup,
+            coordinatorClientId,
             fencingToken,
             clients.Select(x => x.ClientId).ToList(),
             client =>
             {
                 client.CoordinatorStatus = CoordinatorStatus.StopActivity;
                 client.AssignedResources = new List<string>();
+            }
+        );
+
+    public Task ResetClientAsync(Guid clientId) =>
+        RedisHash.CompareAndSetAsync<Client, bool>(
+            cache,
+            ClientsKey,
+            RedisHash.Encode(clientId),
+            (client, _) =>
+            {
+                if (client == null)
+                {
+                    return (null, false);
+                }
+
+                client.ClientStatus = ClientStatus.Waiting;
+                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
+                client.AssignedResources = new List<string>();
+                return (client, true);
             }
         );
 
@@ -186,9 +230,12 @@ internal class ClientService : IClientService
 
     /// <summary>
     ///     Applies <paramref name="modify" /> to all clients atomically: either every client exists and has not seen a
-    ///     newer fencing token and all are written, or nothing is written.
+    ///     newer fencing token (and, given <paramref name="resourceGroup" />, the lease still names
+    ///     <paramref name="coordinatorClientId" /> with that token) and all are written, or nothing is written.
     /// </summary>
     private async Task<ModifyClientResult> ModifyClientsAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
         int fencingToken,
         List<Guid> clientIds,
         Action<Client> modify
@@ -215,6 +262,20 @@ internal class ClientService : IClientService
             }
 
             var transaction = cache.CreateTransaction();
+            if (resourceGroup != null)
+            {
+                // ADR-0026: written only while the lease still names this coordinator and token
+                var lease = await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken);
+                if (lease.IsNull)
+                {
+                    return ModifyClientResult.FencingTokenViolation;
+                }
+
+                transaction.AddCondition(
+                    Condition.HashEqual(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup), lease)
+                );
+            }
+
             for (var i = 0; i < fields.Length; i++)
             {
                 transaction.AddCondition(Condition.HashEqual(ClientsKey, fields[i], current[i]));

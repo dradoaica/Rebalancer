@@ -8,7 +8,7 @@ namespace Rebalancer.IntegrationTests.Redis;
 
 /// <summary>
 ///     Requires Docker. A node that stops responding past the lease / keep-alive expiry and then resumes (PRB-0003,
-///     ADR-0019; PRB-0001) against a real Redis.
+///     ADR-0019; PRB-0001; ADR-0026), or whose store call fails once (PRB-0005), against a real Redis.
 /// </summary>
 public sealed class RedisPausedNodeTests
 {
@@ -19,6 +19,10 @@ public sealed class RedisPausedNodeTests
     [SkippableFact]
     public Task CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume() =>
         RunAsync(PausedNodeScenarios.CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume);
+
+    [SkippableFact]
+    public Task FollowerRecoversFromAStoreError_IsAssignedAgain() =>
+        RunAsync(PausedNodeScenarios.FollowerRecoversFromAStoreError_IsAssignedAgain);
 
     private static async Task RunAsync(
         Func<string, Func<IRebalancerProvider>, Func<NodePause, IRebalancerProvider>, Task> scenario

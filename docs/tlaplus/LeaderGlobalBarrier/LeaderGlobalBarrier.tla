@@ -8,7 +8,6 @@
    ZooKeeper's RebalancingMode.GlobalBarrier follows the same barrier; see README.md. *)
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS LongPauses,     \* TRUE: a node can stall longer than the lease / keep-alive expiry (PRB-0001, PRB-0003)
-          LeaseChecks,    \* FALSE: as implemented; TRUE: ADR-0026 (not implemented)
           MaxEnvEvents,   \* bound on node starts, stops, crashes and resource changes
           MaxFailures     \* bound on store errors and long pauses
 VARIABLES role,         \* a function of client id to its role: "new" (not started yet), "off" (stopped or crashed),
@@ -70,8 +69,7 @@ NoDoubleAccess ==
 
 (* The window ADR-0019 / ADR-0021 (option D) accept: after a pause longer than the keep-alive
    expiry, a node may run reassigned resources until its first heartbeat tick (coordinator or
-   follower); outside that window, never. TLC finds counterexamples with a resumed coordinator
-   (MCLongPauses.cfg, see README.md). *)
+   follower); outside that window, never. Holds since ADR-0026 (MCLongPauses.cfg). *)
 NoDoubleAccessOutsideResumeWindow ==
   \A r \in R : Cardinality({ n \in N \ (paused \cup lagging) : r \in access[n] }) <= 1
 
@@ -161,7 +159,9 @@ CoordinatorTick(n) ==
                        \/ resources # known[n].res
                        \/ clients \cup {n} # known[n].clients
                        \* ADR-0026: the cache is keyed by the fencing token, so a new tenure rebalances
-                       \/ LeaseChecks /\ known[n].token # t
+                       \/ known[n].token # t
+                       \* PRB-0005: a client that is stopped and not granted needs an assignment
+                       \/ \E m \in clients : rec[m].status = "waiting" /\ rec[m].cmd = "stop"
       stopRecs == StoppedRecords(clients, t)
       afterStop == [m \in N |-> IF m \in unresponsive /\ stopRecs[m].token <= t
                                   THEN [stopRecs[m] EXCEPT !.cmd = "stop", !.res = {}, !.token = t]
@@ -170,10 +170,10 @@ CoordinatorTick(n) ==
      /\ role[n] = "coordinator"
      /\ rb[n] = "idle"
      /\ lagging' = lagging \ {n}
-     \* ADR-0026: the keep-alive also reads the lease; a fenced-out coordinator stops its handlers
-     /\ IF (\E m \in clients : rec[m].token > t) \/ (LeaseChecks /\ ~LeaseGuard(n, t))
+     \* ADR-0026: the tick first checks the lease; a fenced-out coordinator stops its handlers
+     /\ IF (\E m \in clients : rec[m].token > t) \/ ~LeaseGuard(n, t)
           THEN /\ rec' = [rec EXCEPT ![n] = self]
-               /\ access' = [access EXCEPT ![n] = IF reRegistered \/ LeaseChecks THEN {} ELSE @]
+               /\ access' = [access EXCEPT ![n] = {}]
                /\ FencingViolation(n)
                /\ stoppedFlag' = [stoppedFlag EXCEPT ![n] = flag]
                /\ UNCHANGED << rb, rbRes, rbToken >>
@@ -204,7 +204,7 @@ CoordinatorGrant(n) ==
      /\ \A m \in clients : rec[m].status = "waiting"
      /\ rb' = [rb EXCEPT ![n] = "idle"]
      \* ADR-0026: the grant carries the lease guard
-     /\ IF Fenced(C, t) /\ (LeaseChecks => LeaseGuard(n, t))
+     /\ IF Fenced(C, t) /\ LeaseGuard(n, t)
           THEN /\ rec' = [GrantedRecords(alloc, t) EXCEPT ![n].status = "active"]
                /\ access' = [access EXCEPT ![n] = alloc[n]]
                /\ known' = [known EXCEPT ![n] = [clients |-> C, res |-> rbRes[n], token |-> t]]
@@ -221,8 +221,8 @@ CoordinatorResendStop(n) ==
      /\ rb[n] = "waiting"
      /\ remaining # {}
      \* ADR-0026: StopActivity carries the lease guard (no row changes without the lease)
-     /\ rec' = IF LeaseChecks /\ ~LeaseGuard(n, t) THEN rec ELSE StoppedRecords(remaining, t)
-     /\ IF Fenced(remaining, t) /\ (LeaseChecks => LeaseGuard(n, t))
+     /\ rec' = IF LeaseGuard(n, t) THEN StoppedRecords(remaining, t) ELSE rec
+     /\ IF Fenced(remaining, t) /\ LeaseGuard(n, t)
           THEN UNCHANGED << role, rb >>
           ELSE /\ FencingViolation(n)
                /\ rb' = [rb EXCEPT ![n] = "idle"]
@@ -350,14 +350,15 @@ EnvironmentChange ==
 (* FAILURES *)
 
 (* A store error faults a task: OnAborted, OnStop (sets stoppedDueToInternalErrorFlag), the
-   record is marked Terminated, a coordinator relinquishes its lease, and the tasks restart
+   record is reset as a new registration would write it (PRB-0005; a custom client service still
+   marks it Terminated, not modelled), a coordinator relinquishes its lease, and the tasks restart
    (ClientOptions.AutoRecoveryOnError) *)
 StoreError(n) ==
   /\ failCtr < MaxFailures
   /\ Running(n)
   /\ access' = [access EXCEPT ![n] = {}]
   /\ stoppedFlag' = [stoppedFlag EXCEPT ![n] = TRUE]
-  /\ rec' = IF rec[n].present THEN [rec EXCEPT ![n].status = "terminated"] ELSE rec
+  /\ rec' = IF rec[n].present THEN [rec EXCEPT ![n].status = "waiting", ![n].cmd = "stop", ![n].res = {}] ELSE rec
   /\ lease' = IF role[n] = "coordinator" THEN RelinquishedLease(n, myToken[n]) ELSE lease
   /\ role' = [role EXCEPT ![n] = "none"]
   /\ rb' = [rb EXCEPT ![n] = "idle"]

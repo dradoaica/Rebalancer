@@ -5,7 +5,8 @@ namespace Rebalancer.IntegrationTests;
 
 /// <summary>
 ///     Backend-independent scenarios for a SQL Server or Redis node that stops responding longer than the lease /
-///     keep-alive expiry and then resumes. The group must hold exactly <see cref="Resources" /> with a short lease expiry.
+///     keep-alive expiry and then resumes, or whose store call fails once. The group must hold exactly
+///     <see cref="Resources" /> with a short lease expiry.
 /// </summary>
 internal static class PausedNodeScenarios
 {
@@ -119,6 +120,57 @@ internal static class PausedNodeScenarios
             pause.Resume();
             await stalled.StopAsync(TimeSpan.FromSeconds(30));
             await successor.StopAsync(TimeSpan.FromSeconds(30));
+        }
+    }
+
+    /// <summary>
+    ///     PRB-0005: a follower whose keep-alive fails recovers (auto-recovery) and is assigned again; its record must not
+    ///     stay Terminated, which no coordinator includes.
+    /// </summary>
+    public static async Task FollowerRecoversFromAStoreError_IsAssignedAgain(
+        string group,
+        Func<IRebalancerProvider> createProvider,
+        Func<NodePause, IRebalancerProvider> createPausableProvider
+    )
+    {
+        var faults = new NodePause();
+        using var coordinator = new RebalancerClient(createProvider());
+        using var follower = new RebalancerClient(createPausableProvider(faults));
+        var aborted = 0;
+        var assignedAfterAbort = 0;
+        follower.OnAborted += (_, _) => Interlocked.Exchange(ref aborted, 1);
+        follower.OnAssignment += (_, _) =>
+        {
+            if (Volatile.Read(ref aborted) == 1)
+            {
+                Interlocked.Exchange(ref assignedAfterAbort, 1);
+            }
+        };
+        try
+        {
+            await coordinator.StartAsync(group, Options);
+            await WaitUntilAsync(() => Holds(coordinator, Resources), "the first node never held both resources");
+            await follower.StartAsync(group, Options);
+            await WaitUntilAsync(
+                () => Held(follower).Count == 1 && Held(coordinator).Count == 1,
+                "the resources were never split between the two nodes"
+            );
+
+            faults.FailNextKeepAlive();
+            await WaitUntilAsync(() => Volatile.Read(ref aborted) == 1, "the injected store error never reached the follower");
+            await WaitUntilAsync(
+                () => Volatile.Read(ref assignedAfterAbort) == 1 &&
+                      Held(follower).Count == 1 &&
+                      Held(coordinator).Count == 1,
+                "the follower was not assigned again after recovering from the error (PRB-0005)"
+            );
+
+            await AssertNeverBothHoldAResourceAsync(coordinator, follower);
+        }
+        finally
+        {
+            await coordinator.StopAsync(TimeSpan.FromSeconds(30));
+            await follower.StopAsync(TimeSpan.FromSeconds(30));
         }
     }
 

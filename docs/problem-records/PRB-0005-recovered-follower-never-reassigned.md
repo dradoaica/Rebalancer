@@ -35,7 +35,9 @@ becomes the coordinator, or if its process restarts.
 | When       | Event                                                                                                   |
 |------------|---------------------------------------------------------------------------------------------------------|
 | 2026-10-23 | Found by model checking (`docs/tlaplus/LeaderGlobalBarrier/MCRecoveredFollower.cfg`); confirmed in code |
-| 2026-10-23 | Fix designed and checked in the model (see Corrective actions); not implemented                        |
+| 2026-10-23 | Fix designed and checked in the model (see Corrective actions)                                          |
+| 2026-10-23 | Reproduced on a real SQL Server and Redis: `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain` fails without the fix |
+| 2026-10-23 | Fix and regression tests implemented together with ADR-0026 (branch `fix/prb-0005-adr-0026-coordinator-lease`); not released |
 
 ## Evidence
 
@@ -51,7 +53,9 @@ becomes the coordinator, or if its process restarts.
 - `NotifyOfError` → `InvokeOnStop` invokes the stop actions but does not reset the local `ResourceGroupStore`, hence
   the stale state.
 - TLC counterexample (2026-10-23): one store error on a follower; `EventuallyConverged` is violated.
-- Not reproduced against a real store.
+- Reproduced on 2026-10-23 against a real SQL Server and Redis: with one injected keep-alive error and auto-recovery,
+  the follower raised `OnAborted` and was never assigned again within 60 s (`*PausedNodeTests`, run against the code
+  before the fix).
 
 ## Root cause analysis
 
@@ -71,11 +75,11 @@ it.
 
 | Action                                                                                                                                                                                                                                   | Owner | Status                                                         |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|----------------------------------------------------------------|
-| On restart, write the record as a new registration would (`Waiting`, `StopActivity`, no resources, fencing token kept) instead of `Terminated`, and reset the local store to `AssignmentInProgress` (both backends)                      |       | Proposed (checked in the model)                                |
-| The coordinator rebalances when a live client is `Waiting` under `StopActivity` (stopped and not granted), so a restart between two coordinator ticks is not missed                                                                   |       | Proposed (checked in the model)                                |
-| Regression tests: a follower that hits an error with auto-recovery is assigned again and raises `OnAssignment` (unit, both backends; integration with an injected follower error)                                                     |       |                                                                |
-| Remove the now unused `Terminated` handling for restarts (`Coordinator.cs`), keeping `Terminated` only where `IClientService.DeleteClientAsync`'s default still uses it                                                              |       |                                                                |
-| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                                             |       |                                                                |
+| On restart, write the record as a new registration would (`Waiting`, `StopActivity`, no resources, fencing token kept) instead of `Terminated`, and reset the local store to `AssignmentInProgress` (both backends)                      |       | Done, not released: `ResetClientAsync` on the built-in client services (internal `IFencedClientService`); `InvokeOnStop` resets the store |
+| The coordinator rebalances when a live client is `Waiting` under `StopActivity` (stopped and not granted), so a restart between two coordinator ticks is not missed                                                                   |       | Done, not released (`Roles/Coordinator.cs`, both backends)     |
+| Regression tests: a follower that hits an error with auto-recovery is assigned again and raises `OnAssignment` (unit, both backends; integration with an injected follower error)                                                     |       | Done, not released: `*CoordinatorLeaseTests.AClientWaitingUnderStopActivity_IsAssignedAgain`, `*ClientRecordTests.CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken`, `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain`; each fails without the fix |
+| Remove the now unused `Terminated` handling for restarts (`Coordinator.cs`), keeping `Terminated` only where `IClientService.DeleteClientAsync`'s default still uses it                                                              |       | Declined: a custom `IClientService` (without `IFencedClientService`) still marks the record `Terminated` on restart, and the coordinator branch is its only way back |
+| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                                             |       | Open: an Accepted record; a human adds the note                |
 
 Tier: 3 (a bug fix within ADR-0002 and ADR-0014; no schema or public API change). The reviewer confirms or corrects the
 tier. The model shows why both actions are needed: resetting the status to `Waiting` alone is **unsafe**, because the
@@ -83,8 +87,11 @@ record still grants the follower its old resources, which were reassigned meanwh
 
 Checked with TLC on 2026-10-23 in a variant of `LeaderGlobalBarrier.tla` with both actions: one and two store errors,
 liveness holds (15,727 and 91,588 distinct states); safety without long stalls holds (12,956,398); with ADR-0026 and
-long stalls, the resume window holds (5,437,209). The variant is not in the repository yet; it belongs in
-`LeaderGlobalBarrier.tla` with the fix.
+long stalls, the resume window holds (5,437,209). `LeaderGlobalBarrier.tla` models the fix since it was implemented;
+`MCRecoveredFollower.cfg` now holds (see `docs/tlaplus/README.md`).
+
+A custom `IClientService` keeps the old behavior (the record stays `Terminated` after a follower restarts); the fix is in
+the built-in services only, so the public interface is unchanged.
 
 ## Preventive measures
 
@@ -103,9 +110,9 @@ gives up reports `ClientState.Aborted` (US-0021), which a supervisor can act on.
 
 ## Related
 
-The SQL Server `GetActiveClientsAsync` does not select `FencingToken`, so the coordinator tick's `FencingToken >`
-pre-check never fires on SQL Server. It is a separate defect with a different root cause; ADR-0026 (Accepted) makes
-that pre-check redundant and removes it, so it is tracked there, not here.
+The SQL Server `GetActiveClientsAsync` did not select `FencingToken`, so the coordinator tick's `FencingToken >`
+pre-check never fired on SQL Server. It is a separate defect with a different root cause, tracked with ADR-0026; it was
+fixed in the same change (the column is selected; the pre-check stays for custom client services).
 
 ## Closure
 

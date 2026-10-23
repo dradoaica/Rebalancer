@@ -4,11 +4,13 @@ namespace Rebalancer.IntegrationTests;
 ///     Freezes one node's coordination: while paused, every call it makes to the store (lease, client and resource
 ///     services) waits, as it would during a GC pause or VM freeze. Calls already in flight complete. The node's own
 ///     threads and resource handlers keep running, which a real process pause would also freeze; the tests therefore
-///     assert on what the node does after it resumes, not on what it reports while paused.
+///     assert on what the node does after it resumes, not on what it reports while paused. It can also make the node's
+///     next keep-alive fail, as a store error the node recovers from (PRB-0005).
 /// </summary>
 internal sealed class NodePause
 {
     private readonly object sync = new();
+    private int failNextKeepAlive;
     private bool resumed;
     private TaskCompletionSource running = Completed();
 
@@ -69,6 +71,18 @@ internal sealed class NodePause
             {
                 FirstKeepAliveAfterResumeWasStop = isStop;
             }
+        }
+    }
+
+    /// <summary>Makes the node's next keep-alive throw, once.</summary>
+    public void FailNextKeepAlive() => Interlocked.Exchange(ref failNextKeepAlive, 1);
+
+    /// <summary>Throws if <see cref="FailNextKeepAlive" /> was requested and has not been used yet.</summary>
+    public void ThrowIfKeepAliveFailureRequested()
+    {
+        if (Interlocked.Exchange(ref failNextKeepAlive, 0) == 1)
+        {
+            throw new InvalidOperationException("Injected store error");
         }
     }
 

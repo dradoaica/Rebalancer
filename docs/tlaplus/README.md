@@ -45,18 +45,19 @@ Abstractions:
 - ZooKeeper's global-barrier mode is not modelled separately. It maps as: lease and fencing token ↔ lowest sequential
   `clients/c_*` znode and the `epoch` version; per-client `StopActivity` / `ResourcesGranted` ↔ the `status` znode;
   `Waiting` ↔ a child of `stopped`; keep-alive expiry ↔ session expiry; fenced writes ↔ versioned `SetData`.
-- `LeaseChecks = TRUE` models [ADR-0026](../adrs/0026-coordinator-acts-only-under-a-valid-lease.md): the guard
-  `LeaseGuard` (lease row names the coordinator and its token, no expiry clause) on the keep-alive, stop and grant, and
-  a cached view keyed by the token.
+- [ADR-0026](../adrs/0026-coordinator-acts-only-under-a-valid-lease.md) and the
+  [PRB-0005](../problem-records/PRB-0005-recovered-follower-never-reassigned.md) fix are modelled as implemented:
+  `LeaseGuard` (the lease row names the coordinator and its token, no expiry clause) on the tick, the stop and the
+  grant; the cached view keyed by the token; a restart resets the record; a client waiting under `StopActivity` is
+  assigned again. A custom `IClientService` keeps the earlier behavior and is not modelled.
 
 | Config                      | Checks                                                                          | Result                                 |
 |-----------------------------|---------------------------------------------------------------------------------|----------------------------------------|
-| `MCSafety.cfg`              | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                          | holds (10,384,319 distinct states)     |
+| `MCSafety.cfg`              | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                          | holds (12,956,398 distinct states)     |
 | `MCLiveness.cfg`            | `EventuallyConverged` without store errors                                      | holds (36,322 distinct states)         |
-| `MCRecoveredFollower.cfg`   | `EventuallyConverged` with one store error                                      | **violated**, finding 1                |
-| `MCLongPauses.cfg`          | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds)   | **violated**, finding 2                |
-| `MCLongPausesPermanent.cfg` | `EventuallyNoDoubleAccess` with two long stalls                                 | **violated**, finding 3                |
-| `MCLeaseChecks.cfg`         | the two above with ADR-0026                                                     | holds (5,541,720 distinct states)      |
+| `MCRecoveredFollower.cfg`   | `EventuallyConverged` with one store error                                      | holds (15,727); violated before PRB-0005's fix, finding 1 |
+| `MCLongPauses.cfg`          | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds)   | holds (5,437,209); violated before ADR-0026, finding 2 |
+| `MCLongPausesPermanent.cfg` | `EventuallyNoDoubleAccess` with two long stalls                                 | holds (5,437,209); violated before ADR-0026, finding 3 |
 
 A mutation check confirms that `NoDoubleAccess` has teeth: granting without waiting at the barrier violates it.
 
@@ -67,17 +68,19 @@ A mutation check confirms that `NoDoubleAccess` has teeth: granting without wait
    `GetActiveClientsAsync` skips `Terminated` records, so no coordinator includes the follower again. Its keep-alives
    keep the record from expiring (ADR-0014). It gets resources again only if it becomes the coordinator. ADR-0014's
    context ("a node that recovers ... moves it back to `Waiting`") holds for a coordinator only. Tracked in
-   [PRB-0005](../problem-records/PRB-0005-recovered-follower-never-reassigned.md) (Tier 3).
+   [PRB-0005](../problem-records/PRB-0005-recovered-follower-never-reassigned.md) (Tier 3); fixed, not released.
 2. **A resumed coordinator runs reassigned resources for longer than its first tick.** ADR-0019 and PRB-0003 bound the
    window by the first tick after resuming; TLC refutes that for a coordinator: its tick does not check the lease, a
    fenced-out tick returns before stopping its handlers, and a coordinator that stalled at the barrier finishes it on
    its expired lease and starts its own handlers. On SQL Server the tick's `FencingToken >` check never fires, because
-   `GetActiveClientsAsync` does not select `FencingToken` (Redis reads it). Mitigation: ADR-0026.
+   `GetActiveClientsAsync` does not select `FencingToken` (Redis reads it). Fixed by ADR-0026, not released.
 3. **After two long stalls, two clients can run the same resource forever.** The `Coordinator` object keeps its
    clients and resources across tenures; a node that regains the lease and sees the same lists skips rebalancing
-   while still running a resource from its earlier tenure that was reassigned since. Mitigation: ADR-0026.
+   while still running a resource from its earlier tenure that was reassigned since. Fixed by ADR-0026, not released.
 
-Findings 2 and 3 need a stall longer than the lease / keep-alive expiry, the condition ADR-0021 accepts.
+Findings 2 and 3 need a stall longer than the lease / keep-alive expiry, the condition ADR-0021 accepts. Each finding
+was also confirmed in code; finding 1 was reproduced on a real SQL Server and Redis (PRB-0005). The findings describe the
+code before the fixes; the configs above check the code after them.
 
 ## LeaderResourceBarrier
 

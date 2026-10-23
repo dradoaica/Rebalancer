@@ -17,6 +17,8 @@ internal class Coordinator
     private readonly IRebalancerLogger logger;
     private readonly IResourceService resourceService;
     private readonly ResourceGroupStore store;
+    // ADR-0026: the fencing token of the last completed rebalance; a new tenure is a change like any other
+    private int balancedFencingToken;
     private List<Guid> clients;
     private int currentFencingToken;
 
@@ -61,6 +63,15 @@ internal class Coordinator
             stoppedDueToInternalErrorFlag = true;
         }
 
+        // ADR-0026: act only while the lease names this client with the event's token; the event may have been queued
+        // before a stall longer than the lease expiry
+        if (clientService is IFencedClientService fenced &&
+            !await fenced.HoldsLeaseAsync(clientEvent.ResourceGroup, coordinatorClientId, clientEvent.FencingToken))
+        {
+            await StepDownAsync(coordinatorClientId, clientEvent, onChangeActions);
+            return;
+        }
+
         var resourcesNow = (await resourceService.GetResourcesAsync(clientEvent.ResourceGroup)).OrderBy(x => x)
             .ToList();
         var clientsNow = await GetLiveClientsAsync(clientEvent, coordinatorClientId);
@@ -69,7 +80,7 @@ internal class Coordinator
 
         if (clientsNow.Any(x => x.FencingToken > clientEvent.FencingToken))
         {
-            clientEvent.CoordinatorToken.FencingTokenViolation = true;
+            await StepDownAsync(coordinatorClientId, clientEvent, onChangeActions);
             return;
         }
 
@@ -127,6 +138,37 @@ internal class Coordinator
                 coordinatorClientId.ToString(),
                 $"Client change: Old: {string.Join(",", clients.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}"
             );
+            await TriggerRebalancingAsync(
+                coordinatorClientId,
+                clientEvent,
+                clientsNow,
+                resourcesNow,
+                onChangeActions,
+                token
+            );
+        }
+        else if (balancedFencingToken != clientEvent.FencingToken)
+        {
+            logger.Debug(
+                coordinatorClientId.ToString(),
+                $"Tenure change: Old fencing token: {balancedFencingToken} New: {clientEvent.FencingToken}"
+            );
+            await TriggerRebalancingAsync(
+                coordinatorClientId,
+                clientEvent,
+                clientsNow,
+                resourcesNow,
+                onChangeActions,
+                token
+            );
+        }
+        else if (clientsNow.Any(x =>
+                     x.ClientStatus == ClientStatus.Waiting && x.CoordinatorStatus == CoordinatorStatus.StopActivity
+                 ))
+        {
+            // PRB-0005: a client that is stopped and not granted needs an assignment, e.g. one that restarted after an
+            // error between two ticks of this coordinator
+            logger.Debug(coordinatorClientId.ToString(), "Client waiting for an assignment");
             await TriggerRebalancingAsync(
                 coordinatorClientId,
                 clientEvent,
@@ -202,10 +244,10 @@ internal class Coordinator
         logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Requested stop");
         if (clients.Any())
         {
-            var result = await clientService.StopActivityAsync(clientEvent.FencingToken, clients);
+            var result = await StopActivityAsync(coordinatorClientId, clientEvent, clients);
             if (result == ModifyClientResult.FencingTokenViolation)
             {
-                clientEvent.CoordinatorToken.FencingTokenViolation = true;
+                await StepDownAsync(coordinatorClientId, clientEvent, onChangeActions);
                 return false;
             }
 
@@ -261,10 +303,10 @@ internal class Coordinator
                 var clientsRemaining = clientsNow.Where(x => x.ClientStatus != ClientStatus.Waiting).ToList();
                 if (clientsRemaining.Any())
                 {
-                    var result = await clientService.StopActivityAsync(clientEvent.FencingToken, clientsRemaining);
+                    var result = await StopActivityAsync(coordinatorClientId, clientEvent, clientsRemaining);
                     if (result == ModifyClientResult.FencingTokenViolation)
                     {
-                        clientEvent.CoordinatorToken.FencingTokenViolation = true;
+                        await StepDownAsync(coordinatorClientId, clientEvent, onChangeActions);
                         return false;
                     }
 
@@ -328,10 +370,10 @@ internal class Coordinator
             }
 
             logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Resources assigned");
-            var startResult = await clientService.StartActivityAsync(clientEvent.FencingToken, clientStartRequests);
+            var startResult = await StartActivityAsync(coordinatorClientId, clientEvent, clientStartRequests);
             if (startResult == ModifyClientResult.FencingTokenViolation)
             {
-                clientEvent.CoordinatorToken.FencingTokenViolation = true;
+                await StepDownAsync(coordinatorClientId, clientEvent, onChangeActions);
                 return false;
             }
 
@@ -362,6 +404,7 @@ internal class Coordinator
             clientIds.Add(coordinatorClientId);
             this.clients = clientIds;
             this.resources = resources;
+            balancedFencingToken = clientEvent.FencingToken;
             logger.Info(coordinatorClientId.ToString(), "---------- Activity Started -----------");
             return true;
         }
@@ -370,6 +413,55 @@ internal class Coordinator
         logger.Info(coordinatorClientId.ToString(), "!!!");
         return false;
     }
+
+    // ADR-0026: the one way a fenced-out coordinator (lost lease, or a newer token on a record) steps down. It stops its
+    // own handlers and records Waiting, as at the start of a rebalance (PRB-0001), so a newer coordinator's barrier
+    // waits for this node too; the leadership task then asks for the lease again.
+    private async Task StepDownAsync(Guid coordinatorClientId, ClientEvent clientEvent, OnChangeActions onChangeActions)
+    {
+        clientEvent.CoordinatorToken.FencingTokenViolation = true;
+        logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Fenced out by a newer coordinator, stepping down");
+        if (store.GetResources().AssignmentStatus != AssignmentStatus.AssignmentInProgress)
+        {
+            foreach (var onStopAction in onChangeActions.OnStopActions)
+            {
+                onStopAction.Invoke();
+            }
+
+            store.SetResources(
+                new SetResourcesRequest
+                {
+                    AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                    Resources = new List<string>(),
+                }
+            );
+        }
+
+        await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Waiting);
+    }
+
+    // ADR-0026: coordinator writes carry the lease guard where the client service supports it
+    private Task<ModifyClientResult> StopActivityAsync(
+        Guid coordinatorClientId,
+        ClientEvent clientEvent,
+        List<Client> targets
+    ) =>
+        clientService is IFencedClientService fenced
+            ? fenced.StopActivityAsync(clientEvent.ResourceGroup, coordinatorClientId, clientEvent.FencingToken, targets)
+            : clientService.StopActivityAsync(clientEvent.FencingToken, targets);
+
+    private Task<ModifyClientResult> StartActivityAsync(
+        Guid coordinatorClientId,
+        ClientEvent clientEvent,
+        List<ClientStartRequest> requests
+    ) =>
+        clientService is IFencedClientService fenced
+            ? fenced.StartActivityAsync(
+                clientEvent.ResourceGroup,
+                coordinatorClientId,
+                clientEvent.FencingToken,
+                requests
+            ) : clientService.StartActivityAsync(clientEvent.FencingToken, requests);
 
     private async Task WaitFor(TimeSpan waitPeriod, CancellationToken rebalancingToken)
     {
@@ -435,7 +527,7 @@ internal class Coordinator
             return;
         }
 
-        var result = await clientService.StopActivityAsync(clientEvent.FencingToken, unresponsive);
+        var result = await StopActivityAsync(coordinatorClientId, clientEvent, unresponsive);
         if (result != ModifyClientResult.Ok)
         {
             logger.Warn(

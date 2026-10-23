@@ -1,4 +1,5 @@
-﻿using Rebalancer.SqlServer.Connections;
+﻿using Microsoft.Data.SqlClient;
+using Rebalancer.SqlServer.Connections;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace Rebalancer.SqlServer.Clients;
 
-internal class ClientService : IClientService
+internal class ClientService : IClientService, IFencedClientService
 {
+    // the fencing guard of a coordinator write (ADR-0014, ADR-0026): the lease still names this coordinator and token
+    private const string LeaseGuard = @"EXISTS (SELECT 1 FROM [RBR].[ResourceGroups]
+              WHERE ResourceGroup = @ResourceGroup
+                AND CoordinatorId = @CoordinatorId
+                AND FencingToken = @FencingToken)";
+
     private readonly string connectionString;
 
     public ClientService(string connectionString)
@@ -56,6 +63,7 @@ internal class ClientService : IClientService
       ,[LastKeepAlive]
       ,[ClientStatus]
       ,[CoordinatorStatus]
+      ,[FencingToken]
       ,GETUTCDATE() AS [TimeNow]
 FROM [RBR].[Clients] 
 WHERE ResourceGroup = @ResourceGroup
@@ -72,6 +80,7 @@ AND (ClientStatus = 0 OR ClientStatus = 1)";
                         CoordinatorStatus = (CoordinatorStatus)(byte)reader["CoordinatorStatus"],
                         ClientId = (Guid)reader["ClientId"],
                         LastKeepAlive = (DateTime)reader["LastKeepAlive"],
+                        FencingToken = (int)reader["FencingToken"],
                         TimeNow = (DateTime)reader["TimeNow"],
                     };
                     clients.Add(client);
@@ -137,7 +146,29 @@ WHERE ClientId = @ClientId";
         }
     }
 
+    public Task<ModifyClientResult> StartActivityAsync(
+        int fencingToken,
+        List<ClientStartRequest> clientStartRequests
+    ) => StartActivityAsync(null, Guid.Empty, fencingToken, clientStartRequests);
+
+    public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
+        StopActivityAsync(null, Guid.Empty, fencingToken, clients);
+
+    public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken)
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            command.CommandText = $"SELECT CASE WHEN {LeaseGuard} THEN 1 ELSE 0 END";
+            AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
+            return (int)await command.ExecuteScalarAsync() == 1;
+        }
+    }
+
+    // resourceGroup null: no lease guard (the public IClientService members)
     public async Task<ModifyClientResult> StartActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
         int fencingToken,
         List<ClientStartRequest> clientStartRequests
     )
@@ -153,7 +184,8 @@ WHERE ClientId = @ClientId";
       ,[Resources] = @Resources
       ,[FencingToken] = @FencingToken
 WHERE ClientId = @ClientId
-AND FencingToken <= @FencingToken
+AND FencingToken <= @FencingToken" + (resourceGroup == null ? "" : $@"
+AND {LeaseGuard}") + @"
 SELECT @@ROWCOUNT";
 
             foreach (var request in clientStartRequests)
@@ -161,10 +193,10 @@ SELECT @@ROWCOUNT";
                 command.Parameters.Clear();
                 command.Parameters.Add("@CoordinatorStatus", SqlDbType.TinyInt).Value =
                     CoordinatorStatus.ResourcesGranted;
-                command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
                 command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = request.ClientId;
                 command.Parameters.Add("@Resources", SqlDbType.VarChar, -1).Value =
                     string.Join(",", request.AssignedResources);
+                AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
                 var result = (int)await command.ExecuteScalarAsync();
                 if (result == 0)
                 {
@@ -177,14 +209,20 @@ SELECT @@ROWCOUNT";
         }
     }
 
-    public async Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
+    // resourceGroup null: no lease guard (the public IClientService members)
+    public async Task<ModifyClientResult> StopActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        List<Client> clients
+    )
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
             var command = conn.CreateCommand();
-            command.CommandText = GetSetStatusQuery(clients);
+            command.CommandText = GetSetStatusQuery(clients, resourceGroup != null);
             command.Parameters.Add("@CoordinatorStatus", SqlDbType.TinyInt).Value = CoordinatorStatus.StopActivity;
-            command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
+            AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
 
             for (var i = 0; i < clients.Count; i++)
             {
@@ -213,18 +251,13 @@ SELECT @@ROWCOUNT";
         {
             using var command = conn.CreateCommand();
             // age is judged by the database clock; the EXISTS clause is the fencing guard (ADR-0014)
-            command.CommandText = @"DELETE FROM [RBR].[Clients]
+            command.CommandText = $@"DELETE FROM [RBR].[Clients]
 WHERE ResourceGroup = @ResourceGroup
   AND ClientId <> @CoordinatorId
   AND LastKeepAlive < DATEADD(SECOND, -@RetentionSeconds, GETUTCDATE())
-  AND EXISTS (SELECT 1 FROM [RBR].[ResourceGroups]
-              WHERE ResourceGroup = @ResourceGroup
-                AND CoordinatorId = @CoordinatorId
-                AND FencingToken = @FencingToken)
+  AND {LeaseGuard}
 SELECT @@ROWCOUNT";
-            command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
-            command.Parameters.Add("@CoordinatorId", SqlDbType.UniqueIdentifier).Value = coordinatorClientId;
-            command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
+            AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
             command.Parameters.Add("@RetentionSeconds", SqlDbType.Int).Value = (int)Math.Min(
                 int.MaxValue,
                 Math.Ceiling(retention.TotalSeconds)
@@ -244,7 +277,40 @@ SELECT @@ROWCOUNT";
         }
     }
 
-    private string GetSetStatusQuery(List<Client> clients)
+    public async Task ResetClientAsync(Guid clientId)
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            command.CommandText = @"UPDATE [RBR].[Clients]
+   SET [ClientStatus] = @ClientStatus
+      ,[CoordinatorStatus] = @CoordinatorStatus
+      ,[Resources] = ''
+WHERE ClientId = @ClientId";
+            command.Parameters.Add("@ClientStatus", SqlDbType.TinyInt).Value = ClientStatus.Waiting;
+            command.Parameters.Add("@CoordinatorStatus", SqlDbType.TinyInt).Value = CoordinatorStatus.StopActivity;
+            command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = clientId;
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    // @FencingToken always; the lease guard parameters only when resourceGroup is given
+    private static void AddLeaseGuardParameters(
+        SqlCommand command,
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken
+    )
+    {
+        command.Parameters.Add("@FencingToken", SqlDbType.Int).Value = fencingToken;
+        if (resourceGroup != null)
+        {
+            command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
+            command.Parameters.Add("@CoordinatorId", SqlDbType.UniqueIdentifier).Value = coordinatorClientId;
+        }
+    }
+
+    private string GetSetStatusQuery(List<Client> clients, bool leaseGuard)
     {
         StringBuilder sb = new();
         sb.Append(
@@ -267,9 +333,16 @@ WHERE ClientId IN ("
 
         sb.Append(
             @")
-AND FencingToken <= @FencingToken
-SELECT @@ROWCOUNT"
+AND FencingToken <= @FencingToken"
         );
+        if (leaseGuard)
+        {
+            sb.Append($@"
+AND {LeaseGuard}");
+        }
+
+        sb.Append(@"
+SELECT @@ROWCOUNT");
 
         return sb.ToString();
     }

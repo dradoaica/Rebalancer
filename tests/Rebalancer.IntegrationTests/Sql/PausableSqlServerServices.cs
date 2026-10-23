@@ -50,7 +50,8 @@ internal static class PausableSqlServerServices
 
     // forwards every member, including the ones with default implementations (ADR-0014), so the node behaves as the
     // built-in service does
-    private sealed class PausableClientService(IClientService inner, NodePause pause) : IClientService
+    private sealed class PausableClientService(IClientService inner, NodePause pause)
+        : IClientService, IFencedClientService
     {
         public async Task CreateClientAsync(string resourceGroup, Guid clientId)
         {
@@ -67,6 +68,7 @@ internal static class PausableSqlServerServices
         public async Task<Client> KeepAliveAsync(Guid clientId)
         {
             var afterResume = await pause.WaitWhilePausedAsync();
+            pause.ThrowIfKeepAliveFailureRequested();
             var self = await inner.KeepAliveAsync(clientId);
             pause.RecordKeepAlive(afterResume, self.CoordinatorStatus == CoordinatorStatus.StopActivity);
             return self;
@@ -106,5 +108,42 @@ internal static class PausableSqlServerServices
             await pause.WaitWhilePausedAsync();
             await inner.DeleteClientAsync(clientId);
         }
+
+        // ADR-0026 / PRB-0005: the built-in service's internal operations, so the node behaves as it does in production
+        public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken)
+        {
+            await pause.WaitWhilePausedAsync();
+            return await Fenced.HoldsLeaseAsync(resourceGroup, coordinatorClientId, fencingToken);
+        }
+
+        public async Task<ModifyClientResult> StopActivityAsync(
+            string resourceGroup,
+            Guid coordinatorClientId,
+            int fencingToken,
+            List<Client> clients
+        )
+        {
+            await pause.WaitWhilePausedAsync();
+            return await Fenced.StopActivityAsync(resourceGroup, coordinatorClientId, fencingToken, clients);
+        }
+
+        public async Task<ModifyClientResult> StartActivityAsync(
+            string resourceGroup,
+            Guid coordinatorClientId,
+            int fencingToken,
+            List<ClientStartRequest> requests
+        )
+        {
+            await pause.WaitWhilePausedAsync();
+            return await Fenced.StartActivityAsync(resourceGroup, coordinatorClientId, fencingToken, requests);
+        }
+
+        public async Task ResetClientAsync(Guid clientId)
+        {
+            await pause.WaitWhilePausedAsync();
+            await Fenced.ResetClientAsync(clientId);
+        }
+
+        private IFencedClientService Fenced => (IFencedClientService)inner;
     }
 }

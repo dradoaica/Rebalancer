@@ -69,6 +69,64 @@ public sealed class SqlServerClientRecordTests
         );
     }
 
+    // ADR-0026 against a real SQL Server: coordinator writes change nothing unless the lease names that coordinator with
+    // that token; PRB-0005: a reset record looks like a new registration and keeps its token
+    [SkippableFact]
+    public async Task CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
+        await sql.StartAsync();
+        var cs = sql.GetConnectionString();
+        await SchemaSetup.ApplyRbrSchemaAsync(cs);
+        const string group = "orders";
+        await SchemaSetup.SeedResourceGroupAsync(cs, group, "r1");
+        var coordinator = Guid.NewGuid();
+        await ExecAsync(
+            cs,
+            "UPDATE RBR.ResourceGroups SET CoordinatorId = @c, FencingToken = 3 WHERE ResourceGroup = @g",
+            ("@c", coordinator),
+            ("@g", group)
+        );
+        var service = new ClientService(cs);
+        IFencedClientService fenced = service;
+        var follower = Guid.NewGuid();
+        await service.CreateClientAsync(group, follower);
+        var targets = (await service.GetActiveClientsAsync(group)).Where(x => x.ClientId == follower).ToList();
+        List<ClientStartRequest> grant = [new() { ClientId = follower, AssignedResources = ["r1",], },];
+
+        Assert.True(await fenced.HoldsLeaseAsync(group, coordinator, 3));
+        Assert.False(await fenced.HoldsLeaseAsync(group, coordinator, 2));
+        Assert.False(await fenced.HoldsLeaseAsync(group, Guid.NewGuid(), 3));
+
+        Assert.Equal(
+            ModifyClientResult.FencingTokenViolation,
+            await fenced.StartActivityAsync(group, coordinator, 2, grant)
+        );
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+        Assert.Equal(ModifyClientResult.Ok, await fenced.StartActivityAsync(group, coordinator, 3, grant));
+        var granted = await service.KeepAliveAsync(follower);
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, granted.CoordinatorStatus);
+        Assert.Equal(["r1",], granted.AssignedResources);
+
+        Assert.Equal(
+            ModifyClientResult.FencingTokenViolation,
+            await fenced.StopActivityAsync(group, Guid.NewGuid(), 3, targets)
+        );
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+        Assert.Equal(ModifyClientResult.Ok, await fenced.StopActivityAsync(group, coordinator, 3, targets));
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+
+        await fenced.StartActivityAsync(group, coordinator, 3, grant);
+        await service.SetClientStatusAsync(follower, ClientStatus.Active);
+        await fenced.ResetClientAsync(follower);
+        var reset = (await service.GetActiveClientsAsync(group)).Single(x => x.ClientId == follower);
+        Assert.Equal(ClientStatus.Waiting, reset.ClientStatus);
+        Assert.Equal(CoordinatorStatus.StopActivity, reset.CoordinatorStatus);
+        Assert.Equal(3, reset.FencingToken);
+        Assert.Empty((await service.KeepAliveAsync(follower)).AssignedResources);
+    }
+
     private static async Task ExecAsync(string cs, string sql, params (string Name, object Value)[] parameters)
     {
         await using var conn = new SqlConnection(cs);

@@ -235,6 +235,58 @@ public sealed class RedisClientRecordTests
     public void GroupNamesAreEscapedInKeys() =>
         Assert.Equal("RBR:Clients:a%2Ab%20c%C3%A9", (string)RedisHash.GroupKey("Clients", "a*b cé")!);
 
+    // ADR-0026 against a real Redis: coordinator writes change nothing unless the lease names that coordinator with that
+    // token; PRB-0005: a reset record looks like a new registration and keeps its token
+    [SkippableFact]
+    public async Task CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await redis.StartAsync();
+        using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var db = mux.GetDatabase();
+        const string group = "orders";
+        var coordinator = Guid.NewGuid();
+        SeedLease(db, group, coordinator, 3);
+        var service = new ClientService(db);
+        IFencedClientService fenced = service;
+        var follower = Guid.NewGuid();
+        await service.CreateClientAsync(group, follower);
+        var targets = (await service.GetActiveClientsAsync(group)).Where(x => x.ClientId == follower).ToList();
+        List<ClientStartRequest> grant = [new() { ClientId = follower, AssignedResources = ["r1",], },];
+
+        Assert.True(await fenced.HoldsLeaseAsync(group, coordinator, 3));
+        Assert.False(await fenced.HoldsLeaseAsync(group, coordinator, 2));
+        Assert.False(await fenced.HoldsLeaseAsync(group, Guid.NewGuid(), 3));
+
+        Assert.Equal(
+            ModifyClientResult.FencingTokenViolation,
+            await fenced.StartActivityAsync(group, coordinator, 2, grant)
+        );
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+        Assert.Equal(ModifyClientResult.Ok, await fenced.StartActivityAsync(group, coordinator, 3, grant));
+        var granted = await service.KeepAliveAsync(follower);
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, granted.CoordinatorStatus);
+        Assert.Equal(["r1",], granted.AssignedResources);
+
+        Assert.Equal(
+            ModifyClientResult.FencingTokenViolation,
+            await fenced.StopActivityAsync(group, Guid.NewGuid(), 3, targets)
+        );
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+        Assert.Equal(ModifyClientResult.Ok, await fenced.StopActivityAsync(group, coordinator, 3, targets));
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(follower)).CoordinatorStatus);
+
+        await fenced.StartActivityAsync(group, coordinator, 3, grant);
+        await service.SetClientStatusAsync(follower, ClientStatus.Active);
+        await fenced.ResetClientAsync(follower);
+        var reset = await service.KeepAliveAsync(follower);
+        Assert.Equal(ClientStatus.Waiting, reset.ClientStatus);
+        Assert.Equal(CoordinatorStatus.StopActivity, reset.CoordinatorStatus);
+        Assert.Equal(3, reset.FencingToken);
+        Assert.Empty(reset.AssignedResources);
+    }
+
     private static void SeedLease(IDatabase db, string group, Guid coordinator, int fencingToken) =>
         db.HashSet(
             RedisHash.LeaseKey(group),

@@ -217,9 +217,16 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                             // clean stop: this client id is never used again (ADR-0014)
                             await clientService.DeleteClientAsync(clientId);
                         }
+                        else if (clientService is IFencedClientService fenced)
+                        {
+                            // restart after an error (PRB-0005): the record is reused as a new registration would
+                            // write it, so a coordinator includes this client again
+                            await fenced.ResetClientAsync(clientId);
+                        }
                         else
                         {
-                            // restart after an error: the record is reused (Terminated -> Waiting)
+                            // restart after an error with a custom client service: the record is reused
+                            // (Terminated -> Waiting) only if this client becomes the coordinator (PRB-0005)
                             await clientService.SetClientStatusAsync(clientId, ClientStatus.Terminated);
                         }
 
@@ -373,6 +380,15 @@ public class RedisProvider : IRebalancerProvider, IDisposable
         {
             logger.Error(clientId.ToString(), ex.ToString());
         }
+
+        // PRB-0005: the handlers are stopped, so the client no longer reports its old assignment
+        store.SetResources(
+            new SetResourcesRequest
+            {
+                AssignmentStatus = AssignmentStatus.AssignmentInProgress,
+                Resources = new List<string>(),
+            }
+        );
     }
 
     private Task StartLeadershipTask(CancellationToken token, BlockingCollection<ClientEvent> clientEvents) =>
