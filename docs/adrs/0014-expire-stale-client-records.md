@@ -78,3 +78,13 @@ Both backends judge age by the store's clock (SQL Server `GETUTCDATE()`, Redis `
   [TM-0003](../threat-models/TM-0003-redis-coordination.md) (Denial of Service D1). Builds on
   [ADR-0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md).
 * Release: 3.0.0 (behavior change; new configuration option).
+
+## Note (2026-10-23, after 4.3.0)
+
+The context above says a node that recovers moves its `Terminated` record back to `Waiting`. Until 4.3.0 that held
+for a coordinator only: a follower that recovered from an error (auto-recovery) kept its record `Terminated`, which no
+coordinator includes, so it was never assigned again
+([PRB-0005](../problem-records/PRB-0005-recovered-follower-never-reassigned.md)). Since 4.3.0 the built-in client
+services reset a restarted client's record as a new registration would (`Waiting`, `StopActivity`, no resources), and
+the coordinator rebalances when a live client waits under `StopActivity`. A custom `IClientService` keeps the earlier
+behavior. The decision above is unchanged.

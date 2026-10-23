@@ -1,10 +1,10 @@
 ---
 id: PRB-0005
-status: Root cause identified
+status: Closed
 date: 2026-10-23
 opened: 2026-10-23
 owner: "dradoaica"
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only
 severity: "Medium (availability: a recovered follower never takes part again; no double processing)"
 depends-on: [ "ADR-0002", "ADR-0014", "ADR-0023", "ADR-0026", "US-0005", "US-0006", "US-0021" ]
 ---
@@ -79,7 +79,7 @@ it.
 | The coordinator rebalances when a live client is `Waiting` under `StopActivity` (stopped and not granted), so a restart between two coordinator ticks is not missed                                                 |       | Done (4.3.0) (`Roles/Coordinator.cs`, both backends)                                                                                                                                                                                                                     |
 | Regression tests: a follower that hits an error with auto-recovery is assigned again and raises `OnAssignment` (unit, both backends; integration with an injected follower error)                                   |       | Done (4.3.0): `*CoordinatorLeaseTests.AClientWaitingUnderStopActivity_IsAssignedAgain`, `*ClientRecordTests.CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken`, `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain`; each fails without the fix |
 | Remove the now unused `Terminated` handling for restarts (`Coordinator.cs`), keeping `Terminated` only where `IClientService.DeleteClientAsync`'s default still uses it                                             |       | Declined: a custom `IClientService` (without `IFencedClientService`) still marks the record `Terminated` on restart, and the coordinator branch is its only way back                                                                                                           |
-| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                              |       | Open: an Accepted record; a human adds the note                                                                                                                                                                                                                                |
+| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                              |       | Done: "Note (2026-10-23, after 4.3.0)", added at dradoaica's request |
 
 Tier: 3 (a bug fix within ADR-0002 and ADR-0014; no schema or public API change). The reviewer confirms or corrects the
 tier. The model shows why both actions are needed: resetting the status to `Waiting` alone is **unsafe**, because the
@@ -116,9 +116,18 @@ fixed in the same change (the column is selected; the pre-check stays for custom
 
 ## Closure
 
-- **Closed:** {YYYY-MM-DD}
-- **Resolution summary:** {…}
-- **Preventive action verification:** {…}
+- **Closed:** 2026-10-23 (closure review: dradoaica, recorded at their request)
+- **Resolution summary:** fixed in 4.3.0 (CR-0010, `b39c166`). A SQL Server or Redis client that restarts after an
+  error resets its record as a new registration would, instead of marking it `Terminated`, and the coordinator
+  rebalances when a live client waits under `StopActivity`; the local store no longer reports the old assignment. A
+  custom `IClientService` keeps the earlier behavior (documented in the release notes and the architecture overview).
+- **Preventive action verification:**
+  - **Done:** regression tests `*CoordinatorLeaseTests.AClientWaitingUnderStopActivity_IsAssignedAgain` (unit),
+    `*ClientRecordTests.CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken` and
+    `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain` (real SQL Server and Redis; the latter fails
+    without the fix); `docs/tlaplus/LeaderGlobalBarrier/MCRecoveredFollower.cfg` holds on the code as implemented.
+  - **Done:** ADR-0014 note.
+  - **Governance change:** N/A. A code defect found by model checking; no rule, skill or persona gap.
 
 ## Sources
 

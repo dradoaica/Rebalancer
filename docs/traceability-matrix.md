@@ -76,8 +76,8 @@ test project is added.
 
 | Record                                                                      | Status                                                               | Covers                                 |
 |-----------------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------|
-| [CR-0010](change-records/CR-0010-release-4-3-0.md)                          | Released (4.3.0, `b39c166`); status and approvals pending; [release notes](release-notes/4.3.0.md) | ADR-0026, ADR-0027, ADR-0028, PRB-0005 |
-| [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md) | Root cause identified; fix released in 4.3.0; closure review pending         | US-0005, US-0006                       |
+| [CR-0010](change-records/CR-0010-release-4-3-0.md)                          | **Implemented** (4.3.0, `b39c166`); [release notes](release-notes/4.3.0.md) | ADR-0026, ADR-0027, ADR-0028, PRB-0005 |
+| [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md) | Closed (4.3.0)         | US-0005, US-0006                       |
 
 ### Threat models
 

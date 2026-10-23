@@ -1,9 +1,9 @@
 ---
 id: CR-0010
-status: Draft
+status: Implemented
 date: 2026-10-23
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -103,8 +103,8 @@ timeout).
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code) | dradoaica | 2026-10-23 (recorded after the release, at their request) |
+| Release / CAB (or org) | dradoaica | 2026-10-23 (recorded after the release, at their request) |
 
 ## Post-implementation
 
@@ -117,8 +117,8 @@ timeout).
   - The rollback rehearsal 4.3.0 → 4.2.1 was not done before the release.
   - 2 of the 17 randomised ZooKeeper tests (`LongInterval_SmallClient_LargeResource`, both modes) were stopped
     unfinished at dradoaica's request; the other 15 passed.
-- **Follow-ups:** record the approvals and set the status (maintainer); the rollback rehearsal; the dated note on
-  ADR-0014 (PRB-0005); PRB-0005 closure review (maintainer).
+- **Follow-ups:** the rollback rehearsal 4.3.0 → 4.2.1 (open). Done on 2026-10-23: approvals recorded and status set
+  to Implemented (at dradoaica's request, after the release); ADR-0014 note; PRB-0005 closed.
 
 ## Sources
 
