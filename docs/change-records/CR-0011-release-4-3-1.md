@@ -98,6 +98,24 @@ Release notes `docs/release-notes/4.3.1.md` (stop logic must tolerate running tw
   - The same push carried `1489977`, a formatting-only commit (ADR-0014 note, CR-0010, PRB-0005, TLA+ README,
     traceability matrix; no wording change).
 - **Follow-ups:** the rollback rehearsal 4.3.1 → 4.3.0 (open), together with 4.3.0 → 4.2.1 (CR-0010).
+- **Rollback rehearsal (performed after release, 2026-10-24):** the released 4.3.1 (`76a66ae`) and 4.3.0 (`b39c166`)
+  built side by side from their release commits and run as single clients against shared containers (SQL Server
+  2022-CU14, `redis:7.0`) and the README's 3-node ZooKeeper ensemble; one resource `r1`, lease expiry 5 s, ZooKeeper
+  session timeout 10 s. Each scenario ran newer → older → newer on the same group, the newer node ending either with
+  a clean stop or killed (`SIGKILL`) while holding `r1`. No errors, warnings or aborts were logged. The harness was a
+  throwaway console app outside the repository.
+  - **SQL Server:** clean stop: 4.3.0 assigned `r1` after 6.3 s, then 4.3.1 again after 6.3 s. Killed: 4.3.0
+    assigned `r1` after 10.3 s (after the lease expired), then 4.3.1 after 6.3 s.
+  - **Redis:** clean stop: 4.3.0 after 6.1 s, 4.3.1 again after 6.1 s. Killed: 4.3.0 after 10.2 s, 4.3.1 after 6.1 s.
+  - **ZooKeeper, resource barrier:** clean stop: 4.3.0 after 1.8 s, 4.3.1 after 1.8 s. Killed: 4.3.0 after 10.2 s
+    (after the session expired), 4.3.1 after 1.8 s.
+  - **ZooKeeper, global barrier:** clean stop: 4.3.0 after 0.3 s, 4.3.1 after 2.1 s. Killed: 4.3.0 after 9.4 s, 4.3.1
+    after 0.9 s.
+
+  Result: the rollback plan works as written; no data needs to move back. Found alongside: `db/RebalanserTables.sql`
+  (not packaged; operators install from `db/`) has failed on SQL Server since 4.3.0, because a formatting commit
+  (`972af3b`) split its bracketed names. Fixed in `ed1b953` (catalog identical to the 4.2.1 script's), with a
+  regression test that installs from the shipped scripts.
 
 ## Sources
 

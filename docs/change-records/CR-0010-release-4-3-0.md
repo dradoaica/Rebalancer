@@ -119,6 +119,22 @@ timeout).
     unfinished at dradoaica's request; the other 15 passed.
 - **Follow-ups:** the rollback rehearsal 4.3.0 → 4.2.1 (open). Done on 2026-10-23: approvals recorded and status set
   to Implemented (at dradoaica's request, after the release); ADR-0014 note; PRB-0005 closed.
+- **Rollback rehearsal (performed after release, 2026-10-24):** the released 4.3.0 (`b39c166`) and 4.2.1 (`732ecd7`)
+  built side by side from their release commits and run as single clients against shared containers (SQL Server
+  2022-CU14, `redis:7.0`) and the README's 3-node ZooKeeper ensemble; one resource `r1`, lease expiry 5 s, ZooKeeper
+  session timeout 10 s. Each scenario ran newer → older → newer on the same group, the newer node ending either with
+  a clean stop or killed (`SIGKILL`) while holding `r1`. No errors, warnings or aborts were logged. The harness was a
+  throwaway console app outside the repository.
+  - **SQL Server:** clean stop: 4.2.1 assigned `r1` after 6.3 s, then 4.3.0 again after 6.3 s. Killed: 4.2.1
+    assigned `r1` after 10.3 s (after the lease expired), then 4.3.0 after 6.3 s.
+  - **Redis:** clean stop: 4.2.1 after 6.1 s, 4.3.0 again after 6.1 s. Killed: 4.2.1 after 10.1 s, 4.3.0 after 6.1 s.
+  - **ZooKeeper, resource barrier:** clean stop: 4.2.1 after 1.1 s, 4.3.0 after 2.0 s. Killed: 4.2.1 after 8.6 s
+    (after the session expired), 4.3.0 after 0.4 s.
+  - **ZooKeeper, global barrier:** clean stop: 4.2.1 after 0.8 s, 4.3.0 after 1.4 s. Killed: 4.2.1 after 10.2 s, 4.3.0
+    after 1.2 s.
+
+  Result: the rollback plan works as written; no data needs to move back. The `db/RebalanserTables.sql` defect
+  recorded in CR-0011 (rollback rehearsal) dates from this release.
 
 ## Sources
 
