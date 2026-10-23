@@ -101,9 +101,9 @@ timeout).
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
-| Maintainer (code) | dradoaica | 2026-10-23 (recorded after the release, at their request) |
+| Role                   | Name      | Date                                                      |
+|------------------------|-----------|-----------------------------------------------------------|
+| Maintainer (code)      | dradoaica | 2026-10-23 (recorded after the release, at their request) |
 | Release / CAB (or org) | dradoaica | 2026-10-23 (recorded after the release, at their request) |
 
 ## Post-implementation

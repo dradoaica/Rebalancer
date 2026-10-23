@@ -77,7 +77,8 @@ A mutation check confirms that `NoDoubleAccess` has teeth: granting without wait
    `GetActiveClientsAsync` does not select `FencingToken` (Redis reads it). Fixed by ADR-0026, released in 4.3.0.
 3. **After two long stalls, two clients can run the same resource forever.** The `Coordinator` object keeps its
    clients and resources across tenures; a node that regains the lease and sees the same lists skips rebalancing
-   while still running a resource from its earlier tenure that was reassigned since. Fixed by ADR-0026, released in 4.3.0.
+   while still running a resource from its earlier tenure that was reassigned since. Fixed by ADR-0026, released in
+   4.3.0.
 
 Findings 2 and 3 need a stall longer than the lease / keep-alive expiry, the condition ADR-0021 accepts. Each finding
 was also confirmed in code; finding 1 was reproduced on a real SQL Server and Redis (PRB-0005). The findings describe
@@ -140,7 +141,8 @@ A mutation check confirms that `NoDoubleAccess` has teeth: acquiring a held barr
       on the new session deletes the barriers of those resources, which ZooKeeper had already freed and may have given
       to another client. Shown with a variant in which only the cancellation path checks the owner.
 
-   Fixed by ADR-0027, released in 4.3.0. The cancellation path was reproduced on a real ensemble (`BarrierOwnershipTests`,
+   Fixed by ADR-0027, released in 4.3.0. The cancellation path was reproduced on a real ensemble
+   (`BarrierOwnershipTests`,
    which fail against the code before the fix).
 5. **The barrier depends on the process noticing a lost session before ZooKeeper expires it.** The client gives up a
    third of the session timeout after `Disconnected`, which the ZooKeeper Java client raises two thirds of the session
