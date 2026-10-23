@@ -8,21 +8,22 @@ CREATE TABLE RBR.Clients
     LastKeepAlive     DATETIME         NOT NULL,
     ClientStatus      TINYINT          NOT NULL,
     CoordinatorStatus TINYINT          NOT NULL,
-    Resources         VARCHAR(MAX)     NOT NULL,
+    Resources         VARCHAR(MAX
+) NOT NULL,
     FencingToken      INT              NOT NULL,
     CONSTRAINT ConsumersPK PRIMARY KEY CLUSTERED (ClientId ASC)
 );
 
 CREATE TABLE RBR.ResourceGroups
 (
-    ResourceGroup          VARCHAR(100)     NOT NULL,
+    ResourceGroup          VARCHAR(100) NOT NULL,
     CoordinatorId          UNIQUEIDENTIFIER NULL,
-    LastCoordinatorRenewal DATETIME         NULL,
-    CoordinatorServer      NCHAR(500)       NULL,
+    LastCoordinatorRenewal DATETIME NULL,
+    CoordinatorServer      NCHAR(500) NULL,
     LockedByClient         UNIQUEIDENTIFIER NULL,
-    FencingToken           INT              NOT NULL,
-    LeaseExpirySeconds     INT              NOT NULL,
-    HeartbeatSeconds       INT              NOT NULL,
+    FencingToken           INT          NOT NULL,
+    LeaseExpirySeconds     INT          NOT NULL,
+    HeartbeatSeconds       INT          NOT NULL,
     CONSTRAINT ResourceGroupsPK PRIMARY KEY CLUSTERED (ResourceGroup ASC)
 );
 
@@ -33,7 +34,8 @@ CREATE TABLE RBR.Resources
     CONSTRAINT QueuesPK PRIMARY KEY CLUSTERED (ResourceGroup ASC, ResourceName ASC)
 );
 
-ALTER TABLE RBR.Clients ADD DEFAULT (1) FOR FencingToken;
+ALTER TABLE RBR.Clients
+    ADD DEFAULT (1) FOR FencingToken;
 ALTER TABLE RBR.Clients WITH CHECK ADD CONSTRAINT FK_Clients_ResourceGroups FOREIGN KEY (ResourceGroup)
     REFERENCES RBR.ResourceGroups (ResourceGroup);
 ALTER TABLE RBR.Clients CHECK CONSTRAINT FK_Clients_ResourceGroups;
