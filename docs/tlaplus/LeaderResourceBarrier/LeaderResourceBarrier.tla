@@ -12,7 +12,6 @@
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS P,                 \* the set of processes
           LateExpiryNotice,  \* TRUE: ZooKeeper can expire a session before its process notices
-          BarrierOwnerChecks, \* FALSE: as implemented; TRUE: ADR-0027 (not implemented)
           SuspendOnDisconnect, \* FALSE: as implemented; TRUE: ADR-0028 (not implemented)
           MaxSessions,       \* bound on client znodes (sessions) for model checking
           MaxEnvEvents,      \* bound on process starts, stops, crashes and resource changes
@@ -108,11 +107,12 @@ Connected(p) ==
 NotifyCoordinators ==
   trig' = [q \in P |-> trig[q] \/ role[q] = "coordinator"]
 
-(* CleanUpAsync on a live session: a rebalancing in progress is cancelled, which deletes the
-   barriers of all resources being acquired (owned or not); OnStop stops the handlers and
-   deletes the barriers of the resources it ran *)
+(* CleanUpAsync on a live session: a rebalancing in progress is cancelled, which removes the
+   barriers of all resources being acquired; OnStop stops the handlers and removes the barriers of
+   the resources it ran. Each removal deletes a barrier only if this client holds it (ADR-0027). *)
+\* ADR-0027: a client deletes only the barriers its session holds
 DeleteFor(p, res) ==
-  IF BarrierOwnerChecks THEN DeleteOwnedBarriers(res, sid[p]) ELSE DeleteBarriers(res)
+  DeleteOwnedBarriers(res, sid[p])
 
 CleanUpBarriers(p) ==
   DeleteFor(p, (IF phase[p] = "acquiring" THEN want[p] ELSE {}) \cup local[p])
@@ -382,15 +382,15 @@ Reconnect(p) ==
                   assigned, access, envCtr, failCtr >>
 
 (* The disconnected timer (a third of the session timeout) or the Expired event: the process
-   treats the session as expired. CleanUpAsync stops the handlers, but every barrier deletion
-   fails on the expired session, so ResourceManager keeps its resources (ADR-0027 clears them). Then a
+   treats the session as expired. CleanUpAsync stops the handlers; every barrier deletion fails on
+   the expired session, and ResourceManager forgets its resources anyway (ADR-0027). Then a
    new session. *)
 SessionLost(p) ==
   /\ role[p] \in Running
   /\ conn[p] = "down"
   /\ access' = [access EXCEPT ![p] = {}]
-  /\ local' = IF BarrierOwnerChecks THEN [local EXCEPT ![p] = {}] ELSE local
-  /\ assigned' = IF BarrierOwnerChecks THEN [assigned EXCEPT ![p] = FALSE] ELSE assigned
+  /\ local' = [local EXCEPT ![p] = {}]
+  /\ assigned' = [assigned EXCEPT ![p] = FALSE]
   /\ role' = [role EXCEPT ![p] = "nosession"]
   /\ phase' = [phase EXCEPT ![p] = "idle"]
   /\ want' = [want EXCEPT ![p] = {}]

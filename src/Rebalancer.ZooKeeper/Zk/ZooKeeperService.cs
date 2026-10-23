@@ -634,6 +634,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         }
     }
 
+    /// <summary>
+    ///     ADR-0027: deletes the barrier of <paramref name="resource" /> only if it holds this client's id, with the version
+    ///     just read, so a client never removes a barrier another client holds. No barrier, or another client's, is not
+    ///     an error.
+    /// </summary>
     public async Task RemoveResourceBarrierAsync(string resource)
     {
         var actionToPerform = $"remove resource barrier on {resource}";
@@ -644,12 +649,29 @@ public class ZooKeeperService : Watcher, IZooKeeperService
 
             try
             {
-                await zookeeper.deleteAsync($"{resourcesPath}/{resource}/barrier");
+                var (exists, owner, version) = await GetResourceBarrierOwnerAsync(resource);
+                if (exists && owner.Equals(clientId))
+                {
+                    await zookeeper.deleteAsync($"{resourcesPath}/{resource}/barrier", version);
+                }
+
                 succeeded = true;
             }
             catch (KeeperException.NoNodeException)
             {
                 succeeded = true;
+            }
+            catch (KeeperException.BadVersionException)
+            {
+                // the barrier was deleted and created again in between: read its owner again
+            }
+            catch (ZkSessionExpiredException)
+            {
+                throw;
+            }
+            catch (ZkInvalidOperationException)
+            {
+                throw;
             }
             catch (KeeperException.ConnectionLossException)
             {
@@ -688,7 +710,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             }
             catch (KeeperException.NodeExistsException)
             {
-                var (exists, owner) = await GetResourceBarrierOwnerAsync(resource);
+                var (exists, owner, _) = await GetResourceBarrierOwnerAsync(resource);
                 if (exists && owner.Equals(clientId))
                 {
                     succeeded = true;
@@ -1046,7 +1068,7 @@ public class ZooKeeperService : Watcher, IZooKeeperService
         await Task.Yield();
     }
 
-    private async Task<(bool, string)> GetResourceBarrierOwnerAsync(string resource)
+    private async Task<(bool Exists, string Owner, int Version)> GetResourceBarrierOwnerAsync(string resource)
     {
         var actionToPerform = "get resource barrier owner";
         while (true)
@@ -1056,11 +1078,11 @@ public class ZooKeeperService : Watcher, IZooKeeperService
             try
             {
                 var dataResult = await zookeeper.getDataAsync($"{resourcesPath}/{resource}/barrier");
-                return (true, Encoding.UTF8.GetString(dataResult.Data));
+                return (true, Encoding.UTF8.GetString(dataResult.Data), dataResult.Stat.getVersion());
             }
             catch (KeeperException.NoNodeException)
             {
-                return (false, string.Empty);
+                return (false, string.Empty, -1);
             }
             catch (KeeperException.ConnectionLossException)
             {

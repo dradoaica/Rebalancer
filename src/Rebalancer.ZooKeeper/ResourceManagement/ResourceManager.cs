@@ -157,16 +157,14 @@ public class ResourceManager
                     }
                 }
 
-                SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
                 logger.Info(clientId, $"{role} - On stop complete");
-            }
-            else
-            {
-                SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
             }
         }
         finally
         {
+            // ADR-0027: forget the resources even when removing their barriers failed (an expired session), so a later
+            // stop, on a new session, does not act on barriers this client no longer holds
+            SetResources(AssignmentStatus.NoAssignmentYet, new List<string>());
             actionsSemaphore.Release();
         }
     }

@@ -106,16 +106,17 @@ Abstractions:
 - `LateExpiryNotice = TRUE` lets ZooKeeper expire a session before its process notices.
 - Not modelled: `minimumRebalancingInterval`, `OnAssignmentDelay`, a stale cached epoch (`StaleEpoch`), exceptions
   from user handlers, and deleting a resource that still has a barrier (`deleteall`; a plain `delete` fails).
-- `BarrierOwnerChecks = TRUE` models [ADR-0027](../adrs/0027-zookeeper-client-deletes-only-its-own-resource-barriers.md);
-  `SuspendOnDisconnect = TRUE` models [ADR-0028](../adrs/0028-zookeeper-client-stops-handlers-when-disconnected.md):
+- [ADR-0027](../adrs/0027-zookeeper-client-deletes-only-its-own-resource-barriers.md) is modelled as implemented: a
+  client deletes only the barriers it holds, and forgets its resources after a lost session.
+- `SuspendOnDisconnect = TRUE` models [ADR-0028](../adrs/0028-zookeeper-client-stops-handlers-when-disconnected.md):
   the stop actions run at `Disconnected`, and a reconnect makes the client respond to the current table again.
 
 | Config                      | Checks                                                                                  | Result                                  |
 |-----------------------------|-----------------------------------------------------------------------------------------|-----------------------------------------|
-| `MCAsBuilt.cfg`             | `NoDoubleAccess`, no failures                                                           | **violated**, finding 4                 |
-| `MCLiveness.cfg`            | `EventuallyConverged`, no failures                                                      | holds (8,615 distinct states)           |
-| `MCBarrierOwnerChecks.cfg`  | `NoDoubleAccess`, `AccessHoldsBarrier` with ADR-0027, disconnections and errors         | holds (83,241,009 distinct states)      |
-| `MCLateExpiry.cfg`          | `NoDoubleAccess` with ADR-0027, ZooKeeper may expire a session first                    | **violated**, finding 5                 |
+| `MCSafety.cfg`              | `NoDoubleAccess`, `AccessHoldsBarrier`, no failures                                     | holds (143,184); violated before ADR-0027, finding 4 |
+| `MCLiveness.cfg`            | `EventuallyConverged`, no failures                                                      | holds (8,543 distinct states)           |
+| `MCFailures.cfg`            | `NoDoubleAccess`, `AccessHoldsBarrier`, disconnections and errors                       | holds (83,241,009 distinct states)      |
+| `MCLateExpiry.cfg`          | `NoDoubleAccess`, ZooKeeper may expire a session first                                  | **violated**, finding 5                 |
 | `MCSuspendOnDisconnect.cfg` | `NoDoubleAccess`, `AccessHoldsBarrier` with ADR-0027 and ADR-0028, as above             | holds (7,230,389 distinct states)       |
 | `MCSuspendLiveness.cfg`     | `EventuallyConverged` with ADR-0027 and ADR-0028, after disconnections                  | holds (270,311 distinct states)         |
 
@@ -136,11 +137,13 @@ A mutation check confirms that `NoDoubleAccess` has teeth: acquiring a held barr
      on the new session deletes the barriers of those resources, which ZooKeeper had already freed and may have given
      to another client. Shown with a variant in which only the cancellation path checks the owner.
 
-   Mitigation: ADR-0027.
+   Fixed by ADR-0027, not released. The cancellation path was reproduced on a real ensemble
+   (`BarrierOwnershipTests`, which fail against the code before the fix).
 5. **The barrier depends on the process noticing a lost session before ZooKeeper expires it.** The client gives up a
    third of the session timeout after `Disconnected`, which the ZooKeeper Java client raises two thirds of the session
    timeout after the last contact (the .NET client is assumed to match; not verified), so both happen about one
    session timeout after the last contact. If ZooKeeper expires the session first, its barriers go and another client
    can start the resource while the disconnected process still runs it. Mitigation: ADR-0028.
 
-All findings come from model checking and reading the code; none has been reproduced against a real store or ensemble.
+All findings come from model checking and reading the code. Finding 4 (cancellation path) was reproduced on a real
+ensemble; finding 5 has not been reproduced.

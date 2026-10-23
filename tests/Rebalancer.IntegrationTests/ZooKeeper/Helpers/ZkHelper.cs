@@ -173,6 +173,20 @@ public class ZkHelper : Watcher
     public async Task<List<ACL>> GetAclAsync(string relativePath) =>
         (await zookeeper.getACLAsync($"{zkRootPath}/{relativePath}")).Acls;
 
+    /// <summary>The client id a resource's barrier znode holds, or null when there is no barrier.</summary>
+    public async Task<string?> GetBarrierOwnerAsync(string group, string resourceName)
+    {
+        try
+        {
+            var data = await zookeeper.getDataAsync($"{zkRootPath}/{group}/resources/{resourceName}/barrier");
+            return Encoding.UTF8.GetString(data.Data);
+        }
+        catch (KeeperException.NoNodeException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Children of a znode below the root path, read by this helper's own session.</summary>
     public async Task<List<string>> GetChildrenAsync(string relativePath) =>
         (await zookeeper.getChildrenAsync($"{zkRootPath}/{relativePath}")).Children;
