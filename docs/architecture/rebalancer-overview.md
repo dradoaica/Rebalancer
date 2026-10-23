@@ -43,9 +43,8 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.2.1**, a security patch for CVE-2026-84008 (six packages, including
-`Rebalancer.Extensions.Diagnostics.HealthChecks`). Release
-history: [`docs/release-notes/`](../release-notes/).
+Current version: **4.3.0**, coordination safety fixes found by model checking the protocols in TLA+ (six packages;
+CR-0010). Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 
@@ -72,21 +71,38 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
 
 ## Safety mechanisms (SQL Server, Redis)
 
-| Mechanism                                                                                                               | Decision / record   |
-|-------------------------------------------------------------------------------------------------------------------------|---------------------|
-| Coordinator writes are guarded by its lease's fencing token; a newer coordinator wins                                   | ADR-0002            |
-| A demoted coordinator records its status and clears its local state, so its successor's stop barrier includes it        | PRB-0001            |
-| Client records without a keep-alive for 10 × the lease expiry (configurable) are deleted                                | ADR-0014            |
-| A client that stopped responding but still holds resources is told to stop; it does so at its first tick after resuming | ADR-0019, PRB-0003  |
-| No fencing token for resource handlers: a resumed process can run its handlers for up to one follower interval          | ADR-0021 (option D) |
+| Mechanism                                                                                                                                                                                                   | Decision / record   |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| Coordinator writes are guarded by its lease's fencing token; a newer coordinator wins                                                                                                                       | ADR-0002            |
+| A demoted coordinator records its status and clears its local state, so its successor's stop barrier includes it                                                                                            | PRB-0001            |
+| Client records without a keep-alive for 10 × the lease expiry (configurable) are deleted                                                                                                                    | ADR-0014            |
+| A client that stopped responding but still holds resources is told to stop; it does so at its first tick after resuming                                                                                     | ADR-0019, PRB-0003  |
+| A coordinator acts only while the lease names it with its fencing token: each tick checks it, stop and grant carry it, a fenced-out coordinator stops its handlers, and each tenure starts with a rebalance | ADR-0026            |
+| A client that restarts after an error resets its record as a new registration would, so it is assigned again                                                                                                | PRB-0005            |
+| No fencing token for resource handlers: a resumed process can run its handlers for up to one follower interval                                                                                              | ADR-0021 (option D) |
 
 Keep the lease expiry (`LeaseExpirySeconds`) well above the longest pause a node can have (GC, VM freeze); see the
-3.1.0 release notes.
+3.1.0 release notes. The lease guard and the record reset are in the built-in client services only; a custom
+`IClientService` keeps the earlier behavior.
+
+## Safety mechanisms (ZooKeeper)
+
+| Mechanism                                                                                                                         | Decision / record |
+|-----------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| The lowest client znode leads; its table writes carry the expected `resources` version, and the epoch watch demotes a stale one   | ADR-0003          |
+| Resource-barrier mode: a client deletes only the barriers that hold its client id, and forgets its resources after a lost session | ADR-0027          |
+| A client stops its handlers at `Disconnected`, before ZooKeeper can expire its session, and restarts them if the session survives | ADR-0028          |
+
+Keep stop handlers shorter than about a third of the session timeout. A process paused longer than the session timeout
+cannot act at all; that risk stays as ADR-0021 accepts it.
+
+The coordination protocols are specified in TLA+ in [`docs/tlaplus/`](../tlaplus/README.md).
 
 ## Errors
 
 `OnAborted` reports an error. ZooKeeper raises it only when a client gives up; SQL Server and Redis raise it for every
-error, and with auto-recovery the client restarts and is assigned again. A client that gives up reports
+error, and with auto-recovery the client restarts and is assigned again (a follower too since the PRB-0005 fix; until
+then its record stayed `Terminated`). A client that gives up reports
 `ClientState.Aborted` on all three backends (SQL Server and Redis since 4.2.0, US-0021). Hosts should judge
 participation by `GetCurrentState()`, not by the event.
 

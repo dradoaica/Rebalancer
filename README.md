@@ -87,6 +87,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 4.3.0](docs/release-notes/4.3.0.md) — coordination safety fixes found with TLA+ (SQL Server, Redis,
+  ZooKeeper); ZooKeeper handlers stop when the connection is lost; upgrade every node of a group
 - [Release notes 4.2.1](docs/release-notes/4.2.1.md) — **security:** CVE-2026-84008 in a SQL Server dependency; upgrade
 - [Release notes 4.2.0](docs/release-notes/4.2.0.md) — SQL Server / Redis report `Aborted`; health-check and Redis fixes
 - [Release notes 4.1.0](docs/release-notes/4.1.0.md) — metrics and traces, health check package, randomised tests
@@ -173,24 +175,31 @@ this for you.
   node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
   [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once.
 - **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
-  [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md).
-- **All backends:** keep the lease expiry well above the longest pause a node can have (GC, VM freeze); a resumed node
-  stops at its first tick, but its handlers may run briefly before that
-  ([ADR-0019](docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md),
-  [ADR-0021](docs/adrs/0021-assignment-generation-for-resource-handlers.md)).
+  [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md). A client stops its handlers as soon as
+  it loses its connection and restarts them if its session survives, so stop handlers must finish within about a third
+  of the session timeout ([ADR-0028](docs/adrs/0028-zookeeper-client-stops-handlers-when-disconnected.md)).
+- **All backends:** keep the lease expiry (ZooKeeper: the session timeout) well above the longest pause a node can
+  have (GC, VM freeze); a resumed node, coordinator or follower, stops at its first tick, but its handlers may run
+  briefly before that ([ADR-0019](docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md),
+  [ADR-0021](docs/adrs/0021-assignment-generation-for-resource-handlers.md),
+  [ADR-0026](docs/adrs/0026-coordinator-acts-only-under-a-valid-lease.md)).
 
 ### Building and testing
 
 - Solution: [Rebalancer.slnx](Rebalancer.slnx)
 - **`tests/Rebalancer.UnitTests`** — DI registration, provider lifecycle, API contract, lease decisions, record expiry,
-  coordinator demotion, unresponsive followers (no Docker).
+  coordinator demotion and lease guard, unresponsive followers, ZooKeeper barrier ownership and suspension on
+  disconnect (no Docker).
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
-  unavailable): assignment safety, paused follower and stalled coordinator (`*PausedNodeTests`), client-record expiry,
+  unavailable): assignment safety, paused follower, stalled coordinator and a follower recovering from a store error
+  (`*PausedNodeTests`), client-record expiry and the coordinator's lease guard,
   the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, and randomised runs
   (`*RandomisedTests`, 3 minutes each; replay a run with `REBALANCER_RANDOMISED_SEED`, cap it with
   `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live under `ZooKeeper/` and require a running
   **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
+  `ZooKeeper/DisconnectionTests` pauses that cluster's containers (`docker pause`), so it runs alone, and is skipped
+  when the containers below are not running.
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
 `docker rm -f rbr-it-zk1 rbr-it-zk2 rbr-it-zk3 && docker network rm rbr-it-zk`):
