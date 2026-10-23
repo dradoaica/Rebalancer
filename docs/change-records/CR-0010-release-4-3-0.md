@@ -108,9 +108,17 @@ timeout).
 
 ## Post-implementation
 
-- **Actual outcome:** {to be filled in after execution}
-- **Deviations:** {…}
-- **Follow-ups:** {…}
+- **Actual outcome (2026-10-23):** `main` fast-forwarded to `b39c166` ("Release 4.3.0") and pushed by dradoaica. The
+  "Release Packages" run on that push succeeded at 20:35:55 UTC, including "Pack NuGet Packages" and "Push to GitHub
+  Packages" (20:35:51 UTC) (https://github.com/dradoaica/Rebalancer/actions/runs/40020352012). Published package
+  versions were not listed from the agent session.
+- **Deviations:**
+  - Released while this record was still Draft, with no approvals recorded (front matter and Approvals table empty).
+  - The rollback rehearsal 4.3.0 → 4.2.1 was not done before the release.
+  - 2 of the 17 randomised ZooKeeper tests (`LongInterval_SmallClient_LargeResource`, both modes) were stopped
+    unfinished at dradoaica's request; the other 15 passed.
+- **Follow-ups:** record the approvals and set the status (maintainer); the rollback rehearsal; the dated note on
+  ADR-0014 (PRB-0005); PRB-0005 closure review (maintainer).
 
 ## Sources
 
