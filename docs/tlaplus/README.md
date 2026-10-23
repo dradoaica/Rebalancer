@@ -66,7 +66,8 @@ A mutation check confirms that `NoDoubleAccess` has teeth: granting without wait
    only a coordinator resets its own status to `Waiting` (`Coordinator.cs`, the `ClientStatus.Terminated` branch), and
    `GetActiveClientsAsync` skips `Terminated` records, so no coordinator includes the follower again. Its keep-alives
    keep the record from expiring (ADR-0014). It gets resources again only if it becomes the coordinator. ADR-0014's
-   context ("a node that recovers ... moves it back to `Waiting`") holds for a coordinator only. A bug fix (Tier 3).
+   context ("a node that recovers ... moves it back to `Waiting`") holds for a coordinator only. Tracked in
+   [PRB-0005](../problem-records/PRB-0005-recovered-follower-never-reassigned.md) (Tier 3).
 2. **A resumed coordinator runs reassigned resources for longer than its first tick.** ADR-0019 and PRB-0003 bound the
    window by the first tick after resuming; TLC refutes that for a coordinator: its tick does not check the lease, a
    fenced-out tick returns before stopping its handlers, and a coordinator that stalled at the barrier finishes it on

@@ -72,6 +72,12 @@ test project is added.
 | [CR-0009](change-records/CR-0009-release-4-2-1.md)                                        | **Implemented** (4.2.1, `732ecd7`); [release notes](release-notes/4.2.1.md) | ADR-0025, PRB-0004 (CVE-2026-84008)                            |
 | [PRB-0004](problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md) | Closed (4.2.1)                                                              | `System.Security.Cryptography.Pkcs` in the SQL Server packages |
 
+### Open problem records
+
+| Record                                                                            | Status                                     | Covers           |
+|-----------------------------------------------------------------------------------|--------------------------------------------|------------------|
+| [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md)       | Root cause identified; fix not implemented | US-0005, US-0006 |
+
 ### Threat models
 
 | Threat model                                                       | Status                     | Scope                                  |
