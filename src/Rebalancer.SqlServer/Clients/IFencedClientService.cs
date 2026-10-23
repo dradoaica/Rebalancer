@@ -12,9 +12,9 @@ namespace Rebalancer.SqlServer.Clients;
 internal interface IFencedClientService
 {
     /// <summary>
-    ///     ADR-0026: true while the lease of <paramref name="resourceGroup" /> names <paramref name="coordinatorClientId" />
-    ///     with <paramref name="fencingToken" /> (the guard of ADR-0014). Expiry is not checked: another node must write
-    ///     the lease before it can act.
+    ///     ADR-0026: true while the lease of <paramref name="resourceGroup" /> names
+    ///     <paramref name="coordinatorClientId" /> with <paramref name="fencingToken" /> (the guard of ADR-0014). Expiry is
+    ///     not checked: another node must write the lease before it can act.
     /// </summary>
     Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken);
 

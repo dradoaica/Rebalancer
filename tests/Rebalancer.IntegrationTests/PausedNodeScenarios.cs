@@ -124,8 +124,8 @@ internal static class PausedNodeScenarios
     }
 
     /// <summary>
-    ///     PRB-0005: a follower whose keep-alive fails recovers (auto-recovery) and is assigned again; its record must not
-    ///     stay Terminated, which no coordinator includes.
+    ///     PRB-0005: a follower whose keep-alive fails recovers (auto-recovery) and is assigned again; its record must
+    ///     not stay Terminated, which no coordinator includes.
     /// </summary>
     public static async Task FollowerRecoversFromAStoreError_IsAssignedAgain(
         string group,
@@ -157,7 +157,10 @@ internal static class PausedNodeScenarios
             );
 
             faults.FailNextKeepAlive();
-            await WaitUntilAsync(() => Volatile.Read(ref aborted) == 1, "the injected store error never reached the follower");
+            await WaitUntilAsync(
+                () => Volatile.Read(ref aborted) == 1,
+                "the injected store error never reached the follower"
+            );
             await WaitUntilAsync(
                 () => Volatile.Read(ref assignedAfterAbort) == 1 &&
                       Held(follower).Count == 1 &&

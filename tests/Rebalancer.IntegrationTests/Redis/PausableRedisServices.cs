@@ -55,6 +55,8 @@ internal static class PausableRedisServices
     private sealed class PausableClientService(IClientService inner, NodePause pause)
         : IClientService, IFencedClientService
     {
+        private IFencedClientService Fenced => (IFencedClientService)inner;
+
         public async Task CreateClientAsync(string resourceGroup, Guid clientId)
         {
             await pause.WaitWhilePausedAsync();
@@ -145,7 +147,5 @@ internal static class PausableRedisServices
             await pause.WaitWhilePausedAsync();
             await Fenced.ResetClientAsync(clientId);
         }
-
-        private IFencedClientService Fenced => (IFencedClientService)inner;
     }
 }

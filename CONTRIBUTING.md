@@ -26,7 +26,8 @@ You need:
 - Docker, for the SQL Server and Redis integration tests (Testcontainers starts the servers; the tests are skipped when
   Docker is not available);
 - for the ZooKeeper integration tests, a three-node ZooKeeper ensemble on `localhost:2181`, `2182` and `2183`. These
-  tests are **not** skipped automatically – they fail without the ensemble.
+  tests are **not** skipped automatically – they fail without the ensemble. `DisconnectionTests` pauses the ensemble's
+  containers and needs them under the names the [README](README.md) uses (`rbr-it-zk1`..`3`); it is skipped otherwise.
 
 ```shell
 dotnet build Rebalancer.slnx

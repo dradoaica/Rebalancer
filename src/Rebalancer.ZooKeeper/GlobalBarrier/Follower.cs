@@ -190,6 +190,8 @@ public class Follower : Watcher, IFollower
                 if (!disconnectedTimer.IsRunning)
                 {
                     disconnectedTimer.Start();
+                    // ADR-0028: stop the handlers now, before ZooKeeper can expire the session
+                    store.Suspend(clientId, "Follower");
                 }
 
                 break;
@@ -198,6 +200,9 @@ public class Follower : Watcher, IFollower
                 if (disconnectedTimer.IsRunning)
                 {
                     disconnectedTimer.Reset();
+                    store.Resume();
+                    // ADR-0028: the session survived; respond to the current assignment again
+                    events.Add(FollowerEvent.RebalancingTriggered);
                 }
 
                 if (@event.get_Type() == Event.EventType.NodeDeleted)

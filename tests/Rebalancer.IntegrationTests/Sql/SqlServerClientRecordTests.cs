@@ -93,7 +93,14 @@ public sealed class SqlServerClientRecordTests
         var follower = Guid.NewGuid();
         await service.CreateClientAsync(group, follower);
         var targets = (await service.GetActiveClientsAsync(group)).Where(x => x.ClientId == follower).ToList();
-        List<ClientStartRequest> grant = [new() { ClientId = follower, AssignedResources = ["r1",], },];
+        List<ClientStartRequest> grant =
+        [
+            new()
+            {
+                ClientId = follower,
+                AssignedResources = ["r1",],
+            },
+        ];
 
         Assert.True(await fenced.HoldsLeaseAsync(group, coordinator, 3));
         Assert.False(await fenced.HoldsLeaseAsync(group, coordinator, 2));

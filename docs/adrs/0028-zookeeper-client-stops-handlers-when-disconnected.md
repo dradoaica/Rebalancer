@@ -20,8 +20,7 @@ superseded-by: [ ]
 A ZooKeeper client's barriers (resource-barrier mode) and client znode are ephemeral: ZooKeeper deletes them when it
 expires the session, after about one session timeout without contact. Another client can then be assigned the
 resources and start them. The disconnected client stops its handlers only when its own timer fires: the coordinator
-and follower classes start it at `Disconnected` and give up after a third of the session timeout
-(`ZooKeeperProvider` passes `sessionTimeout / 3`). The ZooKeeper Java client raises `Disconnected` two thirds of the
+and follower classes start it at `Disconnected` and give up after a third of the session timeout (`ZooKeeperProvider` passes `sessionTimeout / 3`). The ZooKeeper Java client raises `Disconnected` two thirds of the
 session timeout after the last contact (the .NET client is assumed to match; not verified). Both deadlines therefore
 fall at about one session timeout after the last contact, and nothing guarantees the client stops first.
 
@@ -113,8 +112,7 @@ partition, not only on pathological pauses.
 
 * Found with TLC on 2026-10-23; not reproduced against a real ensemble.
 * Global-barrier mode is not modelled; its follower would re-read the `status` znode on reconnect instead of the table.
-* Apache Curator's guidance for locks treats a suspended connection as a possibly lost lock; A follows that guidance.
-  (External reference, not checked against this repository; please confirm.)
+* Apache Curator's guidance for locks treats a suspended connection as a possibly lost lock; A follows that guidance. (External reference, not checked against this repository; please confirm.)
 * Sources: `docs/tlaplus/README.md` (LeaderResourceBarrier findings), `docs/tlaplus/LeaderResourceBarrier/`,
   `src/Rebalancer.ZooKeeper/ZooKeeperProvider.cs`, `src/Rebalancer.ZooKeeper/ResourceBarrier/Coordinator.cs`,
   `src/Rebalancer.ZooKeeper/ResourceBarrier/Follower.cs`, `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs`,

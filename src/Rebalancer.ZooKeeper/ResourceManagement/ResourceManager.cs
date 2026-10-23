@@ -22,8 +22,15 @@ public class ResourceManager
     private readonly IZooKeeperService zooKeeperService;
     private AssignmentStatus assignmentStatus;
 
+    // ADR-0028: whether the start actions ran and the stop actions did not run since
+    private bool handlersRunning;
+
     // mutable statwe
     private List<string> resources;
+
+    // ADR-0028: set while disconnected; the generation tells a stale suspension from the current one
+    private bool suspended;
+    private int suspensionGeneration;
 
     public ResourceManager(
         IZooKeeperService zooKeeperService,
@@ -48,10 +55,23 @@ public class ResourceManager
         }
     }
 
+    /// <summary>
+    ///     The resources whose handlers run. While suspended (ADR-0028) the handlers are stopped, so none are reported
+    ///     and the client waits for its assignment again.
+    /// </summary>
     public GetResourcesResponse GetResources()
     {
         lock (resourcesLockObj)
         {
+            if (assignmentStatus == AssignmentStatus.ResourcesAssigned && suspended && !handlersRunning)
+            {
+                return new GetResourcesResponse
+                {
+                    Resources = new List<string>(),
+                    AssignmentStatus = AssignmentStatus.NoAssignmentYet,
+                };
+            }
+
             if (assignmentStatus == AssignmentStatus.ResourcesAssigned)
             {
                 return new GetResourcesResponse
@@ -78,6 +98,137 @@ public class ResourceManager
         }
     }
 
+    // the assigned resources, whether or not their handlers run (barriers are held for them)
+    private List<string> GetAssignedResources()
+    {
+        lock (resourcesLockObj)
+        {
+            return assignmentStatus == AssignmentStatus.ResourcesAssigned ? new List<string>(resources)
+                : new List<string>();
+        }
+    }
+
+    private bool IsSuspended()
+    {
+        lock (resourcesLockObj)
+        {
+            return suspended;
+        }
+    }
+
+    /// <summary>
+    ///     ADR-0028: the connection to the ensemble is lost. The stop actions run as soon as no start or stop is in
+    ///     progress, unless the connection comes back first; barriers and assigned resources are kept, and no start actions
+    ///     run until <see cref="Resume" />. Does not wait, so it can be called from a ZooKeeper watcher.
+    /// </summary>
+    internal void Suspend(string clientId, string role)
+    {
+        int generation;
+        lock (resourcesLockObj)
+        {
+            suspended = true;
+            generation = ++suspensionGeneration;
+        }
+
+        logger.Info(clientId, $"{role} - Disconnected: stopping resource handlers until the connection is back");
+        _ = Task.Run(() => StopSuspendedHandlersAsync(clientId, role, generation));
+    }
+
+    /// <summary>ADR-0028: the connection is back with the same session, or a new session starts.</summary>
+    internal void Resume()
+    {
+        lock (resourcesLockObj)
+        {
+            suspended = false;
+            suspensionGeneration++;
+        }
+    }
+
+    /// <summary>
+    ///     ADR-0028, for a coordinator after <see cref="Resume" />: restarts the handlers of its own share, which it
+    ///     still holds (the session survived). A start already in progress makes this a no-op.
+    /// </summary>
+    internal async Task RestartAfterResumeAsync(string clientId, string role)
+    {
+        await actionsSemaphore.WaitAsync();
+        try
+        {
+            var assigned = GetAssignedResources();
+            if (IsSuspended() || handlersRunning || !assigned.Any())
+            {
+                return;
+            }
+
+            logger.Info(clientId, $"{role} - Connection back: restarting resource handlers");
+            InvokeStartActions(clientId, role, assigned);
+        }
+        finally
+        {
+            actionsSemaphore.Release();
+        }
+    }
+
+    private async Task StopSuspendedHandlersAsync(string clientId, string role, int generation)
+    {
+        await actionsSemaphore.WaitAsync();
+        try
+        {
+            lock (resourcesLockObj)
+            {
+                if (generation != suspensionGeneration || !handlersRunning)
+                {
+                    return;
+                }
+            }
+
+            InvokeStopActions(clientId, role);
+        }
+        catch (TerminateClientException)
+        {
+            // logged by InvokeStopActions; the role's own stop path reports the failure again
+        }
+        finally
+        {
+            actionsSemaphore.Release();
+        }
+    }
+
+    private void InvokeStartActions(string clientId, string role, List<string> startResources)
+    {
+        try
+        {
+            logger.Info(clientId, $"{role} - Invoking on start with resources {string.Join(",", startResources)}");
+            foreach (var onStartAction in onChangeActions.OnStartActions)
+            {
+                onStartAction.Invoke(startResources);
+            }
+
+            handlersRunning = true;
+        }
+        catch (Exception e)
+        {
+            logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ", e);
+            throw new TerminateClientException("End user on start actions threw an exception.", e);
+        }
+    }
+
+    private void InvokeStopActions(string clientId, string role)
+    {
+        handlersRunning = false;
+        try
+        {
+            foreach (var onStopAction in onChangeActions.OnStopActions)
+            {
+                onStopAction.Invoke();
+            }
+        }
+        catch (Exception e)
+        {
+            logger.Error(clientId, $"{role} - End user on stop actions threw an exception. Terminating. ", e);
+            throw new TerminateClientException("End user on stop actions threw an exception.", e);
+        }
+    }
+
     public bool IsInStartedState()
     {
         lock (resourcesLockObj)
@@ -93,7 +244,7 @@ public class ResourceManager
 
         try
         {
-            List<string> resourcesToRemove = new(GetResources().Resources);
+            var resourcesToRemove = GetAssignedResources();
             if (resourcesToRemove.Any())
             {
                 logger.Info(
@@ -101,17 +252,10 @@ public class ResourceManager
                     $"{role} - Invoking on stop actions. Unassigned resources {string.Join(",", resourcesToRemove)}"
                 );
 
-                try
+                // ADR-0028: a suspension may have stopped the handlers already
+                if (handlersRunning)
                 {
-                    foreach (var onStopAction in onChangeActions.OnStopActions)
-                    {
-                        onStopAction.Invoke();
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.Error(clientId, $"{role} - End user on stop actions threw an exception. Terminating. ", e);
-                    throw new TerminateClientException("End user on stop actions threw an exception.", e);
+                    InvokeStopActions(clientId, role);
                 }
 
                 if (rebalancingMode == RebalancingMode.ResourceBarrier)
@@ -283,18 +427,14 @@ public class ResourceManager
 
                 SetResources(AssignmentStatus.ResourcesAssigned, newResources);
 
-                try
+                // ADR-0028: no handler starts while disconnected; the reconnect restarts them
+                if (IsSuspended())
                 {
-                    logger.Info(clientId, $"{role} - Invoking on start with resources {string.Join(",", resources)}");
-                    foreach (var onStartAction in onChangeActions.OnStartActions)
-                    {
-                        onStartAction.Invoke(resources);
-                    }
+                    logger.Info(clientId, $"{role} - Disconnected: on start postponed until the connection is back");
                 }
-                catch (Exception e)
+                else
                 {
-                    logger.Error(clientId, $"{role} - End user on start actions threw an exception. Terminating. ", e);
-                    throw new TerminateClientException("End user on start actions threw an exception.", e);
+                    InvokeStartActions(clientId, role, newResources);
                 }
 
                 logger.Info(clientId, $"{role} - On start complete");

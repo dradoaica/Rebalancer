@@ -10,8 +10,8 @@ namespace Rebalancer.UnitTests;
 
 /// <summary>
 ///     Contract (ADR-0026, PRB-0005): a coordinator acts only while the lease names it with its fencing token, a new
-///     tenure always rebalances, and a client that is stopped and not granted is assigned again. Mirrored for Redis
-///     in <see cref="RedisCoordinatorLeaseTests" />.
+///     tenure always rebalances, and a client that is stopped and not granted is assigned again. Mirrored for Redis in
+///     <see cref="RedisCoordinatorLeaseTests" />.
 /// </summary>
 public sealed class SqlServerCoordinatorLeaseTests
 {

@@ -635,9 +635,9 @@ public class ZooKeeperService : Watcher, IZooKeeperService
     }
 
     /// <summary>
-    ///     ADR-0027: deletes the barrier of <paramref name="resource" /> only if it holds this client's id, with the version
-    ///     just read, so a client never removes a barrier another client holds. No barrier, or another client's, is not
-    ///     an error.
+    ///     ADR-0027: deletes the barrier of <paramref name="resource" /> only if it holds this client's id, with the
+    ///     version just read, so a client never removes a barrier another client holds. No barrier, or another client's, is
+    ///     not an error.
     /// </summary>
     public async Task RemoveResourceBarrierAsync(string resource)
     {

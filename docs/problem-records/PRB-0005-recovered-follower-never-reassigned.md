@@ -32,18 +32,17 @@ becomes the coordinator, or if its process restarts.
 
 ## Timeline
 
-| When       | Event                                                                                                   |
-|------------|---------------------------------------------------------------------------------------------------------|
-| 2026-10-23 | Found by model checking (`docs/tlaplus/LeaderGlobalBarrier/MCRecoveredFollower.cfg`); confirmed in code |
-| 2026-10-23 | Fix designed and checked in the model (see Corrective actions)                                          |
+| When       | Event                                                                                                                               |
+|------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-10-23 | Found by model checking (`docs/tlaplus/LeaderGlobalBarrier/MCRecoveredFollower.cfg`); confirmed in code                             |
+| 2026-10-23 | Fix designed and checked in the model (see Corrective actions)                                                                      |
 | 2026-10-23 | Reproduced on a real SQL Server and Redis: `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain` fails without the fix |
-| 2026-10-23 | Fix and regression tests implemented together with ADR-0026 (branch `fix/prb-0005-adr-0026-coordinator-lease`); not released |
+| 2026-10-23 | Fix and regression tests implemented together with ADR-0026 (branch `fix/prb-0005-adr-0026-coordinator-lease`); not released        |
 
 ## Evidence
 
 - `src/Rebalancer.SqlServer/SqlServerProvider.cs` (same in `src/Rebalancer.Redis/RedisProvider.cs`): after a faulted
-  task the restart path calls `SetClientStatusAsync(clientId, ClientStatus.Terminated)` (comment: "the record is reused
-  (Terminated -> Waiting)").
+  task the restart path calls `SetClientStatusAsync(clientId, ClientStatus.Terminated)` (comment: "the record is reused (Terminated -> Waiting)").
 - `Roles/Coordinator.cs`: only the coordinator moves **its own** record from `Terminated` to `Waiting`
   (`self.ClientStatus == ClientStatus.Terminated` branch).
 - `Roles/Follower.cs`: a follower acts only on `StopActivity` + `Active` or `ResourcesGranted` + `Waiting`; with
@@ -73,13 +72,13 @@ it.
 
 ## Corrective actions
 
-| Action                                                                                                                                                                                                                                   | Owner | Status                                                         |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|----------------------------------------------------------------|
-| On restart, write the record as a new registration would (`Waiting`, `StopActivity`, no resources, fencing token kept) instead of `Terminated`, and reset the local store to `AssignmentInProgress` (both backends)                      |       | Done, not released: `ResetClientAsync` on the built-in client services (internal `IFencedClientService`); `InvokeOnStop` resets the store |
-| The coordinator rebalances when a live client is `Waiting` under `StopActivity` (stopped and not granted), so a restart between two coordinator ticks is not missed                                                                   |       | Done, not released (`Roles/Coordinator.cs`, both backends)     |
-| Regression tests: a follower that hits an error with auto-recovery is assigned again and raises `OnAssignment` (unit, both backends; integration with an injected follower error)                                                     |       | Done, not released: `*CoordinatorLeaseTests.AClientWaitingUnderStopActivity_IsAssignedAgain`, `*ClientRecordTests.CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken`, `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain`; each fails without the fix |
-| Remove the now unused `Terminated` handling for restarts (`Coordinator.cs`), keeping `Terminated` only where `IClientService.DeleteClientAsync`'s default still uses it                                                              |       | Declined: a custom `IClientService` (without `IFencedClientService`) still marks the record `Terminated` on restart, and the coordinator branch is its only way back |
-| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                                             |       | Open: an Accepted record; a human adds the note                |
+| Action                                                                                                                                                                                                              | Owner | Status                                                                                                                                                                                                                                                                         |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| On restart, write the record as a new registration would (`Waiting`, `StopActivity`, no resources, fencing token kept) instead of `Terminated`, and reset the local store to `AssignmentInProgress` (both backends) |       | Done, not released: `ResetClientAsync` on the built-in client services (internal `IFencedClientService`); `InvokeOnStop` resets the store                                                                                                                                      |
+| The coordinator rebalances when a live client is `Waiting` under `StopActivity` (stopped and not granted), so a restart between two coordinator ticks is not missed                                                 |       | Done, not released (`Roles/Coordinator.cs`, both backends)                                                                                                                                                                                                                     |
+| Regression tests: a follower that hits an error with auto-recovery is assigned again and raises `OnAssignment` (unit, both backends; integration with an injected follower error)                                   |       | Done, not released: `*CoordinatorLeaseTests.AClientWaitingUnderStopActivity_IsAssignedAgain`, `*ClientRecordTests.CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken`, `*PausedNodeTests.FollowerRecoversFromAStoreError_IsAssignedAgain`; each fails without the fix |
+| Remove the now unused `Terminated` handling for restarts (`Coordinator.cs`), keeping `Terminated` only where `IClientService.DeleteClientAsync`'s default still uses it                                             |       | Declined: a custom `IClientService` (without `IFencedClientService`) still marks the record `Terminated` on restart, and the coordinator branch is its only way back                                                                                                           |
+| Note in ADR-0014 (dated, below the record) that the recovery sentence was true for the coordinator only until this fix                                                                                              |       | Open: an Accepted record; a human adds the note                                                                                                                                                                                                                                |
 
 Tier: 3 (a bug fix within ADR-0002 and ADR-0014; no schema or public API change). The reviewer confirms or corrects the
 tier. The model shows why both actions are needed: resetting the status to `Waiting` alone is **unsafe**, because the

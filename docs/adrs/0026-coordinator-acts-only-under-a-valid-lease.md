@@ -71,8 +71,7 @@ one, and B alone leaves gaps 1–3 open (verified: with B only, the model still 
 ### Implementation outline (to be confirmed in review)
 
 1. **One guard.** The lease row still names this coordinator and its fencing token. It is the clause
-   `DeleteExpiredClientsAsync` already uses on SQL Server
-   (`EXISTS (SELECT 1 FROM [RBR].[ResourceGroups] WHERE ResourceGroup = @ResourceGroup AND CoordinatorId = @CoordinatorId AND FencingToken = @FencingToken)`)
+   `DeleteExpiredClientsAsync` already uses on SQL Server (`EXISTS (SELECT 1 FROM [RBR].[ResourceGroups] WHERE ResourceGroup = @ResourceGroup AND CoordinatorId = @CoordinatorId AND FencingToken = @FencingToken)`)
    and, on Redis, `GetLeaseIfHeldAsync` plus `Condition.HashEqual` on the lease key. Add it to `StopActivityAsync` and
    `StartActivityAsync`. No expiry time is compared and no lock is taken: another node must write the lease row before
    it can act, and acquiring the lease never touches client records, so a guarded write either happens before the

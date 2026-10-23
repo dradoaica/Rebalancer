@@ -96,74 +96,14 @@ internal class ClientService : IClientService, IFencedClientService
             }
         );
 
-    public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> clientStartRequests) =>
+    public Task<ModifyClientResult> StartActivityAsync(
+        int fencingToken,
+        List<ClientStartRequest> clientStartRequests
+    ) =>
         StartActivityAsync(null, Guid.Empty, fencingToken, clientStartRequests);
 
     public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
         StopActivityAsync(null, Guid.Empty, fencingToken, clients);
-
-    public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken) =>
-        !(await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken)).IsNull;
-
-    // resourceGroup null: no lease guard (the public IClientService members)
-    public Task<ModifyClientResult> StartActivityAsync(
-        string resourceGroup,
-        Guid coordinatorClientId,
-        int fencingToken,
-        List<ClientStartRequest> clientStartRequests
-    )
-    {
-        var requests = clientStartRequests.ToDictionary(x => x.ClientId);
-        return ModifyClientsAsync(
-            resourceGroup,
-            coordinatorClientId,
-            fencingToken,
-            requests.Keys.ToList(),
-            client =>
-            {
-                client.CoordinatorStatus = CoordinatorStatus.ResourcesGranted;
-                client.AssignedResources = requests[client.ClientId].AssignedResources;
-            }
-        );
-    }
-
-    // resourceGroup null: no lease guard (the public IClientService members)
-    public Task<ModifyClientResult> StopActivityAsync(
-        string resourceGroup,
-        Guid coordinatorClientId,
-        int fencingToken,
-        List<Client> clients
-    ) =>
-        ModifyClientsAsync(
-            resourceGroup,
-            coordinatorClientId,
-            fencingToken,
-            clients.Select(x => x.ClientId).ToList(),
-            client =>
-            {
-                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
-                client.AssignedResources = new List<string>();
-            }
-        );
-
-    public Task ResetClientAsync(Guid clientId) =>
-        RedisHash.CompareAndSetAsync<Client, bool>(
-            cache,
-            ClientsKey,
-            RedisHash.Encode(clientId),
-            (client, _) =>
-            {
-                if (client == null)
-                {
-                    return (null, false);
-                }
-
-                client.ClientStatus = ClientStatus.Waiting;
-                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
-                client.AssignedResources = new List<string>();
-                return (client, true);
-            }
-        );
 
     public async Task DeleteClientAsync(Guid clientId) =>
         await cache.HashDeleteAsync(ClientsKey, RedisHash.Encode(clientId));
@@ -227,6 +167,69 @@ internal class ClientService : IClientService, IFencedClientService
 
         return 0; // best effort: the next heartbeat tries again
     }
+
+    public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken) =>
+        !(await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken)).IsNull;
+
+    // resourceGroup null: no lease guard (the public IClientService members)
+    public Task<ModifyClientResult> StartActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        List<ClientStartRequest> clientStartRequests
+    )
+    {
+        var requests = clientStartRequests.ToDictionary(x => x.ClientId);
+        return ModifyClientsAsync(
+            resourceGroup,
+            coordinatorClientId,
+            fencingToken,
+            requests.Keys.ToList(),
+            client =>
+            {
+                client.CoordinatorStatus = CoordinatorStatus.ResourcesGranted;
+                client.AssignedResources = requests[client.ClientId].AssignedResources;
+            }
+        );
+    }
+
+    // resourceGroup null: no lease guard (the public IClientService members)
+    public Task<ModifyClientResult> StopActivityAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        List<Client> clients
+    ) =>
+        ModifyClientsAsync(
+            resourceGroup,
+            coordinatorClientId,
+            fencingToken,
+            clients.Select(x => x.ClientId).ToList(),
+            client =>
+            {
+                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
+                client.AssignedResources = new List<string>();
+            }
+        );
+
+    public Task ResetClientAsync(Guid clientId) =>
+        RedisHash.CompareAndSetAsync<Client, bool>(
+            cache,
+            ClientsKey,
+            RedisHash.Encode(clientId),
+            (client, _) =>
+            {
+                if (client == null)
+                {
+                    return (null, false);
+                }
+
+                client.ClientStatus = ClientStatus.Waiting;
+                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
+                client.AssignedResources = new List<string>();
+                return (client, true);
+            }
+        );
 
     /// <summary>
     ///     Applies <paramref name="modify" /> to all clients atomically: either every client exists and has not seen a

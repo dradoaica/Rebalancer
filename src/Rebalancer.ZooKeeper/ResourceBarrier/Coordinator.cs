@@ -198,6 +198,8 @@ public class Coordinator : Watcher, ICoordinator
                 if (!disconnectedTimer.IsRunning)
                 {
                     disconnectedTimer.Start();
+                    // ADR-0028: stop the handlers now, before ZooKeeper can expire the session
+                    store.Suspend(clientId, "Coordinator");
                 }
 
                 break;
@@ -206,6 +208,9 @@ public class Coordinator : Watcher, ICoordinator
                 if (disconnectedTimer.IsRunning)
                 {
                     disconnectedTimer.Reset();
+                    store.Resume();
+                    // ADR-0028: the session survived; restart the handlers of its own share
+                    _ = RestartOwnShareAfterResumeAsync();
                 }
 
                 if (@event.getPath() != null)
@@ -241,6 +246,18 @@ public class Coordinator : Watcher, ICoordinator
         }
 
         await Task.Yield();
+    }
+
+    private async Task RestartOwnShareAfterResumeAsync()
+    {
+        try
+        {
+            await store.RestartAfterResumeAsync(clientId, "Coordinator");
+        }
+        catch (TerminateClientException)
+        {
+            events.Add(CoordinatorEvent.FatalError);
+        }
     }
 
     private async Task CleanUpAsync()

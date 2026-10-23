@@ -44,7 +44,7 @@
     <ItemGroup>
         <!-- shared by both test projects (ADR-0022 telemetry assertions) -->
         <Compile Include="..\Rebalancer.UnitTests\TelemetryRecorder.cs">
-          <Link>TelemetryRecorder.cs</Link>
+            <Link>TelemetryRecorder.cs</Link>
         </Compile>
     </ItemGroup>
 

@@ -29,8 +29,7 @@ another client holds, after which a third client can create it and start `r` whi
    was waiting for. TLC's trace needs three clients, two resources, and two changes (a client joins, a resource is
    removed) close enough that the coordinator writes three tables before the previous owner reacts.
 2. **A lost session.** On an expired session `InvokeOnStopActionsAsync` stops the handlers, but each barrier delete
-   throws, so `ResourceManager` keeps its resources. The provider keeps the `ResourceManager` for its whole life
-   (`ZooKeeperProvider`), so the next `OnStop`, on the new session, deletes the barriers of those resources, which
+   throws, so `ResourceManager` keeps its resources. The provider keeps the `ResourceManager` for its whole life (`ZooKeeperProvider`), so the next `OnStop`, on the new session, deletes the barriers of those resources, which
    ZooKeeper freed when the old session ended and may have given to another client.
 
 Neither is documented in ADR-0003, US-0007, or US-0010. This record decides how barriers are removed and what a client

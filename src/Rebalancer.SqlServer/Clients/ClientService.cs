@@ -154,6 +154,43 @@ WHERE ClientId = @ClientId";
     public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients) =>
         StopActivityAsync(null, Guid.Empty, fencingToken, clients);
 
+    public async Task<int> DeleteExpiredClientsAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        TimeSpan retention
+    )
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            // age is judged by the database clock; the EXISTS clause is the fencing guard (ADR-0014)
+            command.CommandText = $@"DELETE FROM [RBR].[Clients]
+WHERE ResourceGroup = @ResourceGroup
+  AND ClientId <> @CoordinatorId
+  AND LastKeepAlive < DATEADD(SECOND, -@RetentionSeconds, GETUTCDATE())
+  AND {LeaseGuard}
+SELECT @@ROWCOUNT";
+            AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
+            command.Parameters.Add("@RetentionSeconds", SqlDbType.Int).Value = (int)Math.Min(
+                int.MaxValue,
+                Math.Ceiling(retention.TotalSeconds)
+            );
+            return (int)await command.ExecuteScalarAsync();
+        }
+    }
+
+    public async Task DeleteClientAsync(Guid clientId)
+    {
+        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
+        {
+            using var command = conn.CreateCommand();
+            command.CommandText = "DELETE FROM [RBR].[Clients] WHERE ClientId = @ClientId";
+            command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = clientId;
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
     public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken)
     {
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
@@ -184,8 +221,10 @@ WHERE ClientId = @ClientId";
       ,[Resources] = @Resources
       ,[FencingToken] = @FencingToken
 WHERE ClientId = @ClientId
-AND FencingToken <= @FencingToken" + (resourceGroup == null ? "" : $@"
-AND {LeaseGuard}") + @"
+AND FencingToken <= @FencingToken" +
+                                  (resourceGroup == null ? "" : $@"
+AND {LeaseGuard}") +
+                                  @"
 SELECT @@ROWCOUNT";
 
             foreach (var request in clientStartRequests)
@@ -237,43 +276,6 @@ SELECT @@ROWCOUNT";
             }
 
             return ModifyClientResult.Ok;
-        }
-    }
-
-    public async Task<int> DeleteExpiredClientsAsync(
-        string resourceGroup,
-        Guid coordinatorClientId,
-        int fencingToken,
-        TimeSpan retention
-    )
-    {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
-        {
-            using var command = conn.CreateCommand();
-            // age is judged by the database clock; the EXISTS clause is the fencing guard (ADR-0014)
-            command.CommandText = $@"DELETE FROM [RBR].[Clients]
-WHERE ResourceGroup = @ResourceGroup
-  AND ClientId <> @CoordinatorId
-  AND LastKeepAlive < DATEADD(SECOND, -@RetentionSeconds, GETUTCDATE())
-  AND {LeaseGuard}
-SELECT @@ROWCOUNT";
-            AddLeaseGuardParameters(command, resourceGroup, coordinatorClientId, fencingToken);
-            command.Parameters.Add("@RetentionSeconds", SqlDbType.Int).Value = (int)Math.Min(
-                int.MaxValue,
-                Math.Ceiling(retention.TotalSeconds)
-            );
-            return (int)await command.ExecuteScalarAsync();
-        }
-    }
-
-    public async Task DeleteClientAsync(Guid clientId)
-    {
-        using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
-        {
-            using var command = conn.CreateCommand();
-            command.CommandText = "DELETE FROM [RBR].[Clients] WHERE ClientId = @ClientId";
-            command.Parameters.Add("@ClientId", SqlDbType.UniqueIdentifier).Value = clientId;
-            await command.ExecuteNonQueryAsync();
         }
     }
 
@@ -337,12 +339,16 @@ AND FencingToken <= @FencingToken"
         );
         if (leaseGuard)
         {
-            sb.Append($@"
-AND {LeaseGuard}");
+            sb.Append(
+                $@"
+AND {LeaseGuard}"
+            );
         }
 
-        sb.Append(@"
-SELECT @@ROWCOUNT");
+        sb.Append(
+            @"
+SELECT @@ROWCOUNT"
+        );
 
         return sb.ToString();
     }

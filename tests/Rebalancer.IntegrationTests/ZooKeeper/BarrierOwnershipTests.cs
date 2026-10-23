@@ -22,15 +22,16 @@ public class BarrierOwnershipTests : IDisposable
 
     public void Dispose() =>
         Task.Run(async () =>
-            {
-                foreach (var session in sessions)
                 {
-                    await session.CloseSessionAsync();
-                }
+                    foreach (var session in sessions)
+                    {
+                        await session.CloseSessionAsync();
+                    }
 
-                await zkHelper.CloseAsync();
-            }
-        ).Wait();
+                    await zkHelper.CloseAsync();
+                }
+            )
+            .Wait();
 
     [Fact]
     public async Task AClientRemovesOnlyItsOwnBarrier()
@@ -57,7 +58,12 @@ public class BarrierOwnershipTests : IDisposable
         var started = false;
         var actions = new OnChangeActions();
         actions.AddOnStartAction(_ => started = true);
-        var manager = new ResourceManager(waiting, new NullRebalancerLogger(), actions, RebalancingMode.ResourceBarrier);
+        var manager = new ResourceManager(
+            waiting,
+            new NullRebalancerLogger(),
+            actions,
+            RebalancingMode.ResourceBarrier
+        );
 
         // a newer assignment table cancels the rebalancing while this client waits for the owner's barrier
         using var newerTable = new CancellationTokenSource(TimeSpan.FromSeconds(1));

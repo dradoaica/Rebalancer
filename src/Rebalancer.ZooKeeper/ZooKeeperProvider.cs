@@ -184,6 +184,8 @@ public class ZooKeeperProvider : IRebalancerProvider
                         switch (established)
                         {
                             case NewSessionResult.Established:
+                                // ADR-0028: a suspension belongs to the previous session
+                                resourceManager.Resume();
                                 state = ClientInternalState.NoClientNode;
                                 break;
                             case NewSessionResult.TimeOut:

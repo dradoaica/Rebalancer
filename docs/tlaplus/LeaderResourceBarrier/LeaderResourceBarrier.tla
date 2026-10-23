@@ -12,7 +12,6 @@
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS P,                 \* the set of processes
           LateExpiryNotice,  \* TRUE: ZooKeeper can expire a session before its process notices
-          SuspendOnDisconnect, \* FALSE: as implemented; TRUE: ADR-0028 (not implemented)
           MaxSessions,       \* bound on client znodes (sessions) for model checking
           MaxEnvEvents,      \* bound on process starts, stops, crashes and resource changes
           MaxFailures        \* bound on disconnections and errors
@@ -299,7 +298,7 @@ AcquireBarrier(p) ==
 FinishStart(p) ==
   /\ role[p] \in { "follower", "coordinator" }
   /\ phase[p] = "acquiring"
-  /\ SuspendOnDisconnect => conn[p] = "up"
+  /\ conn[p] = "up"  \* ADR-0028: no handler starts while disconnected
   /\ \A r \in want[p] : barrier[r] = sid[p]
   /\ phase' = [phase EXCEPT ![p] = "idle"]
   /\ local' = [local EXCEPT ![p] = want[p]]
@@ -365,7 +364,7 @@ Disconnect(p) ==
   /\ Connected(p)
   /\ conn' = [conn EXCEPT ![p] = "down"]
   \* ADR-0028: the stop actions run at Disconnected; barriers and ResourceManager's resources stay
-  /\ access' = IF SuspendOnDisconnect THEN [access EXCEPT ![p] = {}] ELSE access
+  /\ access' = [access EXCEPT ![p] = {}]
   /\ failCtr' = failCtr + 1
   /\ UNCHANGED << vars_store, role, sid, myEpoch, resVer, lastOk, trig, notified, phase, want, local,
                   assigned, envCtr >>
@@ -377,7 +376,7 @@ Reconnect(p) ==
   /\ conn' = [conn EXCEPT ![p] = "up"]
   \* ADR-0028: a reconnect with the same session is a rebalancing event: the client responds to the
   \* current table again (a coordinator for its own share only), re-acquiring its own barriers
-  /\ notified' = IF SuspendOnDisconnect THEN [notified EXCEPT ![p] = TRUE] ELSE notified
+  /\ notified' = [notified EXCEPT ![p] = TRUE]
   /\ UNCHANGED << vars_store, role, sid, myEpoch, resVer, lastOk, trig, phase, want, local,
                   assigned, access, envCtr, failCtr >>
 

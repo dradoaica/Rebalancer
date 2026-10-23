@@ -186,7 +186,9 @@ The steps in a rebalancing are as follows:
 5. Followers: Receive the /chroot/group/resources data notification
 6. Followers: Invoke their OnStop event handlers
 7. Followers: Perform a GetData () on /chroot/group/resources to get the resource assignments map
-8. Followers: Foreach of their current resources they call Delete () on the resource barrier znode
+8. Followers: Foreach of their current resources they call Delete () on the resource barrier znode, if it holds their
+   client id; a client never deletes a barrier another client holds
+   ([ADR-0027](../../docs/adrs/0027-zookeeper-client-deletes-only-its-own-resource-barriers.md))
 9. Followers: Foreach newly assigned resource they call exists (watch) on /resources/resource-x/barrier. If the znode
    does not exist then a Create () ephemeral call is made to create the barrier znode. If the node exists then the prior
    owner has still not yet deleted it, as soon as the prior owner deletes it the new owner will receive the notification
@@ -206,7 +208,14 @@ The following scenarios have been considered:
 - When a follower receives a /chroot/group/resources data notification midway through a rebalancing they abort the
   current process and start from step 6.
 - When a follower receives a session expired event they will create a new znode under clients. Add a data watch on
-  /chroot/group/resources and wait for a new resource data notification (signalling a new rebalancing).
+  /chroot/group/resources and wait for a new resource data notification (signalling a new rebalancing). The resources
+  of the old session are forgotten, even when deleting their barriers failed (ADR-0027).
+- When a rebalancing is cancelled while a client waits for a barrier, it removes only the barriers it holds (ADR-0027).
+- When a client (coordinator or follower, either algorithm) loses its connection, it stops its handlers at once and
+  keeps its session, barriers and assignment; no handler starts while it is disconnected. When the connection comes back
+  with the same session, a follower responds to the current assignment again and the coordinator restarts its own share
+  ([ADR-0028](../../docs/adrs/0028-zookeeper-client-stops-handlers-when-disconnected.md)). Stop handlers must finish
+  within about a third of the session timeout.
 - When a leader receives any event that signals their loss of leadership (/epoch notification or a bad version on
   /chroot/group/resources or session expired) then they close their session (if open) and start a new one (most likely
   as a follower). This will trigger a new rebalancing due to another client becoming leader or the change in the

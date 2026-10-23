@@ -16,7 +16,9 @@ internal class Coordinator
     private readonly IClientService clientService;
     private readonly IRebalancerLogger logger;
     private readonly IResourceService resourceService;
+
     private readonly ResourceGroupStore store;
+
     // ADR-0026: the fencing token of the last completed rebalance; a new tenure is a change like any other
     private int balancedFencingToken;
     private List<Guid> clients;
@@ -447,8 +449,12 @@ internal class Coordinator
         List<Client> targets
     ) =>
         clientService is IFencedClientService fenced
-            ? fenced.StopActivityAsync(clientEvent.ResourceGroup, coordinatorClientId, clientEvent.FencingToken, targets)
-            : clientService.StopActivityAsync(clientEvent.FencingToken, targets);
+            ? fenced.StopActivityAsync(
+                clientEvent.ResourceGroup,
+                coordinatorClientId,
+                clientEvent.FencingToken,
+                targets
+            ) : clientService.StopActivityAsync(clientEvent.FencingToken, targets);
 
     private Task<ModifyClientResult> StartActivityAsync(
         Guid coordinatorClientId,
