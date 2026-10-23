@@ -43,8 +43,8 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **4.3.0**, coordination safety fixes found by model checking the protocols in TLA+ (six packages;
-CR-0010). Release history: [`docs/release-notes/`](../release-notes/).
+Current version: **4.3.1**, SQL Server / Redis `StopAsync` raises `OnUnassignment` (six packages; CR-0011).
+Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 

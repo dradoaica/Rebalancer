@@ -87,6 +87,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 4.3.1](docs/release-notes/4.3.1.md) — SQL Server / Redis: `StopAsync` raises `OnUnassignment`;
+  network fault tests
 - [Release notes 4.3.0](docs/release-notes/4.3.0.md) — coordination safety fixes found with TLA+ (SQL Server, Redis,
   ZooKeeper); ZooKeeper handlers stop when the connection is lost; upgrade every node of a group
 - [Release notes 4.2.1](docs/release-notes/4.2.1.md) — **security:** CVE-2026-84008 in a SQL Server dependency; upgrade

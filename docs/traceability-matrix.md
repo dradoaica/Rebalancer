@@ -79,6 +79,12 @@ test project is added.
 | [CR-0010](change-records/CR-0010-release-4-3-0.md)                          | **Implemented** (4.3.0, `b39c166`); [release notes](release-notes/4.3.0.md) | ADR-0026, ADR-0027, ADR-0028, PRB-0005 |
 | [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md) | Closed (4.3.0)                                                              | US-0005, US-0006                       |
 
+### 4.3.1 records
+
+| Record                                             | Status                                                        | Covers                                       |
+|----------------------------------------------------|---------------------------------------------------------------|----------------------------------------------|
+| [CR-0011](change-records/CR-0011-release-4-3-1.md) | **Approved** (4.3.1); [release notes](release-notes/4.3.1.md) | SQL Server / Redis clean stop; network tests |
+
 ### Threat models
 
 | Threat model                                                       | Status                     | Scope                                  |
