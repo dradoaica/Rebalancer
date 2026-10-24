@@ -200,6 +200,26 @@ internal static class PausedNodeScenarios
         Assert.Empty(Held(client));
     }
 
+    /// <summary>
+    ///     PRB-0006: a client stopped with StopAsync reports Stopped, as documented, so BlockAsync returns and the health
+    ///     check (ADR-0023) reports it Unhealthy.
+    /// </summary>
+    public static async Task AStoppedClient_ReportsStopped(
+        string group,
+        Func<IRebalancerProvider> createProvider,
+        Func<NodePause, IRebalancerProvider> createPausableProvider
+    )
+    {
+        using var client = new RebalancerClient(createProvider());
+        await client.StartAsync(group, Options);
+        await WaitUntilAsync(() => Holds(client, Resources), "the node never held both resources");
+
+        await client.StopAsync(TimeSpan.FromSeconds(30));
+
+        Assert.Equal(ClientState.Stopped, client.GetCurrentState());
+        Assert.Equal(ClientState.Stopped, client.GetAssignedResources().ClientState);
+    }
+
     private static IList<string> Held(RebalancerClient client) => client.GetAssignedResources().Resources ?? [];
 
     private static bool Holds(RebalancerClient client, IEnumerable<string> resources) =>

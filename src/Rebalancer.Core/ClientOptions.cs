@@ -21,6 +21,12 @@ public class ClientOptions
     ///     the in-slight messages are redelivered to the new connection, making message delivery out-of-order. This problem
     ///     can be avoided by adding an OnAssignmentDelay that is longer than the keep alive timeout.
     /// </summary>
+    /// <remarks>
+    ///     The delay runs once per assignment, from the moment the node sees it until its OnAssignment handlers run; the
+    ///     node keeps sending keep-alives and answering stop requests meanwhile. A stop within the delay cancels the pending
+    ///     start, and a different assignment starts the delay again (PRB-0007). Until then the client reports
+    ///     PendingAssignment.
+    /// </remarks>
     public TimeSpan OnAssignmentDelay { get; set; }
 
     /// <summary>

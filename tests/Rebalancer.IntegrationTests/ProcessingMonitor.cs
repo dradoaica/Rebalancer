@@ -8,12 +8,31 @@ namespace Rebalancer.IntegrationTests;
 ///     <see cref="RebalancerClient.OnUnassignment" /> that takes it back returns. Every moment two nodes process the same
 ///     resource is recorded as an overlap: the downstream system would see that resource processed twice at once.
 /// </summary>
+/// <remarks>
+///     US-0024: a paused node (<see cref="Pause" />) processes nothing until it resumes, as a stalled process would;
+///     its handler events meanwhile take effect at the resume. A resumed node may overlap on the resources it processed
+///     before the pause for a window (ADR-0019, accepted by ADR-0021): an overlap it ends with OnUnassignment within the
+///     window is not recorded; one that outlasts it is, at the next <see cref="CheckWindows" />.
+/// </remarks>
 internal sealed class ProcessingMonitor
 {
     private readonly HashSet<string> crashed = [];
+    private readonly Func<DateTime> now;
     private readonly List<string> overlaps = [];
     private readonly Dictionary<string, HashSet<string>> processing = new();
+    private readonly Dictionary<string, HashSet<string>> suspended = new();
     private readonly object sync = new();
+    private readonly List<ResumeWindow> windows = [];
+
+    public ProcessingMonitor()
+        : this(() => DateTime.UtcNow)
+    {
+    }
+
+    public ProcessingMonitor(Func<DateTime> now)
+    {
+        this.now = now;
+    }
 
     public IReadOnlyList<string> Overlaps
     {
@@ -39,7 +58,79 @@ internal sealed class ProcessingMonitor
         lock (sync)
         {
             crashed.Add(node);
+            suspended.Remove(node);
             StopLocked(node);
+        }
+    }
+
+    /// <summary>The node's process stalls: it processes nothing until <see cref="Resume" />.</summary>
+    public void Pause(string node)
+    {
+        lock (sync)
+        {
+            if (crashed.Contains(node) || suspended.ContainsKey(node))
+            {
+                return;
+            }
+
+            suspended[node] = processing.Where(x => x.Value.Contains(node)).Select(x => x.Key).ToHashSet();
+            StopLocked(node);
+        }
+    }
+
+    /// <summary>
+    ///     The node's process runs again, on what it processed before <see cref="Pause" /> (or what its handler events
+    ///     since then left it). Each overlap this creates must end within <paramref name="window" />.
+    /// </summary>
+    public void Resume(string node, TimeSpan window)
+    {
+        lock (sync)
+        {
+            if (!suspended.Remove(node, out var held))
+            {
+                return;
+            }
+
+            var deadline = now() + window;
+            foreach (var resource in held)
+            {
+                var by = ProcessorsOf(resource);
+                if (by.Any())
+                {
+                    windows.Add(new ResumeWindow(node, resource, deadline, window));
+                }
+
+                by.Add(node);
+            }
+        }
+    }
+
+    /// <summary>Records every resume window that ended with its overlap still there. Call it regularly.</summary>
+    public void CheckWindows()
+    {
+        lock (sync)
+        {
+            var time = now();
+            foreach (var window in windows.Where(x => time > x.Deadline).ToList())
+            {
+                windows.Remove(window);
+                if (processing.TryGetValue(window.Resource, out var by) && by.Contains(window.Node) && by.Count > 1)
+                {
+                    overlaps.Add(
+                        $"{time:HH:mm:ss.fff} {window.Resource}: {window.Node} still processed it " +
+                        $"{window.Length.TotalSeconds} s after resuming, while {string.Join(",", by.Where(x => x != window.Node))} did"
+                    );
+                }
+            }
+        }
+    }
+
+    /// <summary>Whether any node processes <paramref name="resource" /> now.</summary>
+    public bool IsProcessed(string resource)
+    {
+        lock (sync)
+        {
+            return processing.TryGetValue(resource, out var by) && by.Any();
         }
     }
 
@@ -76,19 +167,23 @@ internal sealed class ProcessingMonitor
                 return;
             }
 
+            if (suspended.ContainsKey(node))
+            {
+                suspended[node] = resources.ToHashSet(); // takes effect at the resume
+                return;
+            }
+
             StopLocked(node);
             foreach (var resource in resources)
             {
-                if (!processing.TryGetValue(resource, out var by))
-                {
-                    by = [];
-                    processing[resource] = by;
-                }
+                var by = ProcessorsOf(resource);
 
-                if (by.Any())
+                // a resumed node inside its window on this resource is already accounted for by that window
+                var others = by.Where(x => !windows.Any(w => w.Node == x && w.Resource == resource)).ToList();
+                if (others.Any())
                 {
                     overlaps.Add(
-                        $"{DateTime.UtcNow:HH:mm:ss.fff} {resource}: {node} started while {string.Join(",", by)} processed it"
+                        $"{now():HH:mm:ss.fff} {resource}: {node} started while {string.Join(",", others)} processed it"
                     );
                 }
 
@@ -101,6 +196,12 @@ internal sealed class ProcessingMonitor
     {
         lock (sync)
         {
+            if (suspended.TryGetValue(node, out var held))
+            {
+                held.Clear(); // takes effect at the resume
+                return;
+            }
+
             StopLocked(node);
         }
     }
@@ -111,5 +212,20 @@ internal sealed class ProcessingMonitor
         {
             by.Remove(node);
         }
+
+        windows.RemoveAll(x => x.Node == node);
     }
+
+    private HashSet<string> ProcessorsOf(string resource)
+    {
+        if (!processing.TryGetValue(resource, out var by))
+        {
+            by = [];
+            processing[resource] = by;
+        }
+
+        return by;
+    }
+
+    private sealed record ResumeWindow(string Node, string Resource, DateTime Deadline, TimeSpan Length);
 }

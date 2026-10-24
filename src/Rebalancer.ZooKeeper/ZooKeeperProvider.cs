@@ -40,6 +40,7 @@ public class ZooKeeperProvider : IRebalancerProvider
     private ResourceManager resourceManager;
     private bool started;
     private ClientInternalState state;
+    private bool stopped;
     private string watchSiblingNodePath;
 
     /// <summary>Secures every znode this provider creates with <paramref name="acl" /> and the given credentials.</summary>
@@ -141,6 +142,16 @@ public class ZooKeeperProvider : IRebalancerProvider
 
     public AssignedResources GetAssignedResources()
     {
+        // PRB-0006: a terminated client reports why (Stopped or Aborted) and no resources
+        if (!started && (aborted || stopped))
+        {
+            return new AssignedResources
+            {
+                Resources = new List<string>(),
+                ClientState = GetState(),
+            };
+        }
+
         var assignment = resourceManager.GetResources();
         return new AssignedResources
         {
@@ -160,6 +171,11 @@ public class ZooKeeperProvider : IRebalancerProvider
         if (aborted)
         {
             return ClientState.Aborted;
+        }
+
+        if (stopped)
+        {
+            return ClientState.Stopped;
         }
 
         return ClientState.NotStarted;
@@ -751,6 +767,10 @@ public class ZooKeeperProvider : IRebalancerProvider
             if (aborted)
             {
                 this.aborted = true;
+            }
+            else
+            {
+                stopped = true; // PRB-0006: every termination without an abort is a cancellation (StopAsync)
             }
 
             started = false;

@@ -56,6 +56,38 @@ public class SingleClientTests : IDisposable
         await GivenSingleClient_ThenGetsAllResourcesAssigned();
     }
 
+    // PRB-0006: a client stopped with StopAsync reports Stopped, not NotStarted
+    [Theory]
+    [InlineData(RebalancingMode.GlobalBarrier)]
+    [InlineData(RebalancingMode.ResourceBarrier)]
+    public async Task GivenSingleClient_WhenStopped_ThenReportsStopped(RebalancingMode mode)
+    {
+        providerFactory = mode == RebalancingMode.GlobalBarrier ? GetGlobalBarrierProvider : GetResourceBarrierProvider;
+        var groupName = Guid.NewGuid().ToString();
+        await zkHelper.InitializeAsync("/rebalancer", TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
+        await zkHelper.PrepareResourceGroupAsync(groupName, "res", 2);
+        var (client, _) = CreateClient();
+        await client.StartAsync(
+            groupName,
+            new ClientOptions
+            {
+                AutoRecoveryOnError = false,
+            }
+        );
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (client.GetCurrentState() != ClientState.Assigned && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100);
+        }
+
+        Assert.Equal(ClientState.Assigned, client.GetCurrentState());
+
+        await client.StopAsync(TimeSpan.FromSeconds(30));
+
+        Assert.Equal(ClientState.Stopped, client.GetCurrentState());
+        Assert.Equal(ClientState.Stopped, client.GetAssignedResources().ClientState);
+    }
+
     private async Task GivenSingleClient_ThenGetsAllResourcesAssigned()
     {
         // ARRANGE

@@ -28,6 +28,9 @@ public sealed class RedisPausedNodeTests
     public Task ACleanStop_RaisesOnUnassignmentBeforeItReturns() =>
         RunAsync(PausedNodeScenarios.ACleanStop_RaisesOnUnassignmentBeforeItReturns);
 
+    [SkippableFact]
+    public Task AStoppedClient_ReportsStopped() => RunAsync(PausedNodeScenarios.AStoppedClient_ReportsStopped);
+
     private static async Task RunAsync(
         Func<string, Func<IRebalancerProvider>, Func<NodePause, IRebalancerProvider>, Task> scenario
     )

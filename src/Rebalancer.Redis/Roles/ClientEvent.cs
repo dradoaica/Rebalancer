@@ -9,5 +9,6 @@ public class ClientEvent
     public string ResourceGroup { get; set; }
     public TimeSpan KeepAliveExpiryPeriod { get; set; }
     public TimeSpan ClientRecordRetention { get; set; }
+    public TimeSpan OnAssignmentDelay { get; set; }
     public CoordinatorToken CoordinatorToken { get; set; }
 }

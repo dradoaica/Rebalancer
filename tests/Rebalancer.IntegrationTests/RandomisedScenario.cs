@@ -6,19 +6,22 @@ namespace Rebalancer.IntegrationTests;
 
 /// <summary>
 ///     US-0019: N nodes of one SQL Server or Redis group (lease expiry 5 s, heartbeat 1 s) are started, stopped, paused
-///     and killed at random while a monitor samples their assignments every 100 ms. It fails when
+///     and killed at random, and checked every 100 ms in two views:
 ///     <list type="bullet">
-///         <item>two running nodes hold the same resource (safety), or</item>
 ///         <item>
-///             a resource stays unassigned longer than <see cref="UnassignedBound" /> while a node is running
-///             (liveness).
+///             the handler view (US-0024): what each node processes, from OnAssignment to the OnUnassignment that ends
+///             it, recorded by a <see cref="ProcessingMonitor" />; and
 ///         </item>
+///         <item>the provider view: what each node's GetAssignedResources() reports.</item>
 ///     </list>
-///     A paused node is frozen (its store calls wait, <see cref="NodePause" />); a killed node is paused until the end.
-///     Neither takes part in the checks, and a resumed node is excluded for <see cref="ResumeGrace" />, the window
-///     ADR-0019 and ADR-0021 accept before it stops at its first tick. The seed is logged; set REBALANCER_RANDOMISED_SEED
-///     to replay the same sequence of actions (timings still vary). REBALANCER_RANDOMISED_TEST_MAX_MINUTES caps the
-///     duration, as for the ZooKeeper suite.
+///     It fails, naming the view, when two nodes process / hold the same resource (safety), or when a resource is
+///     processed / held by none for longer than <see cref="UnassignedBound" /> while a node is running (liveness). A
+///     paused node is frozen (its store calls wait, <see cref="NodePause" />); the monitor counts no processing for it
+///     until it resumes. A killed node is paused until the end and crashed in the monitor. After a resume, overlaps on the
+///     resources the node processed before the pause are accepted for <see cref="ResumeGrace" />, the window ADR-0019 and
+///     ADR-0021 accept before it stops at its first tick; the provider view excludes the node for as long. The seed is
+///     logged; set REBALANCER_RANDOMISED_SEED to replay the same sequence of actions (timings still vary).
+///     REBALANCER_RANDOMISED_TEST_MAX_MINUTES caps the duration, as for the ZooKeeper suite.
 /// </summary>
 internal sealed class RandomisedScenario
 {
@@ -43,11 +46,13 @@ internal sealed class RandomisedScenario
     private readonly Func<NodePause, IRebalancerProvider> createProvider;
     private readonly string group;
     private readonly Action<string> log;
+    private readonly ProcessingMonitor monitor = new();
     private readonly List<Node> nodes = [];
     private readonly Random random;
     private readonly string[] resources;
     private readonly int seed;
     private readonly Dictionary<string, DateTime> unassignedSince = new();
+    private readonly Dictionary<string, DateTime> unprocessedSince = new();
 
     public RandomisedScenario(
         string group,
@@ -135,6 +140,7 @@ internal sealed class RandomisedScenario
                 var pause = TimeSpan.FromSeconds(random.Next(2, 13)); // shorter and longer than the lease expiry
                 log($"{Now()} pause node {node.Id} for {pause.TotalSeconds} s");
                 node.Pause.Pause();
+                monitor.Pause(node.Name);
                 node.State = NodeState.Paused;
                 node.ResumeAt = DateTime.UtcNow + pause;
             }
@@ -142,6 +148,7 @@ internal sealed class RandomisedScenario
             {
                 log($"{Now()} kill node {node.Id}");
                 node.Pause.Pause();
+                monitor.Crash(node.Name);
                 node.State = NodeState.Killed;
             }
         }
@@ -152,6 +159,7 @@ internal sealed class RandomisedScenario
         log($"{Now()} start node {node.Id}");
         node.Pause = new NodePause();
         node.Client = new RebalancerClient(createProvider(node.Pause));
+        monitor.Attach(node.Client, node.Name);
         await node.Client.StartAsync(group, Options);
         node.State = NodeState.Running;
         node.ResumedAt = null;
@@ -163,12 +171,49 @@ internal sealed class RandomisedScenario
         {
             log($"{Now()} resume node {node.Id}");
             node.Pause.Resume();
+            monitor.Resume(node.Name, ResumeGrace);
             node.State = NodeState.Running;
             node.ResumedAt = DateTime.UtcNow;
         }
     }
 
     private void Check()
+    {
+        CheckHandlerView();
+        CheckProviderView();
+    }
+
+    // US-0024: what the nodes process, as a downstream system would see it
+    private void CheckHandlerView()
+    {
+        var now = DateTime.UtcNow;
+        monitor.CheckWindows();
+        var overlaps = monitor.Overlaps;
+        Assert.True(
+            overlaps.Count == 0,
+            $"Safety violated (handler view, seed {seed}):{Environment.NewLine}{string.Join(Environment.NewLine, overlaps)}"
+        );
+
+        var running = nodes.Where(n => n.State == NodeState.Running).ToList();
+        foreach (var resource in resources)
+        {
+            if (monitor.IsProcessed(resource) || !running.Any())
+            {
+                unprocessedSince.Remove(resource);
+                continue;
+            }
+
+            unprocessedSince.TryAdd(resource, now);
+            Assert.True(
+                now - unprocessedSince[resource] <= UnassignedBound,
+                $"Liveness violated (handler view) at {Now()}: {resource} processed by no node for more than " +
+                $"{UnassignedBound.TotalSeconds} s while nodes {string.Join(",", running.Select(n => n.Id))} run (seed {seed})"
+            );
+        }
+    }
+
+    // US-0019: what the nodes' GetAssignedResources() report
+    private void CheckProviderView()
     {
         var now = DateTime.UtcNow;
         var checkedNodes = nodes.Where(n => n.State == NodeState.Running && !(now - n.ResumedAt < ResumeGrace))
@@ -180,7 +225,7 @@ internal sealed class RandomisedScenario
             {
                 Assert.False(
                     holders.TryGetValue(resource, out var other),
-                    $"Safety violated at {Now()}: nodes {other} and {node.Id} both hold {resource} (seed {seed})"
+                    $"Safety violated (provider view) at {Now()}: nodes {other} and {node.Id} both hold {resource} (seed {seed})"
                 );
                 holders[resource] = node.Id;
             }
@@ -197,7 +242,7 @@ internal sealed class RandomisedScenario
             unassignedSince.TryAdd(resource, now);
             Assert.True(
                 now - unassignedSince[resource] <= UnassignedBound,
-                $"Liveness violated at {Now()}: {resource} unassigned for more than {UnassignedBound.TotalSeconds} s " +
+                $"Liveness violated (provider view) at {Now()}: {resource} unassigned for more than {UnassignedBound.TotalSeconds} s " +
                 $"while nodes {string.Join(",", checkedNodes.Select(n => n.Id))} run (seed {seed})"
             );
         }
@@ -222,6 +267,7 @@ internal sealed class RandomisedScenario
     private sealed class Node(int id)
     {
         public int Id { get; } = id;
+        public string Name => $"n{Id}";
         public NodePause Pause { get; set; } = new();
         public RebalancerClient? Client { get; set; }
         public NodeState State { get; set; } = NodeState.Stopped;

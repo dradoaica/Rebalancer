@@ -18,6 +18,20 @@ Running (TLC from `tla2tools.jar`, release page v1.8.0, build 2ef2af8; results b
 java -cp tla2tools.jar tlc2.TLC -workers auto -config MCSafety.cfg LeaderGlobalBarrier.tla
 ```
 
+### Config names in the ADRs
+
+ADR-0026, ADR-0027 and ADR-0028 cite configs by the names they had when the records were accepted; those configs
+were later renamed or merged into the set below. The mapping (inferred on 2026-10-24 from each config's description
+and, where they match, its state count):
+
+| Name in the ADR                        | Config now                                                          | Note                                                        |
+|----------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------|
+| `MCLeaseChecks.cfg` (ADR-0026)         | `LeaderGlobalBarrier/MCLongPauses.cfg`, `MCLongPausesPermanent.cfg` | same scenario (long stalls); state counts differ            |
+| `MCAsBuilt.cfg` (ADR-0027)             | `LeaderResourceBarrier/MCSafety.cfg`                                | the failing as-built run; now holds                         |
+| `MCBarrierOwnerChecks.cfg` (ADR-0027)  | `LeaderResourceBarrier/MCFailures.cfg`                              | same scenario (disconnections, errors); state counts differ |
+| `MCSuspendOnDisconnect.cfg` (ADR-0028) | `LeaderResourceBarrier/MCLateExpiry.cfg`                            | same state count (7,230,389)                                |
+| `MCSuspendLiveness.cfg` (ADR-0028)     | `LeaderResourceBarrier/MCLivenessWithDisconnects.cfg`               | same state count (270,311)                                  |
+
 ## LeaderGlobalBarrier
 
 `RebalancerStore.tla` models the lease, the client records and the resources; `LeaderGlobalBarrier.tla` models the
@@ -41,8 +55,13 @@ Abstractions:
   Redis writes all or none, which is one of the allowed behaviours.
 - Each client id in `N` starts at most once: a restarted process registers a new id, and a cleanly stopped one is never
   reused (ADR-0014). `StoreError` keeps the id, as the implementation does.
-- The allocation is any even split; the code's split is one of them. `OnAssignmentDelay` and the 3.x key migration
-  are not modelled.
+- The allocation is any even split; the code's split is one of them. The 3.x key migration is not modelled.
+- `OnAssignmentDelay`
+  (`AssignmentDelay = TRUE`, [PRB-0007](../problem-records/PRB-0007-assignment-delay-delays-keep-alives.md))
+  is modelled as the fix implements it: a node notes a grant as `pending`; `DelayElapse` (wall-clock time, so also
+  while the node is stalled) marks it due; a later tick starts it if the record still grants the same resources
+  under the same token. A coordinator stays Waiting until its own share starts. Any other record state, a
+  rebalance, a step-down, a role change and a store error cancel it. Keep-alives are not delayed.
 - ZooKeeper's global-barrier mode is not modelled separately. It maps as: lease and fencing token ↔ lowest sequential
   `clients/c_*` znode and the `epoch` version; per-client `StopActivity` / `ResourcesGranted` ↔ the `status` znode;
   `Waiting` ↔ a child of `stopped`; keep-alive expiry ↔ session expiry; fenced writes ↔ versioned `SetData`.
@@ -52,13 +71,22 @@ Abstractions:
   grant; the cached view keyed by the token; a restart resets the record; a client waiting under `StopActivity` is
   assigned again. A custom `IClientService` keeps the earlier behavior and is not modelled.
 
-| Config                      | Checks                                                                        | Result                                                    |
-|-----------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------|
-| `MCSafety.cfg`              | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                        | holds (12,956,398 distinct states)                        |
-| `MCLiveness.cfg`            | `EventuallyConverged` without store errors                                    | holds (36,322 distinct states)                            |
-| `MCRecoveredFollower.cfg`   | `EventuallyConverged` with one store error                                    | holds (15,727); violated before PRB-0005's fix, finding 1 |
-| `MCLongPauses.cfg`          | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds) | holds (5,437,209); violated before ADR-0026, finding 2    |
-| `MCLongPausesPermanent.cfg` | `EventuallyNoDoubleAccess` with two long stalls                               | holds (5,437,209); violated before ADR-0026, finding 3    |
+| Config                            | Checks                                                                        | Result                                                    |
+|-----------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------|
+| `MCSafety.cfg`                    | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                        | holds (12,956,398 distinct states)                        |
+| `MCLiveness.cfg`                  | `EventuallyConverged` without store errors                                    | holds (36,322 distinct states)                            |
+| `MCRecoveredFollower.cfg`         | `EventuallyConverged` with one store error                                    | holds (15,727); violated before PRB-0005's fix, finding 1 |
+| `MCLongPauses.cfg`                | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds) | holds (5,437,209); violated before ADR-0026, finding 2    |
+| `MCLongPausesPermanent.cfg`       | `EventuallyNoDoubleAccess` with two long stalls                               | holds (5,437,209); violated before ADR-0026, finding 3    |
+| `MCAssignmentDelay.cfg`           | `NoDoubleAccess`, `OneLeaseHolder` with `AssignmentDelay` (PRB-0007)          | holds (29,599,880 distinct states)                        |
+| `MCAssignmentDelayLongPauses.cfg` | `NoDoubleAccessOutsideResumeWindow`, `AssignmentDelay`, long stalls           | holds (15,278,706 distinct states)                        |
+| `MCAssignmentDelayLiveness.cfg`   | `EventuallyConverged`, `AssignmentDelay`, one store error                     | holds (33,835 distinct states)                            |
+
+The first five configs set `AssignmentDelay = FALSE` (added 2026-10-24 for PRB-0007); `pending` then stays empty.
+All eight were run on 2026-10-24 (same TLC build, 16 workers): the five keep exactly the state counts above, and the
+three `AssignmentDelay` configs hold. A mutation check confirms the delay configs have teeth: a follower that starts
+a due grant without checking that its record still grants it violates `NoDoubleAccess` under
+`MCAssignmentDelay.cfg` (a 15-state trace).
 
 A mutation check confirms that `NoDoubleAccess` has teeth: granting without waiting at the barrier violates it.
 

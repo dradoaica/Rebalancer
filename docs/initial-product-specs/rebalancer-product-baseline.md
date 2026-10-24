@@ -7,7 +7,7 @@
 
 | Area      | Path                                                                                                                                         |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| Libraries | `src/Rebalancer.*` (Core, SqlServer, Redis, ZooKeeper, Extensions.DependencyInjection)                                                       |
+| Libraries | `src/Rebalancer.*` (Core, SqlServer, Redis, ZooKeeper, Extensions.DependencyInjection, Extensions.Diagnostics.HealthChecks)                  |
 | Examples  | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools`, `examples/Rebalancer.RabbitMq.SuperStreamsExample` |
 | Tests     | `tests/Rebalancer.UnitTests`, `tests/Rebalancer.IntegrationTests`                                                                            |
 
@@ -23,6 +23,7 @@ repository).
 - `Rebalancer.Core` — public `RebalancerClient`, `IRebalancerProvider`, `ClientOptions`, logging abstraction.
 - `Rebalancer.SqlServer`, `Rebalancer.Redis` — coordinator/follower + lease + store pattern.
 - `Rebalancer.ZooKeeper` — leader election, `ResourceBarrier` / `GlobalBarrier` modes.
+- `Rebalancer.Extensions.DependencyInjection` (ADR-0005), `Rebalancer.Extensions.Diagnostics.HealthChecks` (ADR-0023).
 - Examples: an ordered consumer group on RabbitMQ with Rebalancer, quorum queues and SQL Server
   (`examples/Rebalancer.RabbitMq.QuorumQueuesExample`, US-0022), and the same scenario with super streams and no
   Rebalancer (`examples/Rebalancer.RabbitMq.SuperStreamsExample`,
@@ -31,9 +32,12 @@ repository).
 - Tests: **`tests/Rebalancer.IntegrationTests`** — **ZooKeeper** barrier/randomized suite under `ZooKeeper/` (requires
   live ZK); **SqlServer + Redis** assignment-safety sampling with Testcontainers (**Docker**). Since 3.2.0 also
   paused-node scenarios (a follower paused past its keep-alive expiry, a coordinator stalled past its lease expiry), the
-  SQL Server least-privilege role, and (4.0) the Redis per-group key move. **`tests/Rebalancer.UnitTests`** — DI
+  SQL Server least-privilege role, and (4.0) the Redis per-group key move; since 4.1.0 randomised runs, which since
+  4.3.2 also check what each node's handlers process (US-0024); since 4.3.1 network faults; since 4.3.2 the state after
+  a stop and the assignment delay. **`tests/Rebalancer.UnitTests`** — DI
   registration, provider lifecycle, 3.0 API contract, ZooKeeper ACL API, Redis lease decisions, record expiry,
-  coordinator demotion and unresponsive followers; no
+  coordinator demotion and lease guard, unresponsive followers, ZooKeeper barriers, aborted and stopped state,
+  assignment delay; no
   Docker — [US-0010](../user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md), [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md), [US-0013](../user-stories/US-0013-cross-backend-assignment-safety-tests.md).
 
 ## Out of scope (explicit non-goals for this repo today)
@@ -52,8 +56,10 @@ repository).
   ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **4.2.1** (security patch: CVE-2026-84008 in a SQL Server dependency, ADR-0025). Previous: **4.2.0**
-  (Aborted state on SQL Server / Redis, health-check and Redis fixes), **4.1.0**
+- Current release: **4.3.2** (`Stopped` state after `StopAsync`, `OnAssignmentDelay` per assignment; PRB-0006,
+  PRB-0007, CR-0012). Previous: **4.3.1** (SQL Server / Redis `StopAsync` raises `OnUnassignment`), **4.3.0**
+  (coordination safety fixes found with TLA+, ADR-0026..0028), **4.2.1** (security patch: CVE-2026-84008 in a SQL
+  Server dependency, ADR-0025), **4.2.0** (Aborted state on SQL Server / Redis, health-check and Redis fixes), **4.1.0**
   (metrics, traces, health check), **4.0.0** (breaking for Redis provisioning only: per-group
   keys, [ADR-0020](../adrs/0020-per-group-redis-leases-and-resources.md), [migration guide](../release-notes/migrating-to-4.0.md)).
   Release history and change records: [`docs/release-notes/`](../release-notes/), [

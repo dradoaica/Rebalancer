@@ -41,6 +41,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     private Task mainTask;
     private string resourceGroup;
     private bool started;
+    private volatile bool stopped;
 
     public RedisProvider(
         string connectionString,
@@ -132,12 +133,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         BlockingCollection<ClientEvent> clientEvents = new();
 
                         var leaderElectionTask = StartLeadershipTask(childTaskCts.Token, clientEvents);
-                        var roleTask = StartRoleTask(
-                            clientOptions.OnAssignmentDelay,
-                            childTaskCts.Token,
-                            onChangeActions,
-                            clientEvents
-                        );
+                        var roleTask = StartRoleTask(childTaskCts.Token, onChangeActions, clientEvents);
 
                         while (!parentToken.IsCancellationRequested &&
                                !leaderElectionTask.IsCompleted &&
@@ -263,6 +259,12 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         }
                     }
                 }
+
+                // PRB-0006: the loop ended on cancellation (StopAsync), not because the client gave up
+                if (parentToken.IsCancellationRequested && !aborted)
+                {
+                    stopped = true;
+                }
             }
         );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -296,12 +298,12 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     /// </summary>
     public AssignedResources GetAssignedResources()
     {
-        if (aborted)
+        if (aborted || stopped)
         {
             return new AssignedResources
             {
                 Resources = new List<string>(),
-                ClientState = ClientState.Aborted,
+                ClientState = aborted ? ClientState.Aborted : ClientState.Stopped,
             };
         }
 
@@ -318,6 +320,11 @@ public class RedisProvider : IRebalancerProvider, IDisposable
         if (aborted)
         {
             return ClientState.Aborted;
+        }
+
+        if (stopped)
+        {
+            return ClientState.Stopped;
         }
 
         if (started)
@@ -400,6 +407,8 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     private void InvokeOnStop(OnChangeActions onChangeActions)
     {
         coordinator.SetStoppedDueToInternalErrorFlag();
+        coordinator.CancelPendingStart();
+        follower.CancelPendingStart();
         try
         {
             foreach (var onErrorAction in onChangeActions.OnStopActions)
@@ -602,6 +611,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             CoordinatorToken = coordinatorToken,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
             ClientRecordRetention = ClientOptions.GetClientRecordRetention(clientOptions, keepAliveExpiryPeriod),
+            OnAssignmentDelay = clientOptions.OnAssignmentDelay,
         };
         clientEvents.Add(clientEvent);
     }
@@ -615,12 +625,13 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             EventType = EventType.Follower,
             ResourceGroup = resourceGroup,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
+            OnAssignmentDelay = clientOptions.OnAssignmentDelay,
         };
         clientEvents.Add(clientEvent);
     }
 
+    // OnAssignmentDelay is applied by the roles, between a grant and its start actions (PRB-0007)
     private Task StartRoleTask(
-        TimeSpan onStartDelay,
         CancellationToken token,
         OnChangeActions onChangeActions,
         BlockingCollection<ClientEvent> clientEvents
@@ -644,37 +655,23 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                 {
                     if (clientEvent.EventType == EventType.Coordinator)
                     {
-                        if (onStartDelay.Ticks > 0)
-                        {
-                            logger.Debug(
-                                clientId.ToString(),
-                                $"Coordinator - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms"
-                            );
-                            await WaitFor(onStartDelay, token);
-                        }
-
                         if (token.IsCancellationRequested)
                         {
                             return;
                         }
+
+                        follower.CancelPendingStart();
 
                         await coordinator.ExecuteCoordinatorRoleAsync(clientId, clientEvent, onChangeActions, token);
                     }
                     else
                     {
-                        if (onStartDelay.Ticks > 0)
-                        {
-                            logger.Debug(
-                                clientId.ToString(),
-                                $"Follower - Delaying on start for {(int)onStartDelay.TotalMilliseconds}ms"
-                            );
-                            await WaitFor(onStartDelay, token);
-                        }
-
                         if (token.IsCancellationRequested)
                         {
                             return;
                         }
+
+                        coordinator.CancelPendingStart();
 
                         await follower.ExecuteFollowerRoleAsync(clientId, clientEvent, onChangeActions, token);
                     }

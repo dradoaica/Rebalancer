@@ -9,7 +9,9 @@
 EXTENDS Integers, FiniteSets, TLC, RebalancerStore
 CONSTANTS LongPauses,     \* TRUE: a node can stall longer than the lease / keep-alive expiry (PRB-0001, PRB-0003)
           MaxEnvEvents,   \* bound on node starts, stops, crashes and resource changes
-          MaxFailures     \* bound on store errors and long pauses
+          MaxFailures,    \* bound on store errors and long pauses
+          AssignmentDelay \* TRUE: ClientOptions.OnAssignmentDelay > 0 (PRB-0007): a node starts a grant it has seen only
+                          \* after the delay, on a later tick, if its record still grants the same resources
 VARIABLES role,         \* a function of client id to its role: "new" (not started yet), "off" (stopped or crashed),
                         \* "none" (no leadership result yet), "follower", "coordinator"
           myToken,      \* the fencing token of the node's last lease grant
@@ -21,14 +23,17 @@ VARIABLES role,         \* a function of client id to its role: "new" (not start
           access,       \* the resources whose handlers a node runs (between OnStart and OnStop)
           paused,       \* the set of nodes whose process is stalled
           lagging,      \* the set of resumed nodes that have not run a heartbeat tick since (ADR-0019 window)
+          pending,      \* PRB-0007: the grant a node has seen and not started yet (Roles/PendingStart.cs)
           envCtr,       \* number of environment events, bounded for model checking
           failCtr       \* number of failures, bounded for model checking
 
 Role == { "new", "off", "none", "follower", "coordinator" }
 NoKnown == [clients |-> {}, res |-> {}, token |-> 0]
+NoPending == [has |-> FALSE, res |-> {}, token |-> 0, due |-> FALSE]
+Pending(res, t) == [has |-> TRUE, res |-> res, token |-> t, due |-> FALSE]
 
 vars_store == << lease, rec, resources >>
-vars_node == << role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging >>
+vars_node == << role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, pending >>
 vars == << vars_store, vars_node, envCtr, failCtr >>
 
 ---------------------------------------------------------
@@ -46,6 +51,7 @@ Init ==
   /\ access = [n \in N |-> {}]
   /\ paused = {}
   /\ lagging = {}
+  /\ pending = [n \in N |-> NoPending]
   /\ envCtr = 0
   /\ failCtr = 0
 
@@ -61,6 +67,7 @@ TypeOK ==
   /\ access \in [N -> SUBSET R]
   /\ paused \subseteq N
   /\ lagging \subseteq N
+  /\ pending \in [N -> [has : BOOLEAN, res : SUBSET R, token : Nat, due : BOOLEAN]]
 
 (* Two nodes never run the handlers of the same resource. A stalled node runs nothing until it
    resumes; on resuming, all its threads (including the handlers) run at once. *)
@@ -114,6 +121,8 @@ AcquireLeadership(n) ==
   /\ lease' = AcquiredLease(n)
   /\ role' = [role EXCEPT ![n] = "coordinator"]
   /\ myToken' = [myToken EXCEPT ![n] = lease.token + 1]
+  \* the first coordinator event cancels a start the follower role still delays (PRB-0007)
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   \* the Coordinator object keeps its clients and resources across tenures (known is not reset)
   /\ UNCHANGED << rec, resources, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, envCtr, failCtr >>
 
@@ -123,7 +132,7 @@ DenyLeadership(n) ==
   /\ role[n] = "none"
   /\ ~LeaseFree
   /\ role' = [role EXCEPT ![n] = "follower"]
-  /\ UNCHANGED << vars_store, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, envCtr, failCtr >>
+  /\ UNCHANGED << vars_store, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, pending, envCtr, failCtr >>
 
 (* TryRenewLease denied: the coordinator posts follower events from now on. A rebalancing in
    progress carries on (the role task is busy with it) and is fenced by the old token. *)
@@ -132,6 +141,8 @@ Demote(n) ==
   /\ role[n] = "coordinator"
   /\ ~HoldsLease(n, myToken[n])
   /\ role' = [role EXCEPT ![n] = "follower"]
+  \* the first follower event cancels a start the coordinator role still delays (PRB-0007)
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ UNCHANGED << vars_store, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, envCtr, failCtr >>
 
 ---------------------------------------------------------
@@ -146,7 +157,8 @@ FencingViolation(n) ==
    live clients, and start a rebalancing when anything changed. Starting a rebalancing:
    - record StopActivity for all live clients (fenced)
    - record StopActivity for unresponsive clients that still hold resources (ADR-0019)
-   - stop the local handlers and record Waiting for itself (PRB-0001) *)
+   - stop the local handlers and record Waiting for itself (PRB-0001)
+   Otherwise, with AssignmentDelay, a tick after the delay starts the own share of this tenure's grant (PRB-0007). *)
 CoordinatorTick(n) ==
   LET self == KeptAlive(n)
       reRegistered == ~rec[n].present
@@ -176,6 +188,7 @@ CoordinatorTick(n) ==
                /\ access' = [access EXCEPT ![n] = {}]
                /\ FencingViolation(n)
                /\ stoppedFlag' = [stoppedFlag EXCEPT ![n] = flag]
+               /\ pending' = [pending EXCEPT ![n] = NoPending]
                /\ UNCHANGED << rb, rbRes, rbToken >>
           ELSE IF mustRebalance
             THEN \* the live clients were read in this step, so StopActivity is fenced
@@ -185,15 +198,24 @@ CoordinatorTick(n) ==
                  /\ rbRes' = [rbRes EXCEPT ![n] = resources]
                  /\ rbToken' = [rbToken EXCEPT ![n] = t]
                  /\ stoppedFlag' = [stoppedFlag EXCEPT ![n] = FALSE]
+                 /\ pending' = [pending EXCEPT ![n] = NoPending]
                  /\ UNCHANGED role
+            ELSE IF pending[n].has /\ pending[n].due /\ pending[n].token = t
+            THEN \* PRB-0007: the delayed start of the own share, under the lease that granted it
+                 /\ rec' = [rec EXCEPT ![n] = [self EXCEPT !.status = "active"]]
+                 /\ access' = [access EXCEPT ![n] = pending[n].res]
+                 /\ pending' = [pending EXCEPT ![n] = NoPending]
+                 /\ UNCHANGED << role, rb, rbRes, rbToken, stoppedFlag >>
             ELSE \* a re-registration always forces a rebalancing, so the handlers keep running
                  /\ rec' = [rec EXCEPT ![n] = self]
+                 /\ pending' = IF pending[n].has /\ pending[n].token # t
+                                 THEN [pending EXCEPT ![n] = NoPending] ELSE pending
                  /\ UNCHANGED << role, rb, rbRes, rbToken, stoppedFlag, access >>
   /\ UNCHANGED << lease, resources, myToken, known, paused, envCtr, failCtr >>
 
 (* The stop barrier: once every live client has confirmed (Waiting), grant the resources read
    at the start to the live clients and the coordinator in one fenced transaction, then mark
-   itself Active and start its own handlers *)
+   itself Active and start its own handlers (with AssignmentDelay: stay Waiting, start later) *)
 CoordinatorGrant(n) ==
   LET clients == LiveClients(n)
       C == clients \cup {n}
@@ -205,12 +227,17 @@ CoordinatorGrant(n) ==
      /\ rb' = [rb EXCEPT ![n] = "idle"]
      \* ADR-0026: the grant carries the lease guard
      /\ IF Fenced(C, t) /\ LeaseGuard(n, t)
-          THEN /\ rec' = [GrantedRecords(alloc, t) EXCEPT ![n].status = "active"]
-               /\ access' = [access EXCEPT ![n] = alloc[n]]
+          THEN /\ IF AssignmentDelay
+                    THEN /\ rec' = GrantedRecords(alloc, t)
+                         /\ pending' = [pending EXCEPT ![n] = Pending(alloc[n], t)]
+                         /\ UNCHANGED access
+                    ELSE /\ rec' = [GrantedRecords(alloc, t) EXCEPT ![n].status = "active"]
+                         /\ access' = [access EXCEPT ![n] = alloc[n]]
+                         /\ UNCHANGED pending
                /\ known' = [known EXCEPT ![n] = [clients |-> C, res |-> rbRes[n], token |-> t]]
                /\ UNCHANGED role
           ELSE /\ FencingViolation(n)
-               /\ UNCHANGED << rec, access, known >>
+               /\ UNCHANGED << rec, access, known, pending >>
   /\ UNCHANGED << lease, resources, myToken, rbRes, rbToken, stoppedFlag, paused, lagging, envCtr, failCtr >>
 
 (* Every 12th check of the barrier, StopActivity is recorded again for clients not yet Waiting *)
@@ -226,7 +253,7 @@ CoordinatorResendStop(n) ==
           THEN UNCHANGED << role, rb >>
           ELSE /\ FencingViolation(n)
                /\ rb' = [rb EXCEPT ![n] = "idle"]
-  /\ UNCHANGED << lease, resources, myToken, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, envCtr, failCtr >>
+  /\ UNCHANGED << lease, resources, myToken, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, pending, envCtr, failCtr >>
 
 (* ADR-0014: delete a record whose keep-alive expired long ago, only while holding the lease *)
 CoordinatorExpireRecord(n) ==
@@ -244,10 +271,14 @@ CoordinatorExpireRecord(n) ==
 
 (* One follower heartbeat: keep-alive (or re-registration, which stops local activity), then
    - StopActivity while Active: stop the handlers and record Waiting
-   - ResourcesGranted while Waiting: record Active and start the handlers on the granted resources *)
+   - ResourcesGranted while Waiting: record Active and start the handlers on the granted resources; with
+     AssignmentDelay only on a tick after the delay, if the record still grants the same resources under the
+     same token, else the grant is (re)noted as pending (PRB-0007) *)
 FollowerTick(n) ==
   LET self == KeptAlive(n)
       reRegistered == ~rec[n].present
+      grantWaiting == self.cmd = "granted" /\ self.status = "waiting"
+      seen == pending[n].has /\ pending[n].res = self.res /\ pending[n].token = self.token
   IN /\ Running(n)
      /\ role[n] = "follower"
      /\ rb[n] = "idle"
@@ -255,12 +286,20 @@ FollowerTick(n) ==
      /\ CASE self.cmd = "stop" /\ self.status = "active" ->
                /\ rec' = [rec EXCEPT ![n] = [self EXCEPT !.status = "waiting"]]
                /\ access' = [access EXCEPT ![n] = {}]
-          [] self.cmd = "granted" /\ self.status = "waiting" ->
+               /\ pending' = [pending EXCEPT ![n] = NoPending]
+          [] grantWaiting /\ (~AssignmentDelay \/ (seen /\ pending[n].due)) ->
                /\ rec' = [rec EXCEPT ![n] = [self EXCEPT !.status = "active"]]
                /\ access' = [access EXCEPT ![n] = self.res]
+               /\ pending' = [pending EXCEPT ![n] = NoPending]
+          [] grantWaiting ->
+               \* AssignmentDelay: a grant seen for the first time, or not yet due
+               /\ rec' = [rec EXCEPT ![n] = self]
+               /\ pending' = IF seen THEN pending ELSE [pending EXCEPT ![n] = Pending(self.res, self.token)]
+               /\ UNCHANGED access
           [] OTHER ->
                /\ rec' = [rec EXCEPT ![n] = self]
                /\ access' = IF reRegistered THEN [access EXCEPT ![n] = {}] ELSE access
+               /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ UNCHANGED << lease, resources, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, paused, envCtr, failCtr >>
 
 ---------------------------------------------------------
@@ -287,6 +326,14 @@ KeepAliveExpire(n) ==
   /\ rec' = [rec EXCEPT ![n].fresh = FALSE]
   /\ UNCHANGED << lease, resources, vars_node, envCtr, failCtr >>
 
+(* PRB-0007: OnAssignmentDelay elapses for a grant a node has seen. Wall-clock time, so also while
+   the node is stalled. *)
+DelayElapse(n) ==
+  /\ pending[n].has
+  /\ ~pending[n].due
+  /\ pending' = [pending EXCEPT ![n].due = TRUE]
+  /\ UNCHANGED << vars_store, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, paused, lagging, envCtr, failCtr >>
+
 ---------------------------------------------------------
 (* ENVIRONMENT: nodes and resources come and go *)
 
@@ -300,6 +347,7 @@ StartNode(n) ==
   /\ myToken' = [myToken EXCEPT ![n] = 0]
   /\ known' = [known EXCEPT ![n] = NoKnown]
   /\ stoppedFlag' = [stoppedFlag EXCEPT ![n] = FALSE]
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ envCtr' = envCtr + 1
   /\ UNCHANGED << lease, resources, rb, rbRes, rbToken, access, paused, lagging, failCtr >>
 
@@ -313,6 +361,7 @@ StopNode(n) ==
   /\ lease' = IF role[n] = "coordinator" THEN RelinquishedLease(n, myToken[n]) ELSE lease
   /\ role' = [role EXCEPT ![n] = "off"]
   /\ rb' = [rb EXCEPT ![n] = "idle"]
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ envCtr' = envCtr + 1
   /\ UNCHANGED << resources, myToken, rbRes, rbToken, known, stoppedFlag, paused, lagging, failCtr >>
 
@@ -325,6 +374,7 @@ CrashNode(n) ==
   /\ rb' = [rb EXCEPT ![n] = "idle"]
   /\ paused' = paused \ {n}
   /\ lagging' = lagging \ {n}
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ envCtr' = envCtr + 1
   /\ UNCHANGED << vars_store, myToken, rbRes, rbToken, known, stoppedFlag, failCtr >>
 
@@ -362,6 +412,8 @@ StoreError(n) ==
   /\ lease' = IF role[n] = "coordinator" THEN RelinquishedLease(n, myToken[n]) ELSE lease
   /\ role' = [role EXCEPT ![n] = "none"]
   /\ rb' = [rb EXCEPT ![n] = "idle"]
+  \* InvokeOnStop cancels both roles' delayed starts (PRB-0007)
+  /\ pending' = [pending EXCEPT ![n] = NoPending]
   /\ failCtr' = failCtr + 1
   /\ UNCHANGED << resources, myToken, rbRes, rbToken, known, paused, lagging, envCtr >>
 
@@ -372,13 +424,13 @@ Pause(n) ==
   /\ Running(n)
   /\ paused' = paused \cup {n}
   /\ failCtr' = failCtr + 1
-  /\ UNCHANGED << vars_store, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, lagging, envCtr >>
+  /\ UNCHANGED << vars_store, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, lagging, pending, envCtr >>
 
 Resume(n) ==
   /\ n \in paused
   /\ paused' = paused \ {n}
   /\ lagging' = lagging \cup {n}
-  /\ UNCHANGED << vars_store, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, envCtr, failCtr >>
+  /\ UNCHANGED << vars_store, role, myToken, rb, rbRes, rbToken, known, stoppedFlag, access, pending, envCtr, failCtr >>
 
 ---------------------------------------------------------
 (* NEXT AND TEMPORAL FORMULA *)
@@ -400,13 +452,14 @@ Failure(n) ==
 
 Next ==
   \/ EnvironmentChange
-  \/ \E n \in N : NodeAction(n) \/ Failure(n) \/ KeepAliveExpire(n)
+  \/ \E n \in N : NodeAction(n) \/ Failure(n) \/ KeepAliveExpire(n) \/ DelayElapse(n)
   \/ LeaseExpire
 
 (* Heartbeats keep running and time keeps passing; the environment and failures are bounded *)
 Fairness ==
   /\ \A n \in N : WF_vars(NodeAction(n))
   /\ \A n \in N : WF_vars(KeepAliveExpire(n))
+  /\ \A n \in N : WF_vars(DelayElapse(n))
   /\ WF_vars(LeaseExpire)
 
 Spec == Init /\ [][Next]_vars /\ Fairness

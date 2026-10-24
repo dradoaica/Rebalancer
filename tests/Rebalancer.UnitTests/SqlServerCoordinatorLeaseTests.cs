@@ -87,7 +87,8 @@ public sealed class SqlServerCoordinatorLeaseTests
         Assert.Single(clients.Get(follower).AssignedResources);
     }
 
-    private static async Task<(FencedClients Clients, ResourceGroupStore Store, Coordinator Coordinator,
+    // also used by AssignmentDelayTests (PRB-0007)
+    internal static async Task<(FencedClients Clients, ResourceGroupStore Store, Coordinator Coordinator,
         OnChangeActions Actions, List<string> Events, Guid Self)> SingleCoordinatorAsync()
     {
         var clients = new FencedClients();
@@ -103,7 +104,7 @@ public sealed class SqlServerCoordinatorLeaseTests
         return (clients, store, coordinator, actions, events, self);
     }
 
-    private static ClientEvent Event(int fencingToken) =>
+    internal static ClientEvent Event(int fencingToken) =>
         new()
         {
             ResourceGroup = Group,
@@ -121,7 +122,7 @@ public sealed class SqlServerCoordinatorLeaseTests
     ///     In-memory client table and lease with the semantics of the built-in client service, including the lease guard
     ///     (ADR-0026) and the record reset (PRB-0005).
     /// </summary>
-    private sealed class FencedClients : IClientService, IFencedClientService
+    internal sealed class FencedClients : IClientService, IFencedClientService
     {
         private readonly Dictionary<Guid, Client> clients = new();
 

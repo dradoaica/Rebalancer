@@ -24,6 +24,8 @@ internal class Coordinator
     private List<Guid> clients;
     private int currentFencingToken;
 
+    // PRB-0007: this node's own share of the last grant, waiting for OnAssignmentDelay
+    private PendingStart pendingStart;
     private List<string> resources;
     private bool stoppedDueToInternalErrorFlag;
 
@@ -45,6 +47,9 @@ internal class Coordinator
     public int GetFencingToken() => currentFencingToken;
 
     public void SetStoppedDueToInternalErrorFlag() => stoppedDueToInternalErrorFlag = true;
+
+    /// <summary>Forgets a grant whose start is still delayed (PRB-0007), e.g. when the node changes role.</summary>
+    public void CancelPendingStart() => pendingStart = null;
 
     public async Task ExecuteCoordinatorRoleAsync(
         Guid coordinatorClientId,
@@ -180,6 +185,58 @@ internal class Coordinator
                 token
             );
         }
+        else if (pendingStart != null)
+        {
+            await StartPendingIfDueAsync(coordinatorClientId, clientEvent, onChangeActions, token);
+        }
+    }
+
+    // PRB-0007: the own share starts on the first tick, under the lease that granted it, after OnAssignmentDelay
+    private async Task StartPendingIfDueAsync(
+        Guid coordinatorClientId,
+        ClientEvent clientEvent,
+        OnChangeActions onChangeActions,
+        CancellationToken token
+    )
+    {
+        if (pendingStart.FencingToken != clientEvent.FencingToken)
+        {
+            pendingStart = null;
+            return;
+        }
+
+        if (pendingStart.Elapsed < clientEvent.OnAssignmentDelay || token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        var resourcesToStart = pendingStart.Resources;
+        pendingStart = null;
+        await StartLocalHandlersAsync(coordinatorClientId, resourcesToStart, onChangeActions);
+    }
+
+    private async Task StartLocalHandlersAsync(
+        Guid coordinatorClientId,
+        List<string> resourcesToStart,
+        OnChangeActions onChangeActions
+    )
+    {
+        store.SetResources(
+            new SetResourcesRequest
+            {
+                AssignmentStatus = AssignmentStatus.ResourcesAssigned,
+                Resources = resourcesToStart,
+            }
+        );
+
+        // mark the local client active so that, if this node is demoted, the next coordinator stops it
+        await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Active);
+        foreach (var onStartAction in onChangeActions.OnStartActions)
+        {
+            onStartAction.Invoke(resourcesToStart);
+        }
+
+        logger.Debug(coordinatorClientId.ToString(), "COORDINATOR: Local client started");
     }
 
     public int GetCurrentFencingToken() => currentFencingToken;
@@ -241,6 +298,7 @@ internal class Coordinator
     )
     {
         logger.Info(coordinatorClientId.ToString(), "---------- Rebalancing triggered -----------");
+        pendingStart = null;
 
         // request stop of all clients
         logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Requested stop");
@@ -385,22 +443,23 @@ internal class Coordinator
                 return false;
             }
 
-            store.SetResources(
-                new SetResourcesRequest
-                {
-                    AssignmentStatus = AssignmentStatus.ResourcesAssigned,
-                    Resources = coordinatorRequest.AssignedResources,
-                }
-            );
-
-            // mark the local client active so that, if this node is demoted, the next coordinator stops it
-            await clientService.SetClientStatusAsync(coordinatorClientId, ClientStatus.Active);
-            foreach (var onStartAction in onChangeActions.OnStartActions)
+            if (clientEvent.OnAssignmentDelay > TimeSpan.Zero)
             {
-                onStartAction.Invoke(coordinatorRequest.AssignedResources);
+                // PRB-0007: the record stays Waiting until the handlers start, so a rebalance meanwhile need not wait
+                pendingStart = new PendingStart(coordinatorRequest.AssignedResources, clientEvent.FencingToken);
+                logger.Debug(
+                    coordinatorClientId.ToString(),
+                    $"COORDINATOR: Delaying on start for {(int)clientEvent.OnAssignmentDelay.TotalMilliseconds}ms"
+                );
             }
-
-            logger.Debug(coordinatorClientId.ToString(), "COORDINATOR: Local client started");
+            else
+            {
+                await StartLocalHandlersAsync(
+                    coordinatorClientId,
+                    coordinatorRequest.AssignedResources,
+                    onChangeActions
+                );
+            }
 
             var clientIds = clientsNow.Select(x => x.ClientId).ToList();
             clientIds.Add(coordinatorClientId);
@@ -422,6 +481,7 @@ internal class Coordinator
     private async Task StepDownAsync(Guid coordinatorClientId, ClientEvent clientEvent, OnChangeActions onChangeActions)
     {
         clientEvent.CoordinatorToken.FencingTokenViolation = true;
+        pendingStart = null;
         logger.Info(coordinatorClientId.ToString(), "COORDINATOR: Fenced out by a newer coordinator, stepping down");
         if (store.GetResources().AssignmentStatus != AssignmentStatus.AssignmentInProgress)
         {

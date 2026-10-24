@@ -15,6 +15,7 @@ internal class Follower
     private readonly IClientService clientService;
     private readonly IRebalancerLogger logger;
     private readonly ResourceGroupStore store;
+    private PendingStart pendingStart;
 
     public Follower(IRebalancerLogger logger, IClientService clientService, ResourceGroupStore store)
     {
@@ -22,6 +23,9 @@ internal class Follower
         this.clientService = clientService;
         this.store = store;
     }
+
+    /// <summary>Forgets a grant whose start is still delayed (PRB-0007), e.g. when the node changes role.</summary>
+    public void CancelPendingStart() => pendingStart = null;
 
     public async Task ExecuteFollowerRoleAsync(
         Guid followerClientId,
@@ -35,6 +39,34 @@ internal class Follower
             followerClientId.ToString(),
             $"FOLLOWER : Keep Alive sent. Coordinator: {self.CoordinatorStatus} Client: {self.ClientStatus}"
         );
+        // PRB-0007: OnAssignmentDelay runs between seeing a grant and starting it, across ticks, so keep-alives and stop
+        // requests are never delayed; the start happens only if the record still grants the same resources then
+        var grantWaiting = self.CoordinatorStatus == CoordinatorStatus.ResourcesGranted &&
+                           self.ClientStatus == ClientStatus.Waiting;
+        if (!grantWaiting)
+        {
+            pendingStart = null;
+        }
+        else if (clientEvent.OnAssignmentDelay > TimeSpan.Zero)
+        {
+            if (pendingStart == null || !pendingStart.Matches(self.AssignedResources, self.FencingToken))
+            {
+                pendingStart = new PendingStart(self.AssignedResources, self.FencingToken);
+                logger.Debug(
+                    followerClientId.ToString(),
+                    $"FOLLOWER : Delaying on start for {(int)clientEvent.OnAssignmentDelay.TotalMilliseconds}ms"
+                );
+                return;
+            }
+
+            if (pendingStart.Elapsed < clientEvent.OnAssignmentDelay)
+            {
+                return;
+            }
+
+            pendingStart = null;
+        }
+
         if (self.CoordinatorStatus == CoordinatorStatus.StopActivity)
         {
             if (self.ClientStatus == ClientStatus.Active)
