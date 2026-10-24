@@ -1,6 +1,6 @@
 ---
 id: US-0024
-status: In progress
+status: Done
 date: 2026-10-24
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-10-24)
@@ -118,13 +118,15 @@ connection strings.
 
 ## Definition of done
 
-<!-- 2026-10-24: "Acceptance criteria met" and "Docs" ticked by an agent against the implementation notes above; the
-other two need the human review and the release. -->
+<!-- 2026-10-24: "Acceptance criteria met" and "Docs" ticked by an agent against the implementation notes above;
+"Tests / checks agreed with a team" confirmed by dradoaica on 2026-10-24; change-record traceability ticked after the
+4.3.2 release. -->
 
 - [x] Acceptance criteria met
-- [ ] Tests / checks agreed with a team
+- [x] Tests / checks agreed with a team
 - [x] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/CR-0012-release-4-3-2.md` (4.3.2, Submitted)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0012-release-4-3-2.md` (4.3.2, released
+  2026-10-24, `41f3c04`)
 
 ## Sources
 

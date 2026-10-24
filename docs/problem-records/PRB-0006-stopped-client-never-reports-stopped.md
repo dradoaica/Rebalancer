@@ -1,10 +1,10 @@
 ---
 id: PRB-0006
-status: Root cause identified
+status: Closed
 date: 2026-10-24
 opened: 2026-10-24
 owner: ""
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-24)
 severity: "Medium (a stopped SQL Server / Redis client is reported Healthy, BlockAsync can wait forever; no double processing)"
 depends-on: [ "ADR-0013", "ADR-0023", "US-0003", "US-0018", "US-0021", "CR-0011" ]
 ---
@@ -43,6 +43,7 @@ check (ADR-0023) reporting a stopped client `Unhealthy`.
 | 2026-10-24 | Regression tests written; they fail against `main` (`791919b`) on all three backends (see Evidence)              |
 | 2026-10-24 | Approved by dradoaica; fix on branch `agent/prb-0006-0007-us-0024`; the regression tests pass                    |
 | 2026-10-24 | Release prepared as 4.3.2 (CR-0012, Submitted); not released                                                     |
+| 2026-10-24 | Released in 4.3.2 (CR-0012, `41f3c04`); closed after closure review by dradoaica                                 |
 
 ## Evidence
 
@@ -84,7 +85,7 @@ documentation rather than against a provider's behavior.
 
 | Action                                                                                                                                                                                                                                                                                                    | Owner | Status                                           |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|--------------------------------------------------|
-| All three providers record a clean stop once their main loop has ended on cancellation; `GetState()` then returns `Stopped`, and `GetAssignedResources()` returns `Stopped` with no resources. `Aborted` takes precedence (a client that gave up stays `Aborted`). `IRebalancerProvider` does not change. |       | Done on branch, not released                     |
+| All three providers record a clean stop once their main loop has ended on cancellation; `GetState()` then returns `Stopped`, and `GetAssignedResources()` returns `Stopped` with no resources. `Aborted` takes precedence (a client that gave up stays `Aborted`). `IRebalancerProvider` does not change. |       | Done; released in 4.3.2                          |
 | Regression tests listed under Evidence                                                                                                                                                                                                                                                                    |       | Pass with the fix                                |
 | Release notes: after `StopAsync`, `GetCurrentState()` returns `Stopped` on every backend (ZooKeeper hosts that compare with `NotStarted`, and SQL Server / Redis hosts that compare with `PendingAssignment`, must update)                                                                                |       | Drafted: `docs/release-notes/4.3.2.md` (CR-0012) |
 
@@ -129,9 +130,17 @@ the non-randomised ZooKeeper suite (44/44, including `DisconnectionTests` and `N
 
 ## Closure
 
-- **Closed:** –
-- **Resolution summary:** –
-- **Preventive action verification:** –
+- **Closed:** 2026-10-24 (closure review: dradoaica, in session)
+- **Resolution summary:** fixed in 4.3.2 (CR-0012, `41f3c04`). After `StopAsync`, every backend reports
+  `ClientState.Stopped` with no resources; a client that gave up still reports `Aborted`. `BlockAsync` returns once
+  the client is stopped, and the health check reports a stopped client `Unhealthy`, as ADR-0023 specifies. An aborted
+  ZooKeeper client's `GetAssignedResources()` now reports `Aborted` too. The release notes list each visible change.
+- **Preventive action verification:**
+  - **Done:** regression tests `StoppedStateTests` (unit), `*PausedNodeTests.AStoppedClient_ReportsStopped` (real SQL
+    Server and Redis) and `ZooKeeper/SingleClientTests.GivenSingleClient_WhenStopped_ThenReportsStopped` (both modes);
+    each failed on `791919b` and passes with the fix.
+  - **Done:** release notes `docs/release-notes/4.3.2.md`.
+  - **Governance change:** N/A. A code defect with a test gap, not a gap in rules, skills or personas.
 
 ## Sources
 

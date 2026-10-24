@@ -1,6 +1,6 @@
 ---
 id: CR-0012
-status: Approved
+status: Implemented
 date: 2026-10-24
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-10-24)
@@ -130,8 +130,16 @@ Release notes `docs/release-notes/4.3.2.md` ("What hosts see" under each fix).
 
 ## Post-implementation
 
-- **Actual outcome:** –
-- **Follow-ups:** close PRB-0006 and PRB-0007 after the release (closure review); US-0024 to Done.
+- **Actual outcome (2026-10-24 UTC):** `main` fast-forwarded to `41f3c04` ("Release 4.3.2") and pushed by dradoaica.
+  The "Release Packages" run on that push succeeded at 20:52:21 UTC, including "Pack NuGet Packages" (20:52:14 UTC) and
+  "Push to GitHub Packages" (20:52:18 UTC) (https://github.com/dradoaica/Rebalancer/actions/runs/40131669525).
+  Published package versions were not listed from the agent session.
+- **Deviations:**
+  - The TLC run was first waived by dradoaica, then done before the merge (see Preconditions); no deviation remains.
+  - dradoaica cleaned up and formatted the branch before the release commit; after that, the solution build and the
+    unit tests (78/78) and `ProcessingMonitorTests` (5/5) were re-run, the integration suites were not.
+- **Follow-ups:** closure review of PRB-0006 and PRB-0007; US-0024 to Done once its "Tests / checks agreed with a
+  team" item is confirmed. **Done 2026-10-24:** both records closed and the story Done, confirmed by dradoaica.
 
 ## Sources
 

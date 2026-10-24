@@ -1,10 +1,10 @@
 ---
 id: PRB-0007
-status: Root cause identified
+status: Closed
 date: 2026-10-24
 opened: 2026-10-24
 owner: ""
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-10-24)
 severity: "High (availability) for SQL Server / Redis hosts whose OnAssignmentDelay reaches the keep-alive expiry: the group never converges; others unaffected"
 depends-on: [ "ADR-0002", "ADR-0004", "ADR-0019", "ADR-0021", "US-0004", "US-0005", "US-0006" ]
 ---
@@ -44,6 +44,7 @@ RabbitMQ's 60 s keep-alive, where rebalancing "may be triggered after only 20 se
 | 2026-10-24 | Reproduced on a real SQL Server and Redis; regression tests written, failing against `main` (`791919b`) |
 | 2026-10-24 | Approved by dradoaica; fix and TLA+ model on branch `agent/prb-0006-0007-us-0024`; tests pass           |
 | 2026-10-24 | Release prepared as 4.3.2 (CR-0012); TLC first waived, then run before merge: all configs hold          |
+| 2026-10-24 | Released in 4.3.2 (CR-0012, `41f3c04`); closed after closure review by dradoaica                        |
 
 ## Evidence
 
@@ -88,7 +89,7 @@ stay stable (see "Results with the fix").
 
 | Action                                                                                                                                                                                                                                                                                                                                                                                          | Owner | Status                                                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|-------------------------------------------------------------------------------------------------------------------|
-| SQL Server and Redis apply the delay once per grant, between the moment the node sees its grant and its start actions, without blocking keep-alives, stop requests or the coordinator's tick: for example, the role records when it first saw the grant and invokes the start actions on the first tick at or after that time plus the delay; a stop seen in between cancels the pending start. |       | Done on branch, not released (see Design decisions)                                                               |
+| SQL Server and Redis apply the delay once per grant, between the moment the node sees its grant and its start actions, without blocking keep-alives, stop requests or the coordinator's tick: for example, the role records when it first saw the grant and invokes the start actions on the first tick at or after that time plus the delay; a stop seen in between cancels the pending start. |       | Done; released in 4.3.2 (see Design decisions)                                                                    |
 | Regression tests listed under Evidence                                                                                                                                                                                                                                                                                                                                                          |       | Pass with the fix (see Design decisions)                                                                          |
 | Model `OnAssignmentDelay` in `docs/tlaplus/LeaderGlobalBarrier` before the fix is merged: the deferred start must keep `NoDoubleAccess` and the ADR-0019 resume window, and must not let the coordinator grant while a deferred start is pending for a resource it reassigns                                                                                                                    |       | Done: TLC holds on all three delay configs; existing configs unchanged (2026-10-24; see `docs/tlaplus/README.md`) |
 | `ClientOptions.OnAssignmentDelay` XML documentation and release notes: the delay runs between a grant and `OnAssignment`; until the fix, keep it below the group's keep-alive expiry                                                                                                                                                                                                            |       | XML documentation done; release notes drafted (4.3.2, CR-0012)                                                    |
@@ -151,9 +152,18 @@ failover, or delay its own start logic inside its `OnAssignment` handler.
 
 ## Closure
 
-- **Closed:** –
-- **Resolution summary:** –
-- **Preventive action verification:** –
+- **Closed:** 2026-10-24 (closure review: dradoaica, in session)
+- **Resolution summary:** fixed in 4.3.2 (CR-0012, `41f3c04`). SQL Server and Redis apply `OnAssignmentDelay` once per
+  assignment, between the node seeing it and its start actions (`Roles/PendingStart.cs`); keep-alives and stop
+  requests are no longer delayed, and a group with a delay longer than its keep-alive expiry converges.
+- **Preventive action verification:**
+  - **Done:** regression tests `AssignmentDelayTests` (unit) and `*AssignmentDelayTests` (real SQL Server and Redis),
+    which failed on `791919b` and pass with the fix.
+  - **Done:** TLA+ model of the delay; `MCAssignmentDelay.cfg`, `MCAssignmentDelayLongPauses.cfg` and
+    `MCAssignmentDelayLiveness.cfg` hold, the existing configs keep their state counts, and a mutation check fails as
+    expected (`docs/tlaplus/README.md`).
+  - **Done:** `ClientOptions.OnAssignmentDelay` XML documentation and the 4.3.2 release notes.
+  - **Governance change:** N/A. A code defect with a test gap, not a gap in rules, skills or personas.
 
 ## Sources
 

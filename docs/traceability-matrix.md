@@ -87,17 +87,17 @@ test project is added.
 
 ### 4.3.2 records
 
-| Record                                             | Status                                                                        | Covers                      |
-|----------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------|
-| [CR-0012](change-records/CR-0012-release-4-3-2.md) | **Approved** (2026-10-24); [release notes](release-notes/4.3.2.md); TLC holds | PRB-0006, PRB-0007, US-0024 |
+| Record                                             | Status                                                                      | Covers                      |
+|----------------------------------------------------|-----------------------------------------------------------------------------|-----------------------------|
+| [CR-0012](change-records/CR-0012-release-4-3-2.md) | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md) | PRB-0006, PRB-0007, US-0024 |
 
-### Open records (not yet released)
+### 4.3.2 problem records and stories
 
-| Record                                                                       | Status                                                        | Covers                                                                                                                                                       |
-|------------------------------------------------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md) | Approved 2026-10-24; fixed on branch, not released            | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
-| [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)  | Approved 2026-10-24; fixed on branch, TLC holds, not released | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
-| [US-0024](user-stories/US-0024-randomised-tests-check-what-nodes-process.md) | In progress (Ready 2026-10-24)                                | US-0019 suites checked with `ProcessingMonitor`                                                                                                              |
+| Record                                                                       | Status         | Covers                                                                                                                                                       |
+|------------------------------------------------------------------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md) | Closed (4.3.2) | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
+| [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)  | Closed (4.3.2) | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
+| [US-0024](user-stories/US-0024-randomised-tests-check-what-nodes-process.md) | Done (4.3.2)   | US-0019 suites checked with `ProcessingMonitor`                                                                                                              |
 
 ### Threat models
 
