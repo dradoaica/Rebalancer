@@ -138,3 +138,10 @@ connection strings.
 - `docs/change-records/CR-0011-release-4-3-1.md` (Motivation)
 - `tests/Rebalancer.IntegrationTests/RandomisedScenario.cs`, `ProcessingMonitor.cs`, `NodePause.cs`,
   `NetworkFaultScenarios.cs`
+
+## Note (2026-10-25)
+
+`PausedNodeScenarios.CoordinatorStalledAfterGranting_StopsAtFirstTickAfterResume` (ADR-0026) checks its overlap with
+an explicit window, not with the monitor's overlap list: the resumed coordinator starts, after its resume, the share it
+granted itself before the pause, which criterion 5's rule records as an overlap although ADR-0021 accepts it. Decided by
+dradoaica on 2026-10-25: keep the explicit check; the monitor rule stays as specified.

@@ -5,7 +5,10 @@ using Xunit;
 
 namespace Rebalancer.IntegrationTests.Sql;
 
-/// <summary>Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled).</summary>
+/// <summary>
+///     Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled), and never
+///     process it at the same time (handler events, <see cref="ProcessingMonitor" />).
+/// </summary>
 public sealed class SqlServerAssignmentSafetyTests
 {
     [SkippableFact]
@@ -36,6 +39,10 @@ public sealed class SqlServerAssignmentSafetyTests
         var backend2 = new SqlServerProvider(connectionString);
         using var client1 = new RebalancerClient(backend1);
         using var client2 = new RebalancerClient(backend2);
+        // US-0024 follow-up: also what the clients process, not only what they report
+        var monitor = new ProcessingMonitor();
+        monitor.Attach(client1, "client1");
+        monitor.Attach(client2, "client2");
 
         await client1.StartAsync(group, options);
         await client2.StartAsync(group, options);
@@ -62,6 +69,8 @@ public sealed class SqlServerAssignmentSafetyTests
 
             // without this the safety check passes vacuously when nothing is ever assigned
             Assert.True(assignedObservations > 0, "Liveness violated: the resource was never assigned to any client.");
+            Assert.True(monitor.Overlaps.Count == 0, string.Join(Environment.NewLine, monitor.Overlaps));
+            Assert.True(monitor.IsProcessed(resourceName), "no client processes the resource");
         }
         finally
         {

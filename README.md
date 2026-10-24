@@ -193,13 +193,16 @@ this for you.
 - Solution: [Rebalancer.slnx](Rebalancer.slnx)
 - **`tests/Rebalancer.UnitTests`** — DI registration, provider lifecycle, API contract, lease decisions, record expiry,
   coordinator demotion and lease guard, unresponsive followers, ZooKeeper barrier ownership and suspension on
-  disconnect, the state after a stop and the assignment delay (no Docker).
+  disconnect, the state after a stop and the assignment delay, the `StopAsync` overloads and `Dispose`, and the
+  ZooKeeper DI defaults (no Docker).
 - **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
-  unavailable): assignment safety, paused follower, stalled coordinator, a follower recovering from a store error and
+  unavailable): assignment safety, paused follower, a coordinator stalled anywhere, at its barrier or right after
+  granting, a follower recovering from a store error and
   a clean stop raising `OnUnassignment` and reporting `Stopped` (`*PausedNodeTests`), nodes coming and going over a
   slow, lossy link (`*NetworkFaultTests`), an assignment delay longer than the keep-alive expiry
   (`*AssignmentDelayTests`), client-record expiry and the coordinator's lease guard,
-  the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, and randomised runs
+  the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, the health check with
+  real clients, the aborted state, the RabbitMQ example's order guard (`Examples/`), and randomised runs
   (`*RandomisedTests`, 3 minutes each, checking both what nodes process and what they report; replay a run with
   `REBALANCER_RANDOMISED_SEED`, cap it with `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live
   under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [

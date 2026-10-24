@@ -20,17 +20,17 @@ java -cp tla2tools.jar tlc2.TLC -workers auto -config MCSafety.cfg LeaderGlobalB
 
 ### Config names in the ADRs
 
-ADR-0026, ADR-0027 and ADR-0028 cite configs by the names they had when the records were accepted; those configs
-were later renamed or merged into the set below. The mapping (inferred on 2026-10-24 from each config's description
-and, where they match, its state count):
+ADR-0026, ADR-0027 and ADR-0028 cite configs by the names they had when the records were accepted. When each ADR was
+implemented, its feature flag (`LeaseChecks`, `BarrierOwnerChecks`, `SuspendOnDisconnect`) was removed from the specs
+and the configs were merged or renamed. Verified from the git history on 2026-10-25:
 
-| Name in the ADR                        | Config now                                                          | Note                                                        |
-|----------------------------------------|---------------------------------------------------------------------|-------------------------------------------------------------|
-| `MCLeaseChecks.cfg` (ADR-0026)         | `LeaderGlobalBarrier/MCLongPauses.cfg`, `MCLongPausesPermanent.cfg` | same scenario (long stalls); state counts differ            |
-| `MCAsBuilt.cfg` (ADR-0027)             | `LeaderResourceBarrier/MCSafety.cfg`                                | the failing as-built run; now holds                         |
-| `MCBarrierOwnerChecks.cfg` (ADR-0027)  | `LeaderResourceBarrier/MCFailures.cfg`                              | same scenario (disconnections, errors); state counts differ |
-| `MCSuspendOnDisconnect.cfg` (ADR-0028) | `LeaderResourceBarrier/MCLateExpiry.cfg`                            | same state count (7,230,389)                                |
-| `MCSuspendLiveness.cfg` (ADR-0028)     | `LeaderResourceBarrier/MCLivenessWithDisconnects.cfg`               | same state count (270,311)                                  |
+| Name in the ADR                        | Config now                                                          | What happened                                                                                                                                    |
+|----------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MCLeaseChecks.cfg` (ADR-0026)         | `LeaderGlobalBarrier/MCLongPauses.cfg`, `MCLongPausesPermanent.cfg` | deleted in `7cbe528`; same constants and properties, split over the two; the state count changed because the same commit models the PRB-0005 fix |
+| `MCAsBuilt.cfg` (ADR-0027)             | `LeaderResourceBarrier/MCSafety.cfg`                                | deleted in `11a5ab8`, where `MCSafety.cfg` was added with its constants; it now checks the fixed code (and `AccessHoldsBarrier`)                 |
+| `MCBarrierOwnerChecks.cfg` (ADR-0027)  | `LeaderResourceBarrier/MCFailures.cfg`                              | renamed in `11a5ab8`                                                                                                                             |
+| `MCSuspendOnDisconnect.cfg` (ADR-0028) | `LeaderResourceBarrier/MCLateExpiry.cfg`                            | deleted in `2e60b80`, folded into `MCLateExpiry.cfg` (same constants and state count, 7,230,389)                                                 |
+| `MCSuspendLiveness.cfg` (ADR-0028)     | `LeaderResourceBarrier/MCLivenessWithDisconnects.cfg`               | deleted and re-added under the new name in `2e60b80` (same state count, 270,311)                                                                 |
 
 ## LeaderGlobalBarrier
 
@@ -62,7 +62,8 @@ Abstractions:
   while the node is stalled) marks it due; a later tick starts it if the record still grants the same resources
   under the same token. A coordinator stays Waiting until its own share starts. Any other record state, a
   rebalance, a step-down, a role change and a store error cancel it. Keep-alives are not delayed.
-- ZooKeeper's global-barrier mode is not modelled separately. It maps as: lease and fencing token ↔ lowest sequential
+- ZooKeeper's global-barrier mode is not modelled separately (accepted as documented by dradoaica, 2026-10-25). It maps
+  as: lease and fencing token ↔ lowest sequential
   `clients/c_*` znode and the `epoch` version; per-client `StopActivity` / `ResourcesGranted` ↔ the `status` znode;
   `Waiting` ↔ a child of `stopped`; keep-alive expiry ↔ session expiry; fenced writes ↔ versioned `SetData`.
 - [ADR-0026](../adrs/0026-coordinator-acts-only-under-a-valid-lease.md) and the

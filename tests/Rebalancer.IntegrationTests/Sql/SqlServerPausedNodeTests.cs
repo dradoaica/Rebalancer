@@ -20,6 +20,14 @@ public sealed class SqlServerPausedNodeTests
         RunAsync(PausedNodeScenarios.CoordinatorStalledPastLeaseExpiry_GivesUpItsResourcesAfterResume);
 
     [SkippableFact]
+    public Task CoordinatorStalledAtTheBarrier_StartsNothingAfterResume() =>
+        RunAsync(PausedNodeScenarios.CoordinatorStalledAtTheBarrier_StartsNothingAfterResume);
+
+    [SkippableFact]
+    public Task CoordinatorStalledAfterGranting_StopsAtFirstTickAfterResume() =>
+        RunAsync(PausedNodeScenarios.CoordinatorStalledAfterGranting_StopsAtFirstTickAfterResume);
+
+    [SkippableFact]
     public Task FollowerRecoversFromAStoreError_IsAssignedAgain() =>
         RunAsync(PausedNodeScenarios.FollowerRecoversFromAStoreError_IsAssignedAgain);
 

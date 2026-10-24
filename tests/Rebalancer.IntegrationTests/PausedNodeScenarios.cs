@@ -6,7 +6,8 @@ namespace Rebalancer.IntegrationTests;
 /// <summary>
 ///     Backend-independent scenarios for a SQL Server or Redis node that stops responding longer than the lease /
 ///     keep-alive expiry and then resumes, or whose store call fails once. The group must hold exactly
-///     <see cref="Resources" /> with a short lease expiry.
+///     <see cref="Resources" /> with a short lease expiry. Besides what the nodes report, the multi-node scenarios check
+///     what they process with a <see cref="ProcessingMonitor" /> (US-0024 follow-up).
 /// </summary>
 internal static class PausedNodeScenarios
 {
@@ -37,6 +38,7 @@ internal static class PausedNodeScenarios
         using var coordinator = new RebalancerClient(createProvider());
         using var follower = new RebalancerClient(createPausableProvider(pause));
         var followerStops = new StopRecorder(follower, pause);
+        var monitor = Monitor((coordinator, "coordinator", null), (follower, "follower", pause));
         try
         {
             await coordinator.StartAsync(group, Options);
@@ -65,7 +67,7 @@ internal static class PausedNodeScenarios
             );
             Assert.True(followerStops.StoppedAfterResume, "the resumed follower did not invoke its stop actions");
 
-            await AssertNeverBothHoldAResourceAsync(coordinator, follower);
+            await AssertNeverBothHoldAResourceAsync(coordinator, follower, monitor);
         }
         finally
         {
@@ -89,6 +91,7 @@ internal static class PausedNodeScenarios
         using var stalled = new RebalancerClient(createPausableProvider(pause));
         using var successor = new RebalancerClient(createProvider());
         var stalledStops = new StopRecorder(stalled, pause);
+        var monitor = Monitor((stalled, "stalled", pause), (successor, "successor", null));
         try
         {
             await stalled.StartAsync(group, Options);
@@ -113,7 +116,7 @@ internal static class PausedNodeScenarios
             );
             Assert.True(stalledStops.StoppedAfterResume, "the demoted coordinator did not invoke its stop actions");
 
-            await AssertNeverBothHoldAResourceAsync(stalled, successor);
+            await AssertNeverBothHoldAResourceAsync(stalled, successor, monitor);
         }
         finally
         {
@@ -136,6 +139,7 @@ internal static class PausedNodeScenarios
         var faults = new NodePause();
         using var coordinator = new RebalancerClient(createProvider());
         using var follower = new RebalancerClient(createPausableProvider(faults));
+        var monitor = Monitor((coordinator, "coordinator", null), (follower, "follower", null));
         var aborted = 0;
         var assignedAfterAbort = 0;
         follower.OnAborted += (_, _) => Interlocked.Exchange(ref aborted, 1);
@@ -168,7 +172,7 @@ internal static class PausedNodeScenarios
                 "the follower was not assigned again after recovering from the error (PRB-0005)"
             );
 
-            await AssertNeverBothHoldAResourceAsync(coordinator, follower);
+            await AssertNeverBothHoldAResourceAsync(coordinator, follower, monitor);
         }
         finally
         {
@@ -198,6 +202,100 @@ internal static class PausedNodeScenarios
 
         Assert.True(Volatile.Read(ref unassigned) > before, "StopAsync returned without raising OnUnassignment");
         Assert.Empty(Held(client));
+    }
+
+    /// <summary>
+    ///     ADR-0026: a coordinator that stalls at its stop barrier (right after recording stop for the new node) until
+    ///     its lease expired. The successor takes every resource; the resumed node stops its handlers and never grants or
+    ///     starts anything under its old lease.
+    /// </summary>
+    public static async Task CoordinatorStalledAtTheBarrier_StartsNothingAfterResume(
+        string group,
+        Func<IRebalancerProvider> createProvider,
+        Func<NodePause, IRebalancerProvider> createPausableProvider
+    )
+    {
+        var pause = new NodePause();
+        using var stalled = new RebalancerClient(createPausableProvider(pause));
+        using var successor = new RebalancerClient(createProvider());
+        var stalledStops = new StopRecorder(stalled, pause);
+        var monitor = Monitor((stalled, "stalled", pause), (successor, "successor", null));
+        try
+        {
+            await stalled.StartAsync(group, Options);
+            await WaitUntilAsync(() => Holds(stalled, Resources), "the first node never held both resources");
+
+            pause.PauseAfterNext("StopActivityAsync");
+            await successor.StartAsync(group, Options);
+            await WaitUntilAsync(
+                () => Holds(successor, Resources),
+                "the successor never took over from the coordinator stalled at its barrier"
+            );
+            pause.Resume();
+
+            await WaitUntilAsync(
+                () => stalledStops.StoppedAfterResume && !monitor.ProcessedBy("stalled").Any(),
+                "the coordinator resumed at its barrier did not stop its handlers",
+                ReleaseAfterResume
+            );
+            await AssertNeverBothHoldAResourceAsync(stalled, successor, monitor);
+        }
+        finally
+        {
+            pause.Resume();
+            await stalled.StopAsync(TimeSpan.FromSeconds(30));
+            await successor.StopAsync(TimeSpan.FromSeconds(30));
+        }
+    }
+
+    /// <summary>
+    ///     ADR-0026: a coordinator that stalls right after granting, before it started its own share, until its lease
+    ///     expired. The successor takes every resource. On resuming, the stalled node may start the share it granted itself,
+    ///     but only until its first tick (the ADR-0019 window that ADR-0021 accepts); then it stops.
+    /// </summary>
+    /// <remarks>
+    ///     The overlap is checked here with the window, not with the monitor's overlap list: the node starts the share
+    ///     after its resume, on a grant made before it, which US-0024's monitor rule (only resources processed before the
+    ///     pause) records as an overlap although ADR-0021 accepts it.
+    /// </remarks>
+    public static async Task CoordinatorStalledAfterGranting_StopsAtFirstTickAfterResume(
+        string group,
+        Func<IRebalancerProvider> createProvider,
+        Func<NodePause, IRebalancerProvider> createPausableProvider
+    )
+    {
+        var pause = new NodePause();
+        using var stalled = new RebalancerClient(createPausableProvider(pause));
+        using var successor = new RebalancerClient(createProvider());
+        var stalledStops = new StopRecorder(stalled, pause);
+        var monitor = Monitor((stalled, "stalled", pause), (successor, "successor", null));
+        try
+        {
+            await stalled.StartAsync(group, Options);
+            await WaitUntilAsync(() => Holds(stalled, Resources), "the first node never held both resources");
+
+            pause.PauseAfterNext("StartActivityAsync");
+            await successor.StartAsync(group, Options);
+            await WaitUntilAsync(
+                () => Holds(successor, Resources),
+                "the successor never took over from the coordinator stalled after granting"
+            );
+            pause.Resume();
+
+            await WaitUntilAsync(
+                () => stalledStops.StoppedAfterResume &&
+                      !monitor.ProcessedBy("stalled").Intersect(monitor.ProcessedBy("successor")).Any(),
+                "the coordinator resumed after granting kept processing the successor's resources",
+                ReleaseAfterResume
+            );
+            await AssertNeverBothHoldAResourceAsync(stalled, successor);
+        }
+        finally
+        {
+            pause.Resume();
+            await stalled.StopAsync(TimeSpan.FromSeconds(30));
+            await successor.StopAsync(TimeSpan.FromSeconds(30));
+        }
     }
 
     /// <summary>
@@ -237,8 +335,13 @@ internal static class PausedNodeScenarios
         }
     }
 
-    // once both nodes run normally again, the usual invariant holds: no resource on two nodes at the same observation
-    private static async Task AssertNeverBothHoldAResourceAsync(RebalancerClient a, RebalancerClient b)
+    // once both nodes run normally again, the usual invariant holds: no resource on two nodes at the same observation;
+    // with a monitor, also none processed by two nodes at once, now or earlier in the scenario
+    private static async Task AssertNeverBothHoldAResourceAsync(
+        RebalancerClient a,
+        RebalancerClient b,
+        ProcessingMonitor? monitor = null
+    )
     {
         var deadline = DateTime.UtcNow + SafetyWindow;
         while (DateTime.UtcNow < deadline)
@@ -246,6 +349,29 @@ internal static class PausedNodeScenarios
             Assert.False(Overlaps(a, b), "Invariant violated: both nodes hold the same resource.");
             await Task.Delay(100);
         }
+
+        if (monitor != null)
+        {
+            monitor.CheckWindows();
+            Assert.True(monitor.Overlaps.Count == 0, string.Join(Environment.NewLine, monitor.Overlaps));
+        }
+    }
+
+    // US-0024 follow-up: what the nodes process; a node's pauses open the ADR-0019 window of ReleaseAfterResume
+    private static ProcessingMonitor Monitor(params (RebalancerClient Client, string Name, NodePause? Pause)[] nodes)
+    {
+        var monitor = new ProcessingMonitor();
+        foreach (var (client, name, pause) in nodes)
+        {
+            monitor.Attach(client, name);
+            if (pause != null)
+            {
+                pause.Paused += () => monitor.Pause(name);
+                pause.Resumed += () => monitor.Resume(name, ReleaseAfterResume);
+            }
+        }
+
+        return monitor;
     }
 
     private sealed class StopRecorder

@@ -27,9 +27,16 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Rebalancer.Core\Rebalancer.Core.csproj"/>
+        <ProjectReference Include="..\..\src\Rebalancer.Extensions.Diagnostics.HealthChecks\Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.Redis\Rebalancer.Redis.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.SqlServer\Rebalancer.SqlServer.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.ZooKeeper\Rebalancer.ZooKeeper.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- the example's order guard, compiled in by link: it needs only Microsoft.Data.SqlClient, so the tests take no
+             RabbitMQ dependency (ADR-0024) -->
+        <Compile Include="..\..\examples\Rebalancer.RabbitMq.QuorumQueuesExample\ConversationGuard.cs" Link="Examples\ConversationGuard.cs"/>
     </ItemGroup>
 
     <ItemGroup>

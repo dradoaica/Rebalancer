@@ -11,6 +11,7 @@ internal sealed class NodePause
 {
     private readonly object sync = new();
     private int failNextKeepAlive;
+    private string? pauseAfter;
     private bool resumed;
     private TaskCompletionSource running = Completed();
 
@@ -31,12 +32,20 @@ internal sealed class NodePause
     /// </summary>
     public bool? FirstKeepAliveAfterResumeWasStop { get; private set; }
 
+    /// <summary>Raised when the node stalls; a <see cref="ProcessingMonitor" /> follows it (US-0024).</summary>
+    public event Action? Paused;
+
+    /// <summary>Raised when the node runs again.</summary>
+    public event Action? Resumed;
+
     public void Pause()
     {
         lock (sync)
         {
             running = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         }
+
+        Paused?.Invoke();
     }
 
     public void Resume()
@@ -46,6 +55,37 @@ internal sealed class NodePause
             resumed = true;
             running.TrySetResult();
         }
+
+        Resumed?.Invoke();
+    }
+
+    /// <summary>
+    ///     Stalls the node right after its next successful store call named <paramref name="operation" /> (e.g.
+    ///     <c>StopActivityAsync</c>: a coordinator then stalls at its stop barrier; <c>StartActivityAsync</c>: right after it
+    ///     granted), as a GC pause at that point would (ADR-0026).
+    /// </summary>
+    public void PauseAfterNext(string operation)
+    {
+        lock (sync)
+        {
+            pauseAfter = operation;
+        }
+    }
+
+    /// <summary>Called by the pausable services after a store call; pauses here if <see cref="PauseAfterNext" /> asked.</summary>
+    public void After(string operation, bool succeeded)
+    {
+        lock (sync)
+        {
+            if (!succeeded || pauseAfter != operation)
+            {
+                return;
+            }
+
+            pauseAfter = null;
+        }
+
+        Pause();
     }
 
     /// <summary>Waits while paused; returns true when the call goes ahead after <see cref="Resume" />.</summary>

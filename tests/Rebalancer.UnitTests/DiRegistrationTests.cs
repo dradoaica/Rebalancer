@@ -4,6 +4,8 @@ using Rebalancer.Core;
 using Rebalancer.Extensions.DependencyInjection;
 using Rebalancer.SqlServer;
 using Rebalancer.ZooKeeper;
+using Rebalancer.ZooKeeper.Zk;
+using System.Reflection;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
@@ -81,5 +83,71 @@ public sealed class DiRegistrationTests
             serviceProvider.GetRequiredService<RebalancerClient>(),
             serviceProvider.GetRequiredService<RebalancerClient>()
         );
+    }
+
+    // US-0007 criterion 3: without arguments, the session and connect timeouts are 15 s and 10 s. The third default
+    // (minimumRebalancingInterval, 1 s) never reaches the ZooKeeper service, so this test cannot observe it.
+    [Fact]
+    public async Task AddRebalancerZooKeeper_DefaultsTheSessionAndConnectTimeouts()
+    {
+        var (service, recorder) = SessionRecorder.Create();
+        var services = new ServiceCollection();
+        ZooKeeperRebalancerServiceCollectionExtensions.Register(
+            services,
+            "localhost:1",
+            "/rebalancer",
+            RebalancingMode.ResourceBarrier,
+            null,
+            null,
+            null,
+            null,
+            () => service
+        );
+        await using var serviceProvider = services.BuildServiceProvider();
+        using var client = serviceProvider.GetRequiredService<RebalancerClient>();
+
+        await client.StartAsync("group", new ClientOptions());
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+        while (recorder.SessionTimeout == null && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50);
+        }
+
+        await client.StopAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(TimeSpan.FromSeconds(15), recorder.SessionTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(10), recorder.ConnectTimeout);
+    }
+
+    // stands in for IZooKeeperService: records the first StartSessionAsync and refuses the session
+    public class SessionRecorder : DispatchProxy
+    {
+        public TimeSpan? ConnectTimeout { get; private set; }
+        public TimeSpan? SessionTimeout { get; private set; }
+
+        public static (IZooKeeperService Service, SessionRecorder Recorder) Create()
+        {
+            var service = Create<IZooKeeperService, SessionRecorder>();
+            return (service, (SessionRecorder)service);
+        }
+
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            if (targetMethod!.Name == nameof(IZooKeeperService.StartSessionAsync) && SessionTimeout == null)
+            {
+                SessionTimeout = (TimeSpan)args![0]!;
+                ConnectTimeout = (TimeSpan)args[1]!;
+            }
+
+            var returnType = targetMethod.ReturnType;
+            if (returnType == typeof(Task))
+            {
+                return Task.CompletedTask;
+            }
+
+            // Task<T>: the default value, e.g. false for StartSessionAsync (no session)
+            var result = returnType.GetGenericArguments()[0];
+            return typeof(Task).GetMethod(nameof(Task.FromResult))!.MakeGenericMethod(result)
+                .Invoke(null, [result.IsValueType ? Activator.CreateInstance(result) : null,]);
+        }
     }
 }

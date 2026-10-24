@@ -87,13 +87,17 @@ internal static class PausableRedisServices
         public async Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
         {
             await pause.WaitWhilePausedAsync();
-            return await inner.StopActivityAsync(fencingToken, clients);
+            var result = await inner.StopActivityAsync(fencingToken, clients);
+            pause.After(nameof(StopActivityAsync), result == ModifyClientResult.Ok);
+            return result;
         }
 
         public async Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests)
         {
             await pause.WaitWhilePausedAsync();
-            return await inner.StartActivityAsync(fencingToken, requests);
+            var result = await inner.StartActivityAsync(fencingToken, requests);
+            pause.After(nameof(StartActivityAsync), result == ModifyClientResult.Ok);
+            return result;
         }
 
         public async Task<int> DeleteExpiredClientsAsync(
@@ -128,7 +132,9 @@ internal static class PausableRedisServices
         )
         {
             await pause.WaitWhilePausedAsync();
-            return await Fenced.StopActivityAsync(resourceGroup, coordinatorClientId, fencingToken, clients);
+            var result = await Fenced.StopActivityAsync(resourceGroup, coordinatorClientId, fencingToken, clients);
+            pause.After(nameof(StopActivityAsync), result == ModifyClientResult.Ok);
+            return result;
         }
 
         public async Task<ModifyClientResult> StartActivityAsync(
@@ -139,7 +145,9 @@ internal static class PausableRedisServices
         )
         {
             await pause.WaitWhilePausedAsync();
-            return await Fenced.StartActivityAsync(resourceGroup, coordinatorClientId, fencingToken, requests);
+            var result = await Fenced.StartActivityAsync(resourceGroup, coordinatorClientId, fencingToken, requests);
+            pause.After(nameof(StartActivityAsync), result == ModifyClientResult.Ok);
+            return result;
         }
 
         public async Task ResetClientAsync(Guid clientId)

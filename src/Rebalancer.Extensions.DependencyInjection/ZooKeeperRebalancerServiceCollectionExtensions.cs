@@ -58,7 +58,8 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
         );
     }
 
-    private static IServiceCollection Register(
+    // internal for the unit tests, which pass a fake service to check the defaults (US-0007 criterion 3)
+    internal static IServiceCollection Register(
         IServiceCollection services,
         string zooKeeperHosts,
         string zooKeeperRootPath,

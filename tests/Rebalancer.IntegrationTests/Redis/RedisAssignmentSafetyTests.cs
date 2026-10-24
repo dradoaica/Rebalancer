@@ -5,7 +5,10 @@ using Xunit;
 
 namespace Rebalancer.IntegrationTests.Redis;
 
-/// <summary>Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled).</summary>
+/// <summary>
+///     Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled), and never
+///     process it at the same time (handler events, <see cref="ProcessingMonitor" />).
+/// </summary>
 public sealed class RedisAssignmentSafetyTests
 {
     [SkippableFact]
@@ -35,6 +38,10 @@ public sealed class RedisAssignmentSafetyTests
         var redisBackend2 = new RedisProvider(connectionString);
         using var client1 = new RebalancerClient(redisBackend1);
         using var client2 = new RebalancerClient(redisBackend2);
+        // US-0024 follow-up: also what the clients process, not only what they report
+        var monitor = new ProcessingMonitor();
+        monitor.Attach(client1, "client1");
+        monitor.Attach(client2, "client2");
 
         await client1.StartAsync(group, options);
         await client2.StartAsync(group, options);
@@ -61,6 +68,8 @@ public sealed class RedisAssignmentSafetyTests
 
             // without this the safety check passes vacuously when nothing is ever assigned
             Assert.True(assignedObservations > 0, "Liveness violated: the resource was never assigned to any client.");
+            Assert.True(monitor.Overlaps.Count == 0, string.Join(Environment.NewLine, monitor.Overlaps));
+            Assert.True(monitor.IsProcessed(resourceName), "no client processes the resource");
         }
         finally
         {

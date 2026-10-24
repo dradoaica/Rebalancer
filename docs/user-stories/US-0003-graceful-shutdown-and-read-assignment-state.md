@@ -67,3 +67,9 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 - `src/Rebalancer.Core/RebalancerClient.cs`
 - `src/Rebalancer.Core/ClientState.cs`
 - `src/Rebalancer.Core/AssignedResources.cs`
+
+## Note (2026-10-25)
+
+Criterion 3's `NoProvider` branch can no longer be reached: since 3.0 `new RebalancerClient(null)` throws (ADR-0013, US-0015), so a client always has a provider. Since 4.3.2 a client also reports `ClientState.Stopped`
+after `StopAsync` (PRB-0006), which this story's criteria did not cover. Criteria 1 and 4 (the `StopAsync` timeout and
+`Dispose`'s 5-second bound) gained unit tests on 2026-10-25 (`RebalancerClientLifecycleTests`).

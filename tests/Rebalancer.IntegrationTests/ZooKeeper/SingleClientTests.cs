@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using org.apache.zookeeper;
 using Rebalancer.Core;
+using Rebalancer.Extensions.Diagnostics.HealthChecks;
 using Rebalancer.IntegrationTests.ZooKeeper.Helpers;
 using Rebalancer.ZooKeeper;
 using Xunit;
@@ -86,6 +88,37 @@ public class SingleClientTests : IDisposable
 
         Assert.Equal(ClientState.Stopped, client.GetCurrentState());
         Assert.Equal(ClientState.Stopped, client.GetAssignedResources().ClientState);
+    }
+
+    // ADR-0023 with a real ZooKeeper client: Healthy once assigned, Unhealthy after StopAsync (PRB-0006)
+    [Theory]
+    [InlineData(RebalancingMode.GlobalBarrier)]
+    [InlineData(RebalancingMode.ResourceBarrier)]
+    public async Task GivenSingleClient_TheHealthCheckFollowsIt(RebalancingMode mode)
+    {
+        providerFactory = mode == RebalancingMode.GlobalBarrier ? GetGlobalBarrierProvider : GetResourceBarrierProvider;
+        var groupName = Guid.NewGuid().ToString();
+        await zkHelper.InitializeAsync("/rebalancer", TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
+        await zkHelper.PrepareResourceGroupAsync(groupName, "res", 2);
+        var (client, _) = CreateClient();
+        var check = new RebalancerClientHealthCheck(client);
+        await client.StartAsync(
+            groupName,
+            new ClientOptions
+            {
+                AutoRecoveryOnError = false,
+            }
+        );
+
+        await HealthCheckScenarios.WaitForAsync(
+            check,
+            HealthStatus.Healthy,
+            () => client.GetCurrentState() == ClientState.Assigned,
+            "the assigned client was never Healthy"
+        );
+        await client.StopAsync(TimeSpan.FromSeconds(30));
+
+        Assert.Equal(HealthStatus.Unhealthy, (await check.CheckHealthAsync(new HealthCheckContext())).Status);
     }
 
     private async Task GivenSingleClient_ThenGetsAllResourcesAssigned()

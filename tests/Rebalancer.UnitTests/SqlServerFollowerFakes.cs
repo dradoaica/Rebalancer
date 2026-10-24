@@ -69,7 +69,12 @@ internal static class SqlServerFollowerFakes
         private readonly List<TimeSpan> keepAlives = [];
         private readonly Stopwatch since = new();
         private readonly object sync = new();
+        private int creates;
         private ClientStatus status = ClientStatus.Waiting;
+
+        /// <summary>How many times the node registered (CreateClientAsync).</summary>
+        public int Creates => Volatile.Read(ref creates);
+
         public TimeSpan GrantAfter => grantAfter;
 
         /// <summary>Time of each keep-alive, from the first one.</summary>
@@ -87,7 +92,12 @@ internal static class SqlServerFollowerFakes
         /// <summary>Time from the first keep-alive until now (the clock the grant is measured on).</summary>
         public TimeSpan Elapsed => since.Elapsed;
 
-        public Task CreateClientAsync(string resourceGroup, Guid clientId) => Task.CompletedTask;
+        public Task CreateClientAsync(string resourceGroup, Guid clientId)
+        {
+            Interlocked.Increment(ref creates);
+            return Task.CompletedTask;
+        }
+
         public Task DeleteClientAsync(Guid clientId) => Task.CompletedTask;
         public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) => throw new NotSupportedException();
 
