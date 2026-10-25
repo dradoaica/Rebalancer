@@ -18,9 +18,17 @@ public static class ZooKeeperRebalancerServiceCollectionExtensions
     ///     <c>ZooKeeperProvider(IZooKeeperService, ...)</c> (ADR-0012).
     /// </summary>
     /// <exception cref="ArgumentException">Neither <paramref name="acl" /> nor <paramref name="authScheme" /> is given.</exception>
+    /// <param name="services">The service collection to register into.</param>
+    /// <param name="zooKeeperHosts">The ZooKeeper connection string.</param>
+    /// <param name="zooKeeperRootPath">The znode under which the resource groups are kept.</param>
+    /// <param name="rebalancingMode">How resources change hands during a rebalance.</param>
     /// <param name="acl">ACL for every znode created; see <see cref="ZooKeeperService" /> for the defaults when null.</param>
     /// <param name="authScheme">Auth scheme added to every session, e.g. "digest", or null for none.</param>
     /// <param name="authData">Auth data for <paramref name="authScheme" />, e.g. "user:password" as UTF-8.</param>
+    /// <param name="sessionTimeout">The ZooKeeper session timeout; default 15 seconds.</param>
+    /// <param name="connectTimeout">How long to wait for a connection; default 10 seconds.</param>
+    /// <param name="minimumRebalancingInterval">The minimum time between two rebalances; default 1 second.</param>
+    /// <param name="logger">The logger, or null for none.</param>
     public static IServiceCollection AddRebalancerZooKeeper(
         this IServiceCollection services,
         string zooKeeperHosts,

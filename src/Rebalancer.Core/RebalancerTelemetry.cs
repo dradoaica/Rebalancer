@@ -59,6 +59,8 @@ public static class RebalancerTelemetry
 
     /// <summary>Starts the activity of one rebalance on the coordinator; null when nobody listens.</summary>
     internal static Activity StartRebalance(string backend, string group, string tokenTag, long token) =>
+        // the activity name is part of the telemetry contract (ADR-0022), not the caller's member name
+        // ReSharper disable once ExplicitCallerInfoArgument
         ActivitySource.StartActivity("rebalancer.rebalance")
             ?.SetTag(BackendTag, backend)
             .SetTag(GroupTag, group)

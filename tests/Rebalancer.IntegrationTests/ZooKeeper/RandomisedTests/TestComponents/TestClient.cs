@@ -61,7 +61,7 @@ public class TestClient(
         clientNumber++;
         Monitor.RegisterAddClient(Id);
         Client = new RebalancerClient(providerFactory());
-        Client.OnAssignment += (sender, args) =>
+        Client.OnAssignment += (_, args) =>
         {
             Resources = args.Resources;
             foreach (var resource in args.Resources)
@@ -83,7 +83,7 @@ public class TestClient(
             }
         };
 
-        Client.OnUnassignment += (sender, args) =>
+        Client.OnUnassignment += (_, _) =>
         {
             foreach (var resource in Resources)
             {
@@ -106,7 +106,7 @@ public class TestClient(
             }
         };
 
-        Client.OnAborted += (sender, args) =>
+        Client.OnAborted += (_, args) =>
         {
             logger.Info("CLIENT", $"CLIENT ABORTED: {args.AbortReason}");
         };

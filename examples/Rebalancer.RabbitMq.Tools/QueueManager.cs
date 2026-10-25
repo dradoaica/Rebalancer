@@ -30,14 +30,13 @@ public static class QueueManager
 
     public static void EnsureResourceGroup(string resourceGroup, int leaseExpirySeconds, int heartbeatSeconds)
     {
-        var rgExists = false;
         using SqlConnection conn = new(connStr);
         conn.Open();
         var command = conn.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM RBR.ResourceGroups WHERE ResourceGroup = @ResourceGroup";
         command.Parameters.Add("ResourceGroup", SqlDbType.VarChar, 100).Value = resourceGroup;
         var count = (int)command.ExecuteScalar();
-        rgExists = count == 1;
+        var rgExists = count == 1;
         if (!rgExists)
         {
             command.Parameters.Clear();
@@ -149,7 +148,7 @@ public static class QueueManager
         }
         else
         {
-            var qNumber = lastQueue[(lastQueue.IndexOf("_") + 1)..];
+            var qNumber = lastQueue[(lastQueue.IndexOf('_') + 1)..];
             var nextNumber = int.Parse(qNumber) + 1;
             var queueName = queuePrefix + "_" + nextNumber.ToString().PadLeft(4, '0');
             await PutQueueRabbitMqAsync(inventory, queueName);
@@ -282,7 +281,7 @@ public static class QueueManager
             vhost = "%2f";
         }
 
-        var response = await client.DeleteAsync($"queues/{vhost}/{queueName}");
+        await client.DeleteAsync($"queues/{vhost}/{queueName}");
     }
 
     private static void DeleteQueueSql(string resourceGroup, string queueName)

@@ -12,20 +12,15 @@ namespace Rebalancer.UnitTests;
 /// </summary>
 public sealed class AbortedStateTests
 {
-    // Redis needs a server since 4.0 (the provider checks the per-group key move at start): see
-    // tests/Rebalancer.IntegrationTests/Redis/RedisAbortedStateTests.cs
-    public static TheoryData<string> Backends => new()
+    // Redis needs a server since 4.0 (the provider checks the per-group key move at start), so only SQL Server is
+    // covered here: see tests/Rebalancer.IntegrationTests/Redis/RedisAbortedStateTests.cs
+    [Fact]
+    public async Task WithoutAutoRecovery_AFailedClientReportsAborted()
     {
-        "SqlServer",
-    };
-
-    [Theory]
-    [MemberData(nameof(Backends))]
-    public async Task WithoutAutoRecovery_AFailedClientReportsAborted(string backend)
-    {
-        var (provider, calls) = Create(backend);
+        var (provider, calls) = Create();
         using var client = new RebalancerClient(provider);
         var aborts = 0;
+        // ReSharper disable once AccessToModifiedClosure
         client.OnAborted += (_, _) => Interlocked.Increment(ref aborts);
 
         await client.StartAsync(
@@ -43,14 +38,13 @@ public sealed class AbortedStateTests
         Assert.Equal(ClientState.Aborted, assigned.ClientState);
         Assert.Empty(assigned.Resources);
         // BlockAsync returns for an aborted client instead of waiting forever
-        Assert.True(client.BlockAsync(CancellationToken.None, TimeSpan.FromSeconds(1)).Wait(TimeSpan.FromSeconds(5)));
+        await client.BlockAsync(CancellationToken.None, TimeSpan.FromSeconds(1)).WaitAsync(TimeSpan.FromSeconds(5));
     }
 
-    [Theory]
-    [MemberData(nameof(Backends))]
-    public async Task WithAutoRecovery_AFailingClientKeepsTryingAndIsNotAborted(string backend)
+    [Fact]
+    public async Task WithAutoRecovery_AFailingClientKeepsTryingAndIsNotAborted()
     {
-        var (provider, calls) = Create(backend);
+        var (provider, calls) = Create();
         using var client = new RebalancerClient(provider);
         await client.StartAsync(
             "orders",
@@ -66,7 +60,7 @@ public sealed class AbortedStateTests
         await client.StopAsync(TimeSpan.FromSeconds(5));
     }
 
-    private static (IRebalancerProvider, Func<int>) Create(string backend)
+    private static (IRebalancerProvider, Func<int>) Create()
     {
         var sqlLeases = new SqlServerFailingLeases();
         return (

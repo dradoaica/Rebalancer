@@ -21,12 +21,12 @@ internal class Coordinator
 
     // ADR-0026: the fencing token of the last completed rebalance; a new tenure is a change like any other
     private int balancedFencingToken;
-    private List<Guid> clients;
     private int currentFencingToken;
+    private List<Guid> knownClientIds;
+    private List<string> knownResources;
 
     // PRB-0007: this node's own share of the last grant, waiting for OnAssignmentDelay
     private PendingStart pendingStart;
-    private List<string> resources;
     private bool stoppedDueToInternalErrorFlag;
 
     public Coordinator(
@@ -40,8 +40,8 @@ internal class Coordinator
         this.resourceService = resourceService;
         this.clientService = clientService;
         this.store = store;
-        resources = new List<string>();
-        clients = new List<Guid>();
+        knownResources = new List<string>();
+        knownClientIds = new List<Guid>();
     }
 
     public int GetFencingToken() => currentFencingToken;
@@ -124,11 +124,11 @@ internal class Coordinator
                 token
             );
         }
-        else if (!resources.OrderBy(x => x).SequenceEqual(resourcesNow.OrderBy(x => x)))
+        else if (!knownResources.OrderBy(x => x).SequenceEqual(resourcesNow.OrderBy(x => x)))
         {
             logger.Debug(
                 coordinatorClientId.ToString(),
-                $"Resource change: Old: {string.Join(",", resources.OrderBy(x => x))} New: {string.Join(",", resourcesNow.OrderBy(x => x))}"
+                $"Resource change: Old: {string.Join(",", knownResources.OrderBy(x => x))} New: {string.Join(",", resourcesNow.OrderBy(x => x))}"
             );
             await TriggerRebalancingAsync(
                 coordinatorClientId,
@@ -139,11 +139,11 @@ internal class Coordinator
                 token
             );
         }
-        else if (!clients.OrderBy(x => x).SequenceEqual(clientIds.OrderBy(x => x)))
+        else if (!knownClientIds.OrderBy(x => x).SequenceEqual(clientIds.OrderBy(x => x)))
         {
             logger.Debug(
                 coordinatorClientId.ToString(),
-                $"Client change: Old: {string.Join(",", clients.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}"
+                $"Client change: Old: {string.Join(",", knownClientIds.OrderBy(x => x))} New: {string.Join(",", clientIds.OrderBy(x => x))}"
             );
             await TriggerRebalancingAsync(
                 coordinatorClientId,
@@ -463,8 +463,8 @@ internal class Coordinator
 
             var clientIds = clientsNow.Select(x => x.ClientId).ToList();
             clientIds.Add(coordinatorClientId);
-            this.clients = clientIds;
-            this.resources = resources;
+            knownClientIds = clientIds;
+            knownResources = resources;
             balancedFencingToken = clientEvent.FencingToken;
             logger.Info(coordinatorClientId.ToString(), "---------- Activity Started -----------");
             return true;

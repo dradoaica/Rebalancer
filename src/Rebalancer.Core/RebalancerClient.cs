@@ -14,9 +14,9 @@ public class RebalancerClient : IDisposable
     // telemetry (ADR-0022): set by StartAsync; unassignedSince is a Stopwatch timestamp, 0 while assigned
     private string backend;
     private CancellationTokenSource cts;
+    private string currentResourceGroup;
 
     private bool disposed;
-    private string resourceGroup;
     private bool stopped;
     private long unassignedSince;
 
@@ -89,12 +89,13 @@ public class RebalancerClient : IDisposable
 
     /// <summary>Starts the node</summary>
     /// <param name="resourceGroup">The id of the resource group</param>
+    /// <param name="clientOptions">Recovery and assignment-delay options of this node</param>
     /// <returns></returns>
     public async Task StartAsync(string resourceGroup, ClientOptions clientOptions)
     {
         cts = new CancellationTokenSource();
         backend = RebalancerTelemetry.BackendOf(rebalancerProvider);
-        this.resourceGroup = resourceGroup;
+        currentResourceGroup = resourceGroup;
         OnChangeActions onChangeActions = new();
         onChangeActions.AddOnStartAction(StartActivity);
         onChangeActions.AddOnStopAction(StopActivity);
@@ -218,7 +219,7 @@ public class RebalancerClient : IDisposable
 
     private void StopActivity()
     {
-        RebalancerTelemetry.RecordUnassignment(backend, resourceGroup);
+        RebalancerTelemetry.RecordUnassignment(backend, currentResourceGroup);
         Interlocked.CompareExchange(ref unassignedSince, Stopwatch.GetTimestamp(), 0);
         RaiseOnUnassignment(EventArgs.Empty);
     }
@@ -231,13 +232,13 @@ public class RebalancerClient : IDisposable
 
     private void StartActivity(IList<string> resources)
     {
-        RebalancerTelemetry.RecordAssignment(backend, resourceGroup);
+        RebalancerTelemetry.RecordAssignment(backend, currentResourceGroup);
         var since = Interlocked.Exchange(ref unassignedSince, 0);
         if (since != 0)
         {
             RebalancerTelemetry.RecordUnassignedDuration(
                 backend,
-                resourceGroup,
+                currentResourceGroup,
                 TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - since) / (double)Stopwatch.Frequency)
             );
         }

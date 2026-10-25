@@ -7,23 +7,23 @@ namespace Rebalancer.Core.Logging;
 public class MicrosoftRebalancerLogger : IRebalancerLogger
 {
     private readonly ILogger logger;
-    private LogLevel logLevel;
+    private LogLevel minimumLevel;
 
     public MicrosoftRebalancerLogger(ILogger logger)
     {
         this.logger = logger;
-        logLevel = LogLevel.DEBUG;
+        minimumLevel = LogLevel.DEBUG;
     }
 
     public MicrosoftRebalancerLogger(ILogger logger, LogLevel logLevel)
     {
         this.logger = logger;
-        this.logLevel = logLevel;
+        minimumLevel = logLevel;
     }
 
     public void Error(string clientId, string text)
     {
-        if ((int)logLevel <= 3)
+        if ((int)minimumLevel <= 3)
         {
             logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text}");
         }
@@ -31,7 +31,7 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Error(string clientId, Exception ex)
     {
-        if ((int)logLevel <= 3)
+        if ((int)minimumLevel <= 3)
         {
             logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {ex}");
         }
@@ -39,7 +39,7 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Error(string clientId, string text, Exception ex)
     {
-        if ((int)logLevel <= 3)
+        if ((int)minimumLevel <= 3)
         {
             logger?.LogError($"{DateTime.Now.ToString("hh:mm:ss,fff")}: ERROR : {clientId} : {text} : {ex}");
         }
@@ -47,7 +47,7 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Warn(string clientId, string text)
     {
-        if ((int)logLevel <= 2)
+        if ((int)minimumLevel <= 2)
         {
             logger?.LogWarning($"{DateTime.Now.ToString("hh:mm:ss,fff")}: WARN : {clientId} : {text}");
         }
@@ -55,7 +55,7 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Info(string clientId, string text)
     {
-        if ((int)logLevel <= 1)
+        if ((int)minimumLevel <= 1)
         {
             logger?.LogInformation($"{DateTime.Now.ToString("hh:mm:ss,fff")}: INFO  : {clientId} : {text}");
         }
@@ -63,11 +63,11 @@ public class MicrosoftRebalancerLogger : IRebalancerLogger
 
     public void Debug(string clientId, string text)
     {
-        if (logLevel == 0)
+        if (minimumLevel == 0)
         {
             logger?.LogDebug($"{DateTime.Now.ToString("hh:mm:ss,fff")}: DEBUG : {clientId} : {text}");
         }
     }
 
-    public void SetMinimumLevel(LogLevel logLevel) => this.logLevel = logLevel;
+    public void SetMinimumLevel(LogLevel logLevel) => minimumLevel = logLevel;
 }

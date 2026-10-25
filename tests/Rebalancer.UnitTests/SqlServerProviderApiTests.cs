@@ -60,6 +60,8 @@ public sealed class SqlServerProviderApiTests
         await client.StartAsync("orders", new ClientOptions());
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
 
+        // cts outlives the call unless WaitAsync times out, and then the test has already failed
+        // ReSharper disable once AccessToDisposedClosure
         var assigned = await Task.Run(() => provider.GetAssignedResources(cts.Token))
             .WaitAsync(TimeSpan.FromSeconds(5));
 

@@ -23,6 +23,7 @@ public sealed class RedisRandomisedTests(ITestOutputHelper output)
         await new RandomisedScenario(
             group,
             resources,
+            // ReSharper disable once AccessToDisposedClosure
             pause => PausableRedisServices.CreateProvider(connectionString, connection.GetDatabase(), pause),
             output.WriteLine
         ).RunAsync();

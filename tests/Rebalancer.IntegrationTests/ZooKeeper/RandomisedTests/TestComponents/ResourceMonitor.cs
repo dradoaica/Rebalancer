@@ -5,7 +5,6 @@ namespace Rebalancer.IntegrationTests.ZooKeeper.RandomisedTests.TestComponents;
 public class ResourceMonitor
 {
     private readonly ConcurrentQueue<AssignmentEvent> assignmentEvents = new();
-    private readonly HashSet<string> removedResources = new();
     private readonly Dictionary<string, string> resources = new();
     private readonly List<object> violations = new();
 
@@ -118,7 +117,6 @@ public class ResourceMonitor
     public void RemoveResource(string resourceName)
     {
         resources.Remove(resourceName);
-        removedResources.Add(resourceName);
         assignmentEvents.Enqueue(
             new AssignmentEvent
             {

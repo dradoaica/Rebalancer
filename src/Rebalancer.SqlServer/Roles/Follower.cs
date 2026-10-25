@@ -152,17 +152,6 @@ internal class Follower
         }
     }
 
-    private async Task WaitFor(TimeSpan waitPeriod, CancellationToken rebalancingToken)
-    {
-        try
-        {
-            await Task.Delay(waitPeriod, rebalancingToken);
-        }
-        catch (TaskCanceledException)
-        {
-        }
-    }
-
     // ADR-0014: a record can expire while this node is paused. The node may still run resources that were reassigned
     // since, so it stops them before it registers again (the same safety rule as for a demoted coordinator).
     private async Task<(Client Self, bool ReRegistered)> KeepAliveOrReRegisterAsync(

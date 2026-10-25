@@ -13,13 +13,7 @@ public class MultiClientTests : IDisposable
     // each test sets the provider it needs; clients get it explicitly (see PRB-0002)
     private Func<IRebalancerProvider> providerFactory = null!;
 
-    public void Dispose()
-    {
-        if (zkHelper != null)
-        {
-            Task.Run(async () => await zkHelper.CloseAsync()).Wait();
-        }
-    }
+    public void Dispose() => Task.Run(async () => await zkHelper.CloseAsync()).Wait();
 
 
     [Fact]
@@ -541,6 +535,7 @@ public class MultiClientTests : IDisposable
         testEvents.Clear();
     }
 
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
     private void AssertAssigned(List<TestEvent> testEvents, int count)
     {
         Assert.Single(testEvents);
@@ -549,6 +544,7 @@ public class MultiClientTests : IDisposable
         testEvents.Clear();
     }
 
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
     private void AssertUnassignedThenAssigned(List<TestEvent> testEvents, int count)
     {
         Assert.Equal(2, testEvents.Count);
@@ -575,7 +571,7 @@ public class MultiClientTests : IDisposable
     {
         RebalancerClient client1 = new(providerFactory());
         List<TestEvent> testEvents = new();
-        client1.OnAssignment += (sender, args) =>
+        client1.OnAssignment += (_, args) =>
         {
             testEvents.Add(
                 new TestEvent
@@ -586,7 +582,7 @@ public class MultiClientTests : IDisposable
             );
         };
 
-        client1.OnUnassignment += (sender, args) =>
+        client1.OnUnassignment += (_, _) =>
         {
             testEvents.Add(
                 new TestEvent
@@ -596,7 +592,7 @@ public class MultiClientTests : IDisposable
             );
         };
 
-        client1.OnAborted += (sender, args) =>
+        client1.OnAborted += (_, args) =>
         {
             testEvents.Add(
                 new TestEvent

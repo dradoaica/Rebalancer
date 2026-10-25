@@ -33,10 +33,10 @@ public class ZooKeeperProvider : IRebalancerProvider
     private string clientId;
     private int clientNumber;
     private string clientPath;
+    private string currentResourceGroup;
     private int epoch;
     private Task mainTask;
     private TimeSpan onStartDelay;
-    private string resourceGroup;
     private ResourceManager resourceManager;
     private bool started;
     private ClientInternalState state;
@@ -44,6 +44,13 @@ public class ZooKeeperProvider : IRebalancerProvider
     private string watchSiblingNodePath;
 
     /// <summary>Secures every znode this provider creates with <paramref name="acl" /> and the given credentials.</summary>
+    /// <param name="zookeeperHosts">The ZooKeeper connection string.</param>
+    /// <param name="zooKeeperRootPath">The znode under which the resource groups are kept.</param>
+    /// <param name="sessionTimeout">The ZooKeeper session timeout.</param>
+    /// <param name="connectTimeout">How long to wait for a connection.</param>
+    /// <param name="minimumRebalancingInterval">The minimum time between two rebalances.</param>
+    /// <param name="rebalancingMode">How resources change hands during a rebalance.</param>
+    /// <param name="logger">The logger, or null for none.</param>
     /// <param name="acl">
     ///     ACL for every znode created; when null, CREATOR_ALL_ACL, which requires credentials. Pass
     ///     ZooDefs.Ids.OPEN_ACL_UNSAFE without credentials to keep znodes open deliberately (ADR-0011).
@@ -121,7 +128,7 @@ public class ZooKeeperProvider : IRebalancerProvider
 
         resourceManager = new ResourceManager(zooKeeperService, logger, onChangeActions, rebalancingMode);
         SetStateToNoSession();
-        this.resourceGroup = resourceGroup;
+        currentResourceGroup = resourceGroup;
         onStartDelay = clientOptions.OnAssignmentDelay;
 
         mainTask = Task.Run(async () => await RunStateMachine(token, clientOptions));
@@ -447,18 +454,18 @@ public class ZooKeeperProvider : IRebalancerProvider
             {
                 case RebalancingMode.GlobalBarrier:
                     await zooKeeperService.InitializeGlobalBarrierAsync(
-                        $"{zooKeeperRootPath}/{resourceGroup}/clients",
-                        $"{zooKeeperRootPath}/{resourceGroup}/status",
-                        $"{zooKeeperRootPath}/{resourceGroup}/stopped",
-                        $"{zooKeeperRootPath}/{resourceGroup}/resources",
-                        $"{zooKeeperRootPath}/{resourceGroup}/epoch"
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/clients",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/status",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/stopped",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/resources",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/epoch"
                     );
                     break;
                 case RebalancingMode.ResourceBarrier:
                     await zooKeeperService.InitializeResourceBarrierAsync(
-                        $"{zooKeeperRootPath}/{resourceGroup}/clients",
-                        $"{zooKeeperRootPath}/{resourceGroup}/resources",
-                        $"{zooKeeperRootPath}/{resourceGroup}/epoch"
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/clients",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/resources",
+                        $"{zooKeeperRootPath}/{currentResourceGroup}/epoch"
                     );
                     break;
             }
@@ -483,7 +490,8 @@ public class ZooKeeperProvider : IRebalancerProvider
             var findings = await service.FindZnodesWritableByAnyoneAsync(
                 new[]
                 {
-                    $"{zooKeeperRootPath}/{resourceGroup}", $"{zooKeeperRootPath}/{resourceGroup}/resources",
+                    $"{zooKeeperRootPath}/{currentResourceGroup}",
+                    $"{zooKeeperRootPath}/{currentResourceGroup}/resources",
                 }
             );
             foreach (var finding in findings)
@@ -592,7 +600,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     resourceManager,
                     clientId,
                     minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -604,7 +612,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     resourceManager,
                     clientId,
                     minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -616,7 +624,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     resourceManager,
                     clientId,
                     minimumRebalancingInterval,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -626,10 +634,10 @@ public class ZooKeeperProvider : IRebalancerProvider
         switch (coordinator)
         {
             case GB.Coordinator gb:
-                gb.ResourceGroup = resourceGroup;
+                gb.ResourceGroup = currentResourceGroup;
                 break;
             case RB.Coordinator rb:
-                rb.ResourceGroup = resourceGroup;
+                rb.ResourceGroup = currentResourceGroup;
                 break;
         }
 
@@ -638,7 +646,7 @@ public class ZooKeeperProvider : IRebalancerProvider
         {
             case BecomeCoordinatorResult.Ok:
                 logger.Info(clientId, "Have successfully become the coordinator");
-                RebalancerTelemetry.RecordElection("zookeeper", resourceGroup);
+                RebalancerTelemetry.RecordElection("zookeeper", currentResourceGroup);
 
                 // this blocks until coordinator terminates (due to failure, session expiry or detects it is a zombie)
                 var coordinatorExitReason = await coordinator.StartEventLoopAsync();
@@ -671,7 +679,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     clientId,
                     clientNumber,
                     watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -684,7 +692,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     clientId,
                     clientNumber,
                     watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -697,7 +705,7 @@ public class ZooKeeperProvider : IRebalancerProvider
                     clientId,
                     clientNumber,
                     watchSiblingNodePath,
-                    TimeSpan.FromMilliseconds((int)sessionTimeout.TotalMilliseconds / 3),
+                    sessionTimeout / 3,
                     onStartDelay,
                     token
                 );
@@ -723,12 +731,12 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
     }
 
-    private async Task TerminateAsync(string terminationReason, bool aborted, Exception abortException = null)
+    private async Task TerminateAsync(string terminationReason, bool abort, Exception abortException = null)
     {
         try
         {
             state = ClientInternalState.Terminated;
-            if (aborted)
+            if (abort)
             {
                 if (abortException != null)
                 {
@@ -747,7 +755,7 @@ public class ZooKeeperProvider : IRebalancerProvider
             await zooKeeperService.CloseSessionAsync();
             await resourceManager.InvokeOnStopActionsAsync(clientId, "No role");
 
-            if (aborted)
+            if (abort)
             {
                 await resourceManager.InvokeOnAbortActionsAsync(
                     clientId,
@@ -764,9 +772,9 @@ public class ZooKeeperProvider : IRebalancerProvider
         }
         finally
         {
-            if (aborted)
+            if (abort)
             {
-                this.aborted = true;
+                aborted = true;
             }
             else
             {

@@ -33,12 +33,14 @@ public sealed class DeprecationContractTests
         Assert.Null(typeof(ZooKeeperService).GetConstructor([typeof(string),]));
         Assert.DoesNotContain(
             typeof(ZooKeeperProvider).GetConstructors(),
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             x => x.GetParameters().Length == 8 && x.GetParameters()[7].ParameterType == typeof(IZooKeeperService)
         );
         Assert.DoesNotContain(
             typeof(ZooKeeperRebalancerServiceCollectionExtensions).GetMethods(
                 BindingFlags.Public | BindingFlags.Static
             ),
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             x => x.GetParameters().Any(p => p.ParameterType == typeof(IZooKeeperService))
         );
     }

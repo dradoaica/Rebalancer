@@ -127,6 +127,8 @@ public sealed class DiRegistrationTests
         public static (IZooKeeperService Service, SessionRecorder Recorder) Create()
         {
             var service = Create<IZooKeeperService, SessionRecorder>();
+            // the proxy type DispatchProxy generates at run time derives from SessionRecorder
+            // ReSharper disable once SuspiciousTypeConversion.Global
             return (service, (SessionRecorder)service);
         }
 

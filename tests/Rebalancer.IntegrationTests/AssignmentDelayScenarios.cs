@@ -37,6 +37,7 @@ internal static class AssignmentDelayScenarios
             for (var i = 0; i < Nodes.Length; i++)
             {
                 monitor.Attach(clients[i], Nodes[i]);
+                // ReSharper disable once AccessToModifiedClosure
                 clients[i].OnUnassignment += (_, _) => Interlocked.Increment(ref unassignments);
                 await clients[i].StartAsync(group, Options);
             }

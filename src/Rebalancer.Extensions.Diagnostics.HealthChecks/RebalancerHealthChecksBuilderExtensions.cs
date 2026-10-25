@@ -9,6 +9,9 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class RebalancerHealthChecksBuilderExtensions
 {
     /// <summary>Adds a health check for the host's own <paramref name="client" />.</summary>
+    /// <param name="builder">The health checks builder to add the check to.</param>
+    /// <param name="name">The name of the health check.</param>
+    /// <param name="client">The client whose state the check reports.</param>
     /// <param name="pendingThreshold">How long PendingAssignment may last before Degraded; default 2 minutes.</param>
     public static IHealthChecksBuilder AddRebalancerClient(
         this IHealthChecksBuilder builder,

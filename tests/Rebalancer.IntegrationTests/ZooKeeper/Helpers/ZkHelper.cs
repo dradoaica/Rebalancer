@@ -12,14 +12,17 @@ public class ZkHelper : Watcher
     private Event.KeeperState keeperState;
     private TimeSpan sessionTimeout;
     private string zkRootPath = null!; // set by InitializeAsync
-    private org.apache.zookeeper.ZooKeeper zookeeper = null!; // set by InitializeAsync
+    private org.apache.zookeeper.ZooKeeper? zookeeper; // set by InitializeAsync
+
+    private org.apache.zookeeper.ZooKeeper Session =>
+        zookeeper ?? throw new InvalidOperationException("InitializeAsync has not been called");
 
 
-    public async Task InitializeAsync(string zkRootPath, TimeSpan sessionTimeout, TimeSpan connectTimeout)
+    public async Task InitializeAsync(string rootPath, TimeSpan session, TimeSpan connect)
     {
-        this.zkRootPath = zkRootPath;
-        this.sessionTimeout = sessionTimeout;
-        this.connectTimeout = connectTimeout;
+        zkRootPath = rootPath;
+        sessionTimeout = session;
+        connectTimeout = connect;
         await EstablishSession();
     }
 
@@ -82,7 +85,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                var childrenRes = await zookeeper.getChildrenAsync($"{zkRootPath}/{group}/resources/{resourceName}");
+                var childrenRes = await Session.getChildrenAsync($"{zkRootPath}/{group}/resources/{resourceName}");
                 foreach (var child in childrenRes.Children)
                 {
                     await SafeDelete($"{zkRootPath}/{group}/resources/{resourceName}/{child}");
@@ -111,7 +114,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await zookeeper.deleteAsync(path);
+                await Session.deleteAsync(path);
                 return;
             }
             catch (KeeperException.NoNodeException)
@@ -144,7 +147,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await zookeeper.createAsync(
+                await Session.createAsync(
                     path,
                     Encoding.UTF8.GetBytes("0"),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE,
@@ -167,18 +170,18 @@ public class ZkHelper : Watcher
     }
 
     /// <summary>Adds credentials to this helper's session, e.g. to read znodes secured with an ACL.</summary>
-    public void AddAuthInfo(string scheme, byte[] authData) => zookeeper.addAuthInfo(scheme, authData);
+    public void AddAuthInfo(string scheme, byte[] authData) => Session.addAuthInfo(scheme, authData);
 
     /// <summary>ACL of a znode below the root path, read by this helper's own session.</summary>
     public async Task<List<ACL>> GetAclAsync(string relativePath) =>
-        (await zookeeper.getACLAsync($"{zkRootPath}/{relativePath}")).Acls;
+        (await Session.getACLAsync($"{zkRootPath}/{relativePath}")).Acls;
 
     /// <summary>The client id a resource's barrier znode holds, or null when there is no barrier.</summary>
     public async Task<string?> GetBarrierOwnerAsync(string group, string resourceName)
     {
         try
         {
-            var data = await zookeeper.getDataAsync($"{zkRootPath}/{group}/resources/{resourceName}/barrier");
+            var data = await Session.getDataAsync($"{zkRootPath}/{group}/resources/{resourceName}/barrier");
             return Encoding.UTF8.GetString(data.Data);
         }
         catch (KeeperException.NoNodeException)
@@ -189,7 +192,7 @@ public class ZkHelper : Watcher
 
     /// <summary>Children of a znode below the root path, read by this helper's own session.</summary>
     public async Task<List<string>> GetChildrenAsync(string relativePath) =>
-        (await zookeeper.getChildrenAsync($"{zkRootPath}/{relativePath}")).Children;
+        (await Session.getChildrenAsync($"{zkRootPath}/{relativePath}")).Children;
 
     private Task CreateZnodeAsync(string path) => CreateZnodeAsync(path, ZooDefs.Ids.OPEN_ACL_UNSAFE);
 
@@ -199,7 +202,7 @@ public class ZkHelper : Watcher
         {
             try
             {
-                await zookeeper.createAsync(path, new byte[0], acl, CreateMode.PERSISTENT);
+                await Session.createAsync(path, new byte[0], acl, CreateMode.PERSISTENT);
 
                 return;
             }

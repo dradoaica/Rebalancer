@@ -46,8 +46,10 @@ public sealed class DisconnectionTests : IDisposable
         var paused = 0;
         client.OnUnassignment += (_, _) =>
         {
+            // ReSharper disable once AccessToModifiedClosure
             if (Volatile.Read(ref paused) == 1)
             {
+                // ReSharper disable once AccessToModifiedClosure
                 Interlocked.Exchange(ref unassignedWhilePaused, 1);
             }
         };

@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
 using System;
 
-namespace Rebalancer.Redis.Leases;
+namespace Rebalancer.Redis.Connections;
 
 internal static class TransientErrorDetector
 {

@@ -47,6 +47,7 @@ public sealed class SqlServerAbortedStateTests
         var connectionString = sql.GetConnectionString();
         using var client = new RebalancerClient(new SqlServerProvider(connectionString));
         var aborts = 0;
+        // ReSharper disable once AccessToModifiedClosure
         client.OnAborted += (_, _) => Interlocked.Increment(ref aborts);
 
         await client.StartAsync(

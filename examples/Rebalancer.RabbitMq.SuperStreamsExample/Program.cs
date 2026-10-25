@@ -116,10 +116,12 @@ internal static class Program
                 {
                     if (confirmation.Status == ConfirmationStatus.Confirmed)
                     {
+                        // ReSharper disable once AccessToModifiedClosure
                         Interlocked.Add(ref confirmed, confirmation.Messages.Count);
                     }
                     else
                     {
+                        // ReSharper disable once AccessToModifiedClosure
                         Interlocked.Add(ref failed, confirmation.Messages.Count);
                     }
 

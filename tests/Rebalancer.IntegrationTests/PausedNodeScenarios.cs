@@ -193,6 +193,7 @@ internal static class PausedNodeScenarios
     {
         using var client = new RebalancerClient(createProvider());
         var unassigned = 0;
+        // ReSharper disable once AccessToModifiedClosure
         client.OnUnassignment += (_, _) => Interlocked.Increment(ref unassigned);
         await client.StartAsync(group, Options);
         await WaitUntilAsync(() => Holds(client, Resources), "the node never held both resources");

@@ -86,6 +86,7 @@ public sealed class AssignmentDelayTests
         );
         using var client = new RebalancerClient(provider);
         var assignments = 0;
+        // ReSharper disable once AccessToModifiedClosure
         client.OnAssignment += (_, _) => Interlocked.Increment(ref assignments);
         await client.StartAsync(
             "orders",

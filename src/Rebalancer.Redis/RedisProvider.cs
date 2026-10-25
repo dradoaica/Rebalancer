@@ -32,14 +32,13 @@ public class RedisProvider : IRebalancerProvider, IDisposable
     private readonly Follower follower;
     private readonly ILeaseService leaseService;
     private readonly IRebalancerLogger logger;
-    private readonly IResourceService resourceService;
     private readonly ResourceGroupStore store;
     private volatile bool aborted;
     private Guid clientId;
-    private ClientOptions clientOptions;
+    private ClientOptions currentClientOptions;
+    private string currentResourceGroup;
     private volatile bool isCoordinator;
     private Task mainTask;
-    private string resourceGroup;
     private bool started;
     private volatile bool stopped;
 
@@ -73,14 +72,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             this.leaseService = leaseService;
         }
 
-        if (resourceService == null)
-        {
-            this.resourceService = new ResourceService(cache);
-        }
-        else
-        {
-            this.resourceService = resourceService;
-        }
+        resourceService ??= new ResourceService(cache);
 
         if (clientService == null)
         {
@@ -92,7 +84,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
         }
 
         clientId = Guid.NewGuid();
-        coordinator = new Coordinator(this.logger, this.resourceService, this.clientService, store);
+        coordinator = new Coordinator(this.logger, resourceService, this.clientService, store);
         follower = new Follower(this.logger, this.clientService, store);
     }
 
@@ -117,10 +109,10 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             started = true;
         }
 
-        this.resourceGroup = resourceGroup;
-        this.clientOptions = clientOptions;
+        currentResourceGroup = resourceGroup;
+        currentClientOptions = clientOptions;
         await PerGroupKeyMigration.MoveToPerGroupKeysAsync(cache, resourceGroup, logger, clientId.ToString());
-        await clientService.CreateClientAsync(this.resourceGroup, clientId);
+        await clientService.CreateClientAsync(currentResourceGroup, clientId);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         mainTask = Task.Run(async () =>
@@ -195,7 +187,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         else
                         {
                             // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
-                            var exMsg = leaderElectionTask.Exception?.GetBaseException().Message;
+                            _ = leaderElectionTask.Exception;
                         }
 
                         if (!roleTask.IsFaulted)
@@ -205,7 +197,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         else
                         {
                             // avoid UNOBSERVED TASK EXCEPTION by accessing its Exception property
-                            var exMsg = roleTask.Exception?.GetBaseException().Message;
+                            _ = roleTask.Exception;
                         }
 
                         if (parentToken.IsCancellationRequested)
@@ -235,7 +227,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                                 {
                                     ClientId = clientId,
                                     FencingToken = coordinator.GetCurrentFencingToken(),
-                                    ResourceGroup = this.resourceGroup,
+                                    ResourceGroup = currentResourceGroup,
                                 }
                             );
                         }
@@ -277,7 +269,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             throw new RebalancerException("Context not started");
         }
 
-        await clientService.CreateClientAsync(resourceGroup, clientId);
+        await clientService.CreateClientAsync(currentResourceGroup, clientId);
     }
 
     public async Task WaitForCompletionAsync()
@@ -441,12 +433,12 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         AcquireLeaseRequest request = new()
                         {
                             ClientId = clientId,
-                            ResourceGroup = resourceGroup,
+                            ResourceGroup = currentResourceGroup,
                         };
                         var response = await TryAcquireLeaseAsync(request, token);
                         if (response.Result == LeaseResult.Granted) // is now the Coordinator
                         {
-                            RebalancerTelemetry.RecordElection("redis", resourceGroup);
+                            RebalancerTelemetry.RecordElection("redis", currentResourceGroup);
                             await ExecuteLeaseRenewals(token, clientEvents, response.Lease);
                         }
                         else if (response.Result == LeaseResult.Denied) // is a Follower
@@ -456,7 +448,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                         }
                         else if (response.Result == LeaseResult.NoLease)
                         {
-                            throw new RebalancerException($"The resource group {resourceGroup} does not exist.");
+                            throw new RebalancerException($"The resource group {currentResourceGroup} does not exist.");
                         }
                         else if (response.IsErrorResponse())
                         {
@@ -494,7 +486,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
                 new RenewLeaseRequest
                 {
                     ClientId = clientId,
-                    ResourceGroup = resourceGroup,
+                    ResourceGroup = currentResourceGroup,
                     FencingToken = lease.FencingToken,
                 },
                 token
@@ -512,7 +504,7 @@ public class RedisProvider : IRebalancerProvider, IDisposable
             }
             else if (response.Result == LeaseResult.NoLease)
             {
-                throw new RebalancerException($"The resource group {resourceGroup} does not exist.");
+                throw new RebalancerException($"The resource group {currentResourceGroup} does not exist.");
             }
             else if (response.IsErrorResponse())
             {
@@ -529,66 +521,32 @@ public class RedisProvider : IRebalancerProvider, IDisposable
 
     private async Task<LeaseResponse> TryAcquireLeaseAsync(AcquireLeaseRequest request, CancellationToken token)
     {
+        // up to three tries, waiting 2s and then 4s between them
         var delaySeconds = 2;
-        var triesLeft = 3;
-        while (triesLeft > 0)
+        var response = await leaseService.TryAcquireLeaseAsync(request);
+        for (var retriesLeft = 2; retriesLeft > 0 && response.Result == LeaseResult.TransientError; retriesLeft--)
         {
-            triesLeft--;
-            var response = await leaseService.TryAcquireLeaseAsync(request);
-            if (response.Result != LeaseResult.TransientError)
-            {
-                return response;
-            }
-
-            if (triesLeft > 0)
-            {
-                await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
-            }
-            else
-            {
-                return response;
-            }
-
-            delaySeconds = delaySeconds * 2;
+            await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
+            delaySeconds *= 2;
+            response = await leaseService.TryAcquireLeaseAsync(request);
         }
 
-        // this should never happen
-        return new LeaseResponse
-        {
-            Result = LeaseResult.Error,
-        };
+        return response;
     }
 
     private async Task<LeaseResponse> TryRenewLeaseAsync(RenewLeaseRequest request, CancellationToken token)
     {
+        // up to three tries, waiting 2s and then 4s between them
         var delaySeconds = 2;
-        var triesLeft = 3;
-        while (triesLeft > 0)
+        var response = await leaseService.TryRenewLeaseAsync(request);
+        for (var retriesLeft = 2; retriesLeft > 0 && response.Result == LeaseResult.TransientError; retriesLeft--)
         {
-            triesLeft--;
-            var response = await leaseService.TryRenewLeaseAsync(request);
-            if (response.Result != LeaseResult.TransientError)
-            {
-                return response;
-            }
-
-            if (triesLeft > 0)
-            {
-                await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
-            }
-            else
-            {
-                return response;
-            }
-
-            delaySeconds = delaySeconds * 2;
+            await WaitFor(TimeSpan.FromSeconds(delaySeconds), token);
+            delaySeconds *= 2;
+            response = await leaseService.TryRenewLeaseAsync(request);
         }
 
-        // this should never happen
-        return new LeaseResponse
-        {
-            Result = LeaseResult.Error,
-        };
+        return response;
     }
 
     private TimeSpan GetInterval(TimeSpan leaseExpiry) =>
@@ -605,13 +563,13 @@ public class RedisProvider : IRebalancerProvider, IDisposable
         isCoordinator = true;
         ClientEvent clientEvent = new()
         {
-            ResourceGroup = resourceGroup,
+            ResourceGroup = currentResourceGroup,
             EventType = EventType.Coordinator,
             FencingToken = fencingToken,
             CoordinatorToken = coordinatorToken,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
-            ClientRecordRetention = ClientOptions.GetClientRecordRetention(clientOptions, keepAliveExpiryPeriod),
-            OnAssignmentDelay = clientOptions.OnAssignmentDelay,
+            ClientRecordRetention = ClientOptions.GetClientRecordRetention(currentClientOptions, keepAliveExpiryPeriod),
+            OnAssignmentDelay = currentClientOptions.OnAssignmentDelay,
         };
         clientEvents.Add(clientEvent);
     }
@@ -623,9 +581,9 @@ public class RedisProvider : IRebalancerProvider, IDisposable
         ClientEvent clientEvent = new()
         {
             EventType = EventType.Follower,
-            ResourceGroup = resourceGroup,
+            ResourceGroup = currentResourceGroup,
             KeepAliveExpiryPeriod = keepAliveExpiryPeriod,
-            OnAssignmentDelay = clientOptions.OnAssignmentDelay,
+            OnAssignmentDelay = currentClientOptions.OnAssignmentDelay,
         };
         clientEvents.Add(clientEvent);
     }

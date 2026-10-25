@@ -1,3 +1,6 @@
+// the usings are needed by the example projects; only Rebalancer.IntegrationTests, which also compiles this file, has implicit usings
+// ReSharper disable RedundantUsingDirective
+
 using Microsoft.Data.SqlClient;
 using System;
 using System.Data;

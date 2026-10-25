@@ -15,13 +15,7 @@ public class SingleClientTests : IDisposable
     // each test sets the provider it needs; clients get it explicitly (see PRB-0002)
     private Func<IRebalancerProvider> providerFactory = null!;
 
-    public void Dispose()
-    {
-        if (zkHelper != null)
-        {
-            Task.Run(async () => await zkHelper.CloseAsync()).Wait();
-        }
-    }
+    public void Dispose() => Task.Run(async () => await zkHelper.CloseAsync()).Wait();
 
     [Fact]
     public async Task ResourceBarrier_GivenSingleClient_ThenGetsAllResourcesAssigned()
@@ -161,7 +155,7 @@ public class SingleClientTests : IDisposable
     {
         RebalancerClient client1 = new(providerFactory());
         List<TestEvent> testEvents = new();
-        client1.OnAssignment += (sender, args) =>
+        client1.OnAssignment += (_, args) =>
         {
             testEvents.Add(
                 new TestEvent
@@ -172,7 +166,7 @@ public class SingleClientTests : IDisposable
             );
         };
 
-        client1.OnUnassignment += (sender, args) =>
+        client1.OnUnassignment += (_, _) =>
         {
             testEvents.Add(
                 new TestEvent
@@ -182,7 +176,7 @@ public class SingleClientTests : IDisposable
             );
         };
 
-        client1.OnAborted += (sender, args) =>
+        client1.OnAborted += (_, args) =>
         {
             testEvents.Add(
                 new TestEvent

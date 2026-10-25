@@ -1,3 +1,4 @@
+using Rebalancer.Redis.Connections;
 using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
 using System;

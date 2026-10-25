@@ -27,6 +27,8 @@ internal static class RedisSeed
                     LeaseExpirySeconds = 5,
                     HeartbeatSeconds = 1,
                 };
+            // Add writes to Redis, where the nodes read the resources
+            // ReSharper disable once CollectionNeverQueried.Local
             var list = new RedisList<Resource>(db, $"{Constants.SCHEMA}:Resources");
             foreach (var resourceName in resourceNames)
             {

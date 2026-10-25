@@ -17,13 +17,7 @@ public class RandomisedResourceBarrierTests : IDisposable
     // each test sets the provider it needs; clients get it explicitly (see PRB-0002)
     private Func<IRebalancerProvider> providerFactory = null!;
 
-    public void Dispose()
-    {
-        if (zkHelper != null)
-        {
-            Task.Run(async () => await zkHelper.CloseAsync()).Wait();
-        }
-    }
+    public void Dispose() => Task.Run(async () => await zkHelper.CloseAsync()).Wait();
 
     [Fact]
     public async Task ResourceBarrier_RandomisedTest_LongInterval_LowClient_LowResource_FullCheck()
