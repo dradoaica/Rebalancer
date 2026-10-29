@@ -519,7 +519,7 @@ def read_provenance(readme: Path) -> list[ProvenanceRow]:
 
 
 def check_skills(root: Path) -> list[Finding]:
-    """GOV-11: every skill has complete provenance with a verified license (.agents/rules/10-imported-assets.md)."""
+    """GOV-11: every skill has complete provenance (.agents/rules/10-imported-assets.md)."""
     skills_dir = root / ".agents" / "skills"
     if not skills_dir.is_dir():
         return []
@@ -545,11 +545,22 @@ def check_skills(root: Path) -> list[Finding]:
                 findings.append(
                     Finding(readme_rel, row.line, "GOV-11", f"provenance for '{skill}' lacks: {', '.join(missing)}")
                 )
-            if "unverified" in row.cells["license"].casefold():
-                findings.append(
-                    Finding(readme_rel, row.line, "GOV-11", f"license for '{skill}' is unverified ({row.cells['license']})")
-                )
     return findings
+
+
+def is_unlicensed(license_cell: str) -> bool:
+    text = license_cell.casefold()
+    return "unverified" in text or text.startswith("none")
+
+
+def unlicensed_skills(root: Path) -> list[str]:
+    """Skills accepted without a verified license (Rule 10): reported as notes, never as findings."""
+    readme = root / ".agents" / "skills" / "README.md"
+    try:
+        rows = read_provenance(readme) if readme.is_file() else []
+    except ParseError:
+        return []  # reported as GOV-00 by check_skills
+    return sorted({pattern for row in rows if is_unlicensed(row.cells["license"]) for pattern in row.patterns})
 
 
 # --- Runner ----------------------------------------------------------------------------------------------------------
@@ -632,6 +643,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.base is None:
         print("Skipped: GOV-10 (pass --base <git-ref> to compare approved records).", file=sys.stderr)
     print(f"Not checked (human review): {NOT_CHECKED}.", file=sys.stderr)
+    for skill in unlicensed_skills(root):
+        print(
+            f"Note: skill '{skill}' has no verified license; accepted under Rule 10 and redistributed at the "
+            "maintainer's risk.",
+            file=sys.stderr,
+        )
     if any(finding.check == "GOV-00" for finding in findings):
         return 2
     return 1 if findings else 0

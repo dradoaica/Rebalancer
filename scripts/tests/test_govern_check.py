@@ -224,8 +224,16 @@ class GovernCheckTest(Fixture):
         self.write(".agents/skills/other/SKILL.md", "---\nname: other\n---\n")
         self.assertEqual(self.checks(), {"GOV-11"})
 
-    def test_gov11_unverified_license(self) -> None:
-        self.edit(".agents/skills/README.md", "| MIT     |", "| None declared (unverified) |")
+    def test_gov11_unlicensed_skill_is_a_note_not_a_finding(self) -> None:
+        self.edit(".agents/skills/README.md", "| MIT     |", "| None yet (unverified) |")
+        self.assertEqual(self.checks(), set())
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(stderr):
+            self.assertEqual(govern_check.main(["--root", str(self.root)]), 0)
+        self.assertIn("Note: skill 'demo' has no verified license", stderr.getvalue())
+
+    def test_gov11_empty_license_still_fails(self) -> None:
+        self.edit(".agents/skills/README.md", "| MIT     |", "|         |")
         self.assertEqual(self.checks(), {"GOV-11"})
 
     def test_artifact_with_template_in_its_title_is_still_checked(self) -> None:

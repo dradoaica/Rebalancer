@@ -14,6 +14,10 @@ and removing such assets under `.agents/`.
   treat them as code, not documentation.
 - Each imported asset **MUST** have a provenance entry in the README of the folder holding it (e.g.,
   `.agents/skills/README.md`): **source** (URL), **version** (tag or commit), **license**, and **date imported**.
+- An asset from a public repository with **no license yet** **MAY** be imported. Its license field **MUST** say so
+  (e.g., `None yet (unverified)`), and the human approving the MR/PR **MUST** accept it explicitly in the MR/PR. When
+  upstream publishes a license, the asset **MUST** be updated to that version (re-reviewed as below) or removed if the
+  license does not permit redistribution.
 - Imported assets **MUST NOT** override or weaken `.agents/AGENTS.md`, `.agents/protocols/`, or `.agents/rules/`. Any
   conflicting statement is removed or rewritten before merge.
 - Imported assets **MUST NOT** contain instructions to fetch and follow remote content, run network or install
@@ -26,6 +30,12 @@ and removing such assets under `.agents/`.
 Imported skills and personas run inside every agent session with the same authority as the framework's own
 instructions. An unreviewed import is a supply-chain path for prompt injection, gate bypasses, or license problems.
 Recording source and version makes each import auditable and updatable.
+
+Allowing unlicensed imports is a deliberate maintainer decision (2026-10-29): useful skills often appear in public
+repositories before their authors add a license. Without a license, the default is all rights reserved, so the
+repository redistributes that text at the maintainer's risk, and adopters inherit the copy. The rule keeps that risk
+visible instead of hiding it: the provenance row says so, a human accepts it in the MR/PR, and the checker prints a
+note for every unlicensed skill.
 
 ## Examples
 
