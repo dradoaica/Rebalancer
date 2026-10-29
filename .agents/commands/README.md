@@ -20,6 +20,11 @@ Commands are **repeatable, strictly scoped task specs** that an agent can execut
 - **One command = one outcome**: keep each command single-purpose.
 - **No hidden work**: if a command needs other artifacts (ADR, change record), it must declare them as preconditions.
 
+## Approved commands
+
+- **`cmd-dispatch-subagent`** (`.agents/commands/cmd-dispatch-subagent.md`): hand one deliverable to one subagent with
+  persona, model class, acceptance criteria, dependencies, worktree, and constraints.
+
 ## Template
 
 Create new command files by copying this:

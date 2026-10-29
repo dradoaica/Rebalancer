@@ -28,7 +28,8 @@ Constraints:
 ### Local shell
 
 - **Read-only diagnostics** (allowed): tests, lint, format check, build analysis, `git status`, `git diff`, dependency
-  tree inspection.
+  tree inspection, and the governance checker `python3 -I scripts/govern_check.py`
+  (`.agents/rules/02-governance-checks.md`).
 - **Local git writes** (allowed, within the task's scope): create a local branch, `git worktree add`, stage, and commit
   on a branch that is not shared. Under concurrency only the orchestrator commits
   (`.agents/rules/01-execution-isolation.md`). Deleting a branch, removing a worktree, or rewriting history (rebase,

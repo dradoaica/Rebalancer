@@ -17,4 +17,6 @@ folder.
 
 ## Gaps
 
-If a runtime folder has no content, propose minimal standards with the human rather than inventing org-wide defaults.
+An empty subdirectory means **no written standard yet** and is **not applicable**: ignore it unless the task's code uses
+that runtime. Then follow the approved specs and the existing code's conventions, never invent org-wide defaults, note
+the gap once in your summary, and draft standards only when the human asks.

@@ -12,7 +12,10 @@ configuration, read the relevant platform folder.
 
 - Document: required services, networking, identity, secrets handling, scaling, and observability hooks.
 - Keep platform docs separate from **runtime** toolchain docs (see `../application-runtimes/`).
-- Empty subdirectories mean **no written standard yet**; do not assume defaults without human confirmation.
+- An empty subdirectory means **no written standard yet** and is **not applicable**: ignore it unless the task's
+  change targets that platform. Then follow the approved specs and the existing configuration's conventions, never
+  assume platform defaults without human confirmation, note the gap once in your summary, and draft standards only
+  when the human asks.
 
 ## Authority
 

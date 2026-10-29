@@ -7,16 +7,16 @@ persona applies and adopt its constraints.
 
 By default, **agents produce** governance artifacts (draft ADRs, user stories, change records, SDPs, problem records)
 using the templates under `docs/`. **Humans review and approve** when a gate requires it (e.g., **Accepted** ADR before
-implementation, approved change for production). See **Artifact ownership** in `.agents/AGENTS.md` for which persona
-typically drafts what.
+implementation, approved change for production). See **Artifact ownership** in
+`.agents/protocols/governance-artifacts.md` for which persona typically drafts what.
 
 ## How to use
 
 - Read the persona file **in full** before acting under that role.
 - **Do not blend personas** in a single response. If work spans roles, split into discrete steps and declare the active
   persona at the start of each step, for example: `[Persona: solutions-architect]`.
-- Each persona file is a short **role charter**; the ownership table in `.agents/AGENTS.md` remains authoritative for
-  artifact mapping.
+- Each persona file is a short **role charter**; the ownership table in
+  `.agents/protocols/governance-artifacts.md` remains authoritative for artifact mapping.
 
 ## Canonical reference
 

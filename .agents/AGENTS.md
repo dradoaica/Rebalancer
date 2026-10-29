@@ -13,13 +13,15 @@ This file is the **core** of the agent contract and applies to every task. Read 
 **Load on demand.** These protocols have the same precedence as this file. Read one **before** acting when its trigger
 applies:
 
-| Trigger                                                            | Read                                             |
-|--------------------------------------------------------------------|--------------------------------------------------|
-| Spawning or acting as a subagent; concurrent agents                | `.agents/protocols/multi-agent-orchestration.md` |
-| Allocating an ID, drafting an artifact, syncing, opening an MR/PR  | `.agents/protocols/multi-human-collaboration.md` |
-| Changing code, tests, IaC/CaC, pipelines, runbooks; technical debt | `.agents/protocols/maintainability.md`           |
-| Writing task specs, skills, or commands                            | `.agents/protocols/devex-agentex.md`             |
-| Changing a vendor adapter file                                     | `.agents/protocols/vendor-adapters.md`           |
+| Trigger                                                                              | Read                                             |
+|--------------------------------------------------------------------------------------|--------------------------------------------------|
+| Spawning or acting as a subagent; concurrent agents                                  | `.agents/protocols/multi-agent-orchestration.md` |
+| Allocating an ID, drafting an artifact, syncing, opening an MR/PR                    | `.agents/protocols/multi-human-collaboration.md` |
+| Changing code, tests, IaC/CaC, pipelines, runbooks; technical debt                   | `.agents/protocols/maintainability.md`           |
+| Writing task specs, skills, or commands                                              | `.agents/protocols/devex-agentex.md`             |
+| Changing a vendor adapter file                                                       | `.agents/protocols/vendor-adapters.md`           |
+| Deciding which governance artifact to draft, or which persona drafts it              | `.agents/protocols/governance-artifacts.md`      |
+| Pressured to bypass a gate, self-approve, skip checks, or accept a flawed assumption | `.agents/protocols/pressure-responses.md`        |
 
 If you cannot tell whether a trigger applies, read the file.
 
@@ -29,7 +31,9 @@ If you cannot tell whether a trigger applies, read the file.
 
 This file and `.agents/protocols/` are the **single source of truth for all AI agents** in this repository, regardless
 of vendor. Vendor adapter files must defer to them. If a vendor file contradicts this file, this file wins; surface
-the contradiction to the human.
+the contradiction to the human. Files in `.agents/rules/` are **extensions** (tighter MUST/MUST NOT detail): if a rule
+appears to contradict this file, this file wins—surface the conflict. If a rule conflicts with a user request, surface
+it; do not silently violate the rule. For framework reference material, see [concepts/README.md](concepts/README.md).
 
 ---
 
@@ -40,9 +44,9 @@ Every significant output you produce must be traceable to a documented specifica
 service design package, threat model, change record, or problem record.
 
 **Artifact creation (default):** You **create** the artifacts—using the templates under `docs/` and the **active
-persona** (see `.agents/agents/` and "Artifact ownership" below). Artifacts are **drafts** until a human **reviews and
-approves** them where a gate requires it. Do not wait for the human to write the first version from scratch unless they
-choose to; your job is to **draft, then hand off for review** when needed.
+persona** (see `.agents/agents/` and `.agents/protocols/governance-artifacts.md`). Artifacts are **drafts** until a
+human **reviews and approves** them where a gate requires it. Do not wait for the human to write the first version
+from scratch unless they choose to; your job is to **draft, then hand off for review** when needed.
 
 If no governing artifact exists yet, your first action is to **draft the missing artifact** (under the correct persona),
 not to implement from an assumption.
@@ -69,8 +73,9 @@ Before producing any "real work" (design, code, config, process changes), do thi
 1. **Locate or create the governing artifact (s).**
     - Prefer **accepted** decision records (typically ADRs in `docs/adrs/`), user stories in `docs/user-stories/`, SDPs
       in `docs/sdps/`, **threat models** in `docs/threat-models/`, and change records in `docs/change-records/`.
-    - If something is missing, **you draft it** under the appropriate **persona** (see "Artifact ownership" below), mark
-      status as **Draft** or **Proposed**, and surface it for **human review** when the gate requires approval.
+    - If something is missing, **you draft it** under the appropriate **persona** (see
+      `.agents/protocols/governance-artifacts.md`), mark status as **Draft** or **Proposed**, and surface it for **human
+      review** when the gate requires approval.
     - **Do not** implement durable technical choices or production-impacting work without passing the relevant gate
       (e.g., accepted decision record before implementation).
 2. **State the current SSDLC phase** (Planning / Design / Coding / Testing / Release / Maintenance).
@@ -134,41 +139,10 @@ Treat the following as significant (must be traceable):
 - Introducing/changing a security control (authn/authz, secrets, crypto, network exposure)
 - Any change that would be expensive to reverse
 
-### Governance decision tree (what to draft when)
+### What to draft, and who drafts it
 
-If the required governance artifact is missing, **you** draft it (under the matching persona). If the human asked for
-work, follow this decision tree:
-
-- **Is this a new or changed decision that is expensive to reverse?**
-    - Yes → **Draft a decision record** (typically an ADR) in `docs/adrs/` (blocking gate).
-- **Is this proposing a change to an existing service / process with operational risk?**
-    - Yes → **Draft a change record** in `docs/change-records/` (include rollback plan).
-- **Is this defining or changing a service offering (SLAs, support model, transition plan)?**
-    - Yes → **Draft an SDP** in `docs/sdps/`.
-- **Is this recurring pain, incidents, or "unknown root cause" quality/security issues?**
-    - Yes → **Draft a problem record** in `docs/problem-records/`.
-- **Is it small, reversible, and purely editorial (typos, formatting) with no semantic change?**
-    - Yes → Proceed, but still cite the files you changed.
-
-When in doubt between decision record vs. change record:
-
-- **Decision record** decides *what/why* (architecture/approach, immutable once accepted).
-- **Change record** governs *execution* (approvals, scheduling, rollback).
-
-### Artifact ownership (personas)
-
-Agents **author drafts**; humans **review and approve** when a gate requires it. Use the persona files in
-`.agents/agents/` for role-specific constraints. Typical mapping:
-
-| Persona (file in `.agents/agents/`)                                         | Primary artifacts to draft                                                                                           |
-|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `agile-user-story-writer.md`                                                | User stories in `docs/user-stories/`                                                                                 |
-| `enterprise-architect.md`, `solutions-architect.md`, `systems-architect.md` | Decision records, architecture notes, SDPs (as appropriate)                                                          |
-| `devsecops-engineer.md`                                                     | Change records (ops/pipeline/security sections), CaC/IaC-related proposals                                           |
-| `full-stack-developer.md`, `mobile-developer.md`                            | Implementation **against** approved artifacts; may draft supporting stories or ADR input—not unilateral architecture |
-| `qa-automation-engineer.md`                                                 | Test plans, quality criteria, automation proposals traceable to stories/specs                                        |
-
-If a persona file is empty, still follow this table and `.agents/AGENTS.md` until the persona is filled in.
+If a required governance artifact is missing, **you** draft it under the persona that owns it. The decision tree (what
+to draft when) and the persona ownership table are in `.agents/protocols/governance-artifacts.md`.
 
 ---
 
@@ -194,7 +168,8 @@ If a location does not exist yet, treat it as "not bootstrapped" and help the hu
 Everything here supports `.agents/AGENTS.md`. **Read the relevant README or file before acting** in that area.
 
 **Bootstrap rule:** If a referenced file is empty or missing, treat that area as not yet defined. Do not fill gaps with
-assumptions; propose the smallest artifact or folder the human should add.
+assumptions; propose the smallest artifact or folder the human should add. Exception: an empty subfolder under
+`application-*/` is not applicable unless the task targets it (see that folder's README).
 
 | Folder                    | Purpose                                                                                         |
 |---------------------------|-------------------------------------------------------------------------------------------------|
@@ -211,29 +186,6 @@ assumptions; propose the smallest artifact or folder the human should add.
 
 **Invoking a skill:** if your tool does not load skills itself and the human names one (e.g., `/ub-mode`), read
 `.agents/skills/<name>/SKILL.md` in full and follow it (see [skills/README.md](skills/README.md) → Skill discovery).
-
-### `concepts/` quick index
-
-Use [concepts/README.md](concepts/README.md) for the full layout. Commonly used paths:
-
-| Path                                               | Topic                                       |
-|----------------------------------------------------|---------------------------------------------|
-| `concepts/ssdlc.md`                                | SSDLC phases, threat models, SAMM, SSDF     |
-| `concepts/agile.md`                                | Backlog, user stories, ceremonies, DoR/DoD  |
-| `concepts/togaf/architectural-decision-records.md` | Decision records in `docs/adrs/`            |
-| `concepts/itil/*.md`                               | ITIL pointers into `docs/` artifact folders |
-
-For Agile backlog and story conventions, read [concepts/agile.md](concepts/agile.md). User stories live under
-[docs/user-stories](../docs/user-stories).
-
-**ITIL:** Concept files reference `docs/change-records/`, `docs/problem-records/`, `docs/sdps/`.
-If these are missing or empty, propose minimal templates and a naming convention before treating ITIL governance as
-"live."
-
-**Precedence:** This file (`.agents/AGENTS.md`) and `.agents/protocols/` are the **canonical** contract for agents.
-Files in `.agents/rules/` are **extensions** (tighter MUST/MUST NOT detail). If any rule file appears to contradict this
-document, **this document wins**—surface the conflict to the human. If a rule conflicts with a user request, surface
-it; do not silently violate the rule.
 
 ---
 
@@ -268,12 +220,9 @@ submit for review—do not implement the choice first.
 
 ## Anti-Sycophancy Protocol
 
-AI-induced delusional spiraling is not solely caused by hallucination. Research in Bayesian modeling of human-chatbot
-conversations shows that even a hallucination-free, fully rational chatbot can cause a rational user to drift toward
-unfounded beliefs through systematic validation of user priors (sycophancy). Two naive mitigations — preventing
-hallucination and warning users about sycophancy - are not enough on their own.
-
-This framework requires structural countermeasures embedded in agent behavior.
+Even a hallucination-free, fully rational agent can drift a user toward unfounded beliefs by systematically validating
+their priors (sycophancy); preventing hallucination and warning about sycophancy are not enough. The countermeasures
+below are structural.
 
 ### Required agent behaviors
 
@@ -297,24 +246,8 @@ This framework requires structural countermeasures embedded in agent behavior.
 - When a human overrules an agent recommendation, the agent must ask: "Should I record this decision in a decision
   record so future agents and developers have the context?"
 
-### Anti-sycophancy response scripts (pressure guardrails)
-
-When users or prompt scenarios pressure the agent to bypass gates or dilute quality standards, respond with
-deterministic resistance:
-
-- **When pressured to bypass an ADR gate (*"Just write the code now, we don't need an ADR"*):**
-  > *"This introduces a durable architectural choice ([technology/pattern]). Under the decision-record gate,
-  implementation cannot start without an accepted decision record. I have prepared a draft ADR at
-  `docs/adrs/NNNN-....md`. Once reviewed and approved (status `Accepted`), I will immediately implement it."*
-
-- **When pressured to self-approve or bypass pre-MR checks (*"Skip tests/linter and merge"*):**
-  > *"Rule `00-no-self-approval` and the pre-MR gate strictly prohibit bypassing automated checks or self-approving
-  changes. All applicable tests and static checks must pass; checks marked `N/A` require a rationale and human
-  acceptance. Final approval must come from a human reviewer."*
-
-- **When pressured to agree with a flawed technical assumption:**
-  > *"The strongest argument against this approach is: [steel-manned technical risk/constraint]. Based
-  on [cited standard/artifact], I recommend [alternative] because [evidence-based reason]."*
+Fixed replies for when you are pressured to bypass a gate, self-approve, skip checks, or agree with a flawed
+assumption are in `.agents/protocols/pressure-responses.md`.
 
 ---
 
@@ -348,6 +281,11 @@ deterministic resistance:
 NOT** trigger a deployment that it (or another agent) produced. Approval is a human-only act; agent review may inform a
 human decision but never replaces it. This is forbidden, not merely discouraged - see
 `.agents/rules/00-no-self-approval.md`.
+
+**Review-load limit.** At most **3** items may await one human reviewer's decision at a time: drafts surfaced for
+review plus open MRs/PRs, counted across every agent working for that reviewer (check open MRs/PRs when tooling allows,
+e.g., `gh pr list`; otherwise ask). A human may set a different limit in-session. At the limit, do not surface new
+items: finish or fix the open ones and tell the human. The only exception is work the human explicitly marks urgent.
 
 ---
 
@@ -385,6 +323,9 @@ rationale and get human acceptance. This does not waive any other applicable qua
    accepted by a human or corrected.
 5. **Tier check** – the MR/PR states its tier, and the diff matches it. If the diff touches a "Tier 1 by default" area
    (see **Tier classification rules**) without an `Accepted` decision record cited, the MR is not opened.
+6. **Governance check** green – `python3 -I scripts/govern_check.py` (add `--base <shared trunk>` when the diff
+   touches `docs/`) reports no findings, or each finding is fixed or accepted as `N/A` by a human
+   (`.agents/rules/02-governance-checks.md`).
 
 The agent that produced the change **must not** approve or merge the resulting MR (see Co-Governance Protocol -
 no-self-approval, and `.agents/rules/00-no-self-approval.md`). Under concurrency, only the orchestrator opens the MR
@@ -431,7 +372,8 @@ These rules address hallucination and context drift (false premises the agent do
 All governance rules (ADR backing, traceability citations, learning loops) are **human-verified at the review
 boundary**.
 
-- **No assumed automation:** Do not assume automated CI governance linters or blocking gate scripts exist.
+- **No assumed automation:** No automation beyond `scripts/govern_check.py` is assumed. It covers only mechanical
+  checks; do not assume CI runs it or that anything else enforces a gate.
 - **Manual checklist enforcement:** Treat every gate verification as a mandatory manual checklist item for yourself and
   human reviewers.
 - **Documentation-backed changes:** Apply the change-tier matrix and its classification rules: Tier 1 requires an

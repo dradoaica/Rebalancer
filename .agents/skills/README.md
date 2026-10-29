@@ -46,6 +46,7 @@ When two skills cover the same concern (for example, two coding modes), only one
 |---------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | Native: scans `.agents/skills/`             | OpenAI Codex, Gemini CLI, GitHub Copilot, OpenCode, Cursor, Windsurf (now Devin Desktop), Roo Code, Zed (trusted trees) |
 | Symlink `.claude/skills` → `.agents/skills` | Claude Code; also Cline, which reads `.claude/skills/`                                                                  |
+| Symlink `.kiro/skills` → `.agents/skills`   | Kiro (symlink support is not documented – unverified)                                                                   |
 | Manual (no skill discovery found in docs)   | Aider, Sourcegraph Cody, Amazon Q Developer (IDE), JetBrains Junie                                                      |
 
 In the manual case, when the human names a skill (e.g., `/ub-mode`), read `.agents/skills/<name>/SKILL.md` in full and
@@ -54,10 +55,10 @@ works; otherwise Claude Code and Cline fall back to the manual case.
 
 ### Provenance of imported skills
 
-| Skill(s)                     | Source                                                                | Version                                  | License                    | Imported   |
-|------------------------------|-----------------------------------------------------------------------|------------------------------------------|----------------------------|------------|
-| `ponytail`, `ponytail-*` (6) | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | 09c434ab73ca43761c5d8b0c5d341926c2fba710 | MIT                        | 2026-10-17 |
-| `ub-mode`                    | [unclebob/ub-mode](https://github.com/unclebob/ub-mode)               | 57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f | None declared (unverified) | 2026-10-29 |
+| Skill(s)                     | Source                                                                | Version                                  | License                                                    | Imported   |
+|------------------------------|-----------------------------------------------------------------------|------------------------------------------|------------------------------------------------------------|------------|
+| `ponytail`, `ponytail-*` (6) | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | 09c434ab73ca43761c5d8b0c5d341926c2fba710 | MIT                                                        | 2026-10-17 |
+| `ub-mode`                    | [unclebob/ub-mode](https://github.com/unclebob/ub-mode)               | 57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f | None yet; expected 0BSD like unclebob/crapper (unverified) | 2026-10-29 |
 
 ## Skill file requirements
 

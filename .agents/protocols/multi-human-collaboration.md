@@ -65,7 +65,9 @@ claimed by another owner, stop and tell the human.
 ## Governance reconciliation (after every sync)
 
 After every merge or rebase from the shared trunk, and before opening an MR/PR that touches `docs/`, the agent **MUST**
-run these checks over all artifacts' front matter and report the results:
+run these checks over all artifacts' front matter and report the results. Run `python3 -I scripts/govern_check.py
+--base <shared trunk>` first: it covers check 1, the exact-match half of 3, check 4, check 5, and the front-matter half
+of 8 (`.agents/rules/02-governance-checks.md`). Do the rest by hand.
 
 | # | Check                 | Finding                                                                                           |
 |---|-----------------------|---------------------------------------------------------------------------------------------------|

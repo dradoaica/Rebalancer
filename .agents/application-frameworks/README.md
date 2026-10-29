@@ -12,8 +12,9 @@ the matching subdirectory.
 
 - One subdirectory per framework or major variant.
 - Prefer small, scannable files: naming, layering, DI, error handling, testing expectations, and antipatterns.
-- If a framework subdirectory is empty, treat it as **not yet governed**; align with human-approved specs and propose
-  content before assuming team standards.
+- An empty subdirectory means **no written standard yet** and is **not applicable**: ignore it unless the task's
+  code targets that framework. Then follow the approved specs and the existing code's conventions, note the gap once
+  in your summary, and draft standards only when the human asks.
 
 ## Authority
 

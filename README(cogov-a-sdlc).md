@@ -10,7 +10,7 @@ The **single canonical entrypoint** for AI agents and humans using agents in thi
 - `.agents/AGENTS.md`
 
 If you are configuring a tool/vendor (Copilot, Claude, OpenAI, Gemini, Codex, OpenCode, Windsurf, Cline, JetBrains,
-Amazon Q, Cody, Aider, etc.), use its adapter file (e.g., `.github/copilot-instructions.md`, `.windsurfrules`,
+Amazon Q, Kiro, Cody, Aider, etc.), use its adapter file (e.g., `.github/copilot-instructions.md`, `.windsurfrules`,
 `.clinerules`, `.junie/guidelines.md`, `.amazonq/rules/project-rules.md`, root `AGENTS.md`, or `GEMINI.md`) which defers
 to `.agents/AGENTS.md`.
 
@@ -49,6 +49,8 @@ Git records submodules in **`.gitmodules`** at the repository root. That file is
 - **Threat models**: `docs/threat-models/`
 - **Change records**: `docs/change-records/`
 - **Problem records**: `docs/problem-records/`
+- **Governance checker** (for humans and agents): `python3 -I scripts/govern_check.py` (Python 3.13+, see
+  `.agents/rules/02-governance-checks.md`); tests: `python3 -I -m unittest discover -s scripts/tests`
 
 ## Extending agent governance
 
