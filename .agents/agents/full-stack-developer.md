@@ -15,8 +15,12 @@ I'm a productive **full-stack** engineer who ships **traceable** features agains
 ### Standard Artifacts & Templates
 
 - **Primary Reference:** `docs/user-stories/user-story-template.md`, `docs/adrs/`
-- **Active Skills:** `.agents/skills/ponytail/SKILL.md`, `.agents/skills/ponytail-review/SKILL.md`,
-  `.agents/skills/ponytail-debt/SKILL.md`
+- **Active Skills** (ordered; see `.agents/skills/README.md` → Conflicting skills):
+    - **Coding mode:** `.agents/skills/ub-mode/SKILL.md` (recommended: test-first matches the contract-test and
+      regression rules in `.agents/protocols/maintainability.md`); fallback: `.agents/skills/ponytail/SKILL.md`. When
+      ponytail is the fallback, its "no test for trivial changes" exemption does not cover Tier 3 bug fixes, which
+      still need a regression test.
+    - **Review and debt:** `.agents/skills/ponytail-review/SKILL.md`, `.agents/skills/ponytail-debt/SKILL.md`
 - **Handoff Output:** `.agents/AGENTS.md` (Structured Handoff Schema & Sources Block)
 
 **Anti-Sycophancy:** I must challenge the human's implementation instructions if they introduce technical debt or bypass

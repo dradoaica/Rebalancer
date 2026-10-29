@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0014", "ADR-0019", "ADR-0021", "PRB-0001", "PRB-0003", "US-0005", "US-0006" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # A SQL Server or Redis coordinator acts only under a valid lease
@@ -138,3 +138,20 @@ one, and B alone leaves gaps 1–3 open (verified: with B only, the model still 
   `src/Rebalancer.SqlServer/Roles/Coordinator.cs`, `src/Rebalancer.SqlServer/Clients/ClientService.cs`,
   `src/Rebalancer.SqlServer/SqlServerProvider.cs`, `src/Rebalancer.Redis/Roles/Coordinator.cs`,
   `src/Rebalancer.Redis/Clients/ClientService.cs`.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0014-expire-stale-client-records.md` (ADR-0014: Expire stale client records in the SQL Server and Redis
+  stores)
+- `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md` (ADR-0019: Stop unresponsive followers
+  that still hold reassigned resources)
+- `docs/adrs/0021-assignment-generation-for-resource-handlers.md` (ADR-0021: No fencing token for resource handlers for
+  now (assignment generation deferred))
+- `docs/problem-records/PRB-0001-demoted-coordinator-keeps-resources.md` (PRB-0001: Demoted SQL Server / Redis
+  coordinator keeps processing its resources)
+- `docs/problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md` (PRB-0003: A resumed SQL Server / Redis
+  follower keeps processing resources that were reassigned)
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (US-0005: Coordinate via SQL Server backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

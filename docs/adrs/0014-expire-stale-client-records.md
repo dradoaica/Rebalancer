@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "TM-0002", "TM-0003", "US-0005", "US-0006" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Expire stale client records in the SQL Server and Redis stores
@@ -87,3 +87,12 @@ coordinator includes, so it was never assigned again ([PRB-0005](../problem-reco
 services reset a restarted client's record as a new registration would (`Waiting`, `StopActivity`, no resources), and
 the coordinator rebalances when a live client waits under `StopActivity`. A custom `IClientService` keeps the earlier
 behavior. The decision above is unchanged.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/threat-models/TM-0002-sql-server-coordination.md` (TM-0002: SQL Server coordination backend)
+- `docs/threat-models/TM-0003-redis-coordination.md` (TM-0003: Redis coordination backend)
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (US-0005: Coordinate via SQL Server backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

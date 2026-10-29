@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "US-0007", "US-0010" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # A ZooKeeper client deletes only its own resource barriers
@@ -121,3 +121,12 @@ check rejects a znode deleted and recreated in between.
 * Sources: `docs/tlaplus/README.md` (LeaderResourceBarrier findings), `docs/tlaplus/LeaderResourceBarrier/`,
   `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs`, `src/Rebalancer.ZooKeeper/ResourceManagement/ResourceManager.cs`,
   `src/Rebalancer.ZooKeeper/ZooKeeperProvider.cs`.
+
+## Sources
+
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)
+- `docs/user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md` (US-0010: ZooKeeper tests uphold assignment
+  safety invariants)

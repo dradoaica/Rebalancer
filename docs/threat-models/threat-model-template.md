@@ -8,7 +8,7 @@ owner: ""                  # service owner / security / architect
 approved-by: [ ]            # set by a human only
 depends-on: [ ]             # identifiers, e.g., [ADR-0003, SDP-orders]
 supersedes: [ ]             # identifiers of threat models this one replaces
-superseded-by: [ ]          # identifiers of the records that replace this one, e.g., [TM-0009]
+superseded-by: ""          # set when status becomes Superseded, e.g., TM-0009
 ---
 
 # Threat model: {short title}

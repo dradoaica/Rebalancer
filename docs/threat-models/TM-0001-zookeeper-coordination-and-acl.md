@@ -7,7 +7,7 @@ owner: "dradoaica"
 approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0003", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0018", "US-0007", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Threat model: ZooKeeper coordination backend and znode ACLs

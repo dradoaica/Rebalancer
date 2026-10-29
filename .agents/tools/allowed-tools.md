@@ -29,6 +29,10 @@ Constraints:
 
 - **Read-only diagnostics** (allowed): tests, lint, format check, build analysis, `git status`, `git diff`, dependency
   tree inspection.
+- **Local git writes** (allowed, within the task's scope): create a local branch, `git worktree add`, stage, and commit
+  on a branch that is not shared. Under concurrency only the orchestrator commits
+  (`.agents/rules/01-execution-isolation.md`). Deleting a branch, removing a worktree, or rewriting history (rebase,
+  amend, reset) of commits that hold someone else's work requires explicit human confirmation.
 - **Side effect commands** (requires explicit human approval): deploy, publish, push to shared remotes, infrastructure
   changes, secret rotation, anything affecting non-local systems.
 

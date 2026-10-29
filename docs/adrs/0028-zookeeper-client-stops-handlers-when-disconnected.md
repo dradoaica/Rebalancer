@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0021", "ADR-0027" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # A ZooKeeper client stops its handlers when it is disconnected
@@ -117,3 +117,12 @@ partition, not only on pathological pauses.
   `src/Rebalancer.ZooKeeper/ZooKeeperProvider.cs`, `src/Rebalancer.ZooKeeper/ResourceBarrier/Coordinator.cs`,
   `src/Rebalancer.ZooKeeper/ResourceBarrier/Follower.cs`, `src/Rebalancer.ZooKeeper/Zk/ZooKeeperService.cs`,
   `src/Rebalancer.ZooKeeper/ResourceManagement/ResourceManager.cs`, `src/Rebalancer.ZooKeeper/GlobalBarrier/`.
+
+## Sources
+
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/adrs/0021-assignment-generation-for-resource-handlers.md` (ADR-0021: No fencing token for resource handlers for
+  now (assignment generation deferred))
+- `docs/adrs/0027-zookeeper-client-deletes-only-its-own-resource-barriers.md` (ADR-0027: A ZooKeeper client deletes only
+  its own resource barriers)

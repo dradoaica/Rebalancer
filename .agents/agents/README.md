@@ -20,4 +20,5 @@ typically drafts what.
 
 ## Canonical reference
 
-Authoritative orchestration rules (multi-agent protocol, gates, traceability) live in `.agents/AGENTS.md`.
+Gates and traceability live in `.agents/AGENTS.md`; multi-agent orchestration rules live in
+`.agents/protocols/multi-agent-orchestration.md`.

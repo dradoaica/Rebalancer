@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Client options: automatic recovery, restart delay, and assignment delay
@@ -60,3 +60,7 @@ Chosen option: **`ClientOptions`** with `AutoRecoveryOnError`, `RestartDelay`, a
 ## More Information
 
 * High-level product goals appear in [`README.md`](../../README.md) (RabbitMQ consumer groups, technology-agnostic resources).
+
+## Sources
+
+- None: `depends-on` is empty.

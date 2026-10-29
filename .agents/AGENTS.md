@@ -209,6 +209,9 @@ assumptions; propose the smallest artifact or folder the human should add.
 | `application-platforms/`  | Platform / deployment constraints - [README](application-platforms/README.md)                   |
 | `application-runtimes/`   | Runtime toolchain standards - [README](application-runtimes/README.md)                          |
 
+**Invoking a skill:** if your tool does not load skills itself and the human names one (e.g., `/ub-mode`), read
+`.agents/skills/<name>/SKILL.md` in full and follow it (see [skills/README.md](skills/README.md) → Skill discovery).
+
 ### `concepts/` quick index
 
 Use [concepts/README.md](concepts/README.md) for the full layout. Commonly used paths:

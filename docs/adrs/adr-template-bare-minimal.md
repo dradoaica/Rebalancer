@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # <!-- short title, representative of a solved problem and found solution -->
@@ -23,3 +23,6 @@ superseded-by: [ ]
 
 ### Consequences
 
+## Sources
+
+* <!-- path and section for each identifier in depends-on -->

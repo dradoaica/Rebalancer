@@ -10,7 +10,7 @@ authorizes it in the current session.
 - Per-tool constraints:
     - allowed operations
     - forbidden operations
-    - it required human approval
+    - whether it requires human approval
     - logging/audit expectations (what to report back)
 - Environment-specific restrictions (local-only vs. remote)
 

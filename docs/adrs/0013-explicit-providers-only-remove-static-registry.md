@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "ADR-0005", "ADR-0009", "US-0001", "US-0012", "PRB-0002" ]
 supersedes: [ "ADR-0001", "ADR-0009" ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Explicit providers only: deprecate in 2.2, remove the static `Providers` registry in 3.0
@@ -78,3 +78,18 @@ in 3.0, because the method it governs no longer exists. Until then (2.2.x) its b
   [ADR-0005](0005-dependency-injection-for-provider-registration-v2.md) (whose "keep `Providers` in this milestone"
   applied to v2). On acceptance, a human sets ADR-0001 and ADR-0009 to `Superseded` with `superseded-by: ADR-0013`.
 * Releases: 2.2.0 (deprecation), 3.0.0 (removal).
+
+## Sources
+
+- `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (ADR-0001: Pluggable Rebalancer provider and
+  client lifecycle)
+- `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (ADR-0005: Dependency injection for provider
+  registration (v2))
+- `docs/adrs/0009-reject-conflicting-provider-registrations.md` (ADR-0009: Reject a conflicting second
+  `Providers.Register` call instead of ignoring it)
+- `docs/user-stories/US-0001-register-provider-and-join-resource-group.md` (US-0001: Register backend provider and join
+  a resource group)
+- `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md` (US-0012: Register Rebalancer with
+  dependency injection)
+- `docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md` (PRB-0002: ZooKeeper integration tests ran
+  with the first test's provider)

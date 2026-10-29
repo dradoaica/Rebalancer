@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "TM-0003", "US-0006" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Store Redis client records in one hash per resource group
@@ -68,3 +68,14 @@ that clash with key patterns. The key segment is the group name, escaped (rule f
   [ADR-0008](0008-replace-redis-datatypes-with-direct-newtonsoft-json.md) and
   [ADR-0014](0014-expire-stale-client-records.md).
 * Release: 3.0.0 (breaking data-format change for Redis).
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0008-replace-redis-datatypes-with-direct-newtonsoft-json.md` (ADR-0008: Replace the
+  `StackExchange.Redis.DataTypes` dependency with a direct, patched `Newtonsoft.Json` reference)
+- `docs/adrs/0014-expire-stale-client-records.md` (ADR-0014: Expire stale client records in the SQL Server and Redis
+  stores)
+- `docs/threat-models/TM-0003-redis-coordination.md` (TM-0003: Redis coordination backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

@@ -11,7 +11,7 @@ consulted: [ ]              # subject-matter experts consulted (two-way communic
 informed: [ ]               # people kept up to date (one-way communication)
 depends-on: [ ]             # identifiers of records this decision relies on, e.g., [ADR-0003, US-0012]
 supersedes: [ ]             # identifiers of records this decision replaces
-superseded-by: [ ]          # identifiers of the records that replace this one, e.g., [ADR-0123]
+superseded-by: ""          # set when status becomes Superseded, e.g., ADR-0123
 ---
 
 # {short title, representative of a solved problem and found solution}
@@ -38,3 +38,7 @@ Chosen option: "{title of option 1}", because {justification. E.g., only option,
 * Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
 * Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
 * … <!-- numbers of consequences can vary -->
+
+## Sources
+
+- {path and section for each identifier in `depends-on`, e.g., `docs/user-stories/US-0012-….md` (Acceptance criteria); cite nothing missing from `depends-on`}

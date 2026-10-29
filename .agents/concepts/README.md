@@ -9,6 +9,7 @@ before producing any artifact that depends on it.**
 |-------------------------------------------|-----------------------------------------------------------------|
 | `ssdlc.md`                                | Secure SDLC phases, threat modeling, OWASP SAMM, NIST SSDF      |
 | `agile.md`                                | Agile ceremonies, backlog, user stories in `docs/user-stories/` |
+| `agent-experience.md`                     | AgentEx, context management, context pollution                  |
 | `togaf/architectural-decision-records.md` | Decision records, mutability, decision log                      |
 | `itil/change-records.md`                  | Change management; points to `docs/change-records/`             |
 | `itil/problem-records.md`                 | Problem management; points to `docs/problem-records/`           |

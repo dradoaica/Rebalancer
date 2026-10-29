@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0003", "US-0017", "US-0011", "TM-0001" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Emit metrics and traces through System.Diagnostics, with a fixed instrument contract
@@ -128,3 +128,14 @@ version):**
 * Sensitivity of resource names: [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (I1).
 * External: OpenTelemetry semantic-convention style for names and units (lower-case, dot-separated, UCUM units).
 * Release: a minor version (additive). Implementation follows only after this record is Accepted.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/user-stories/US-0017-emit-rebalancing-metrics-and-traces.md` (US-0017: Emit rebalancing metrics and traces)
+- `docs/user-stories/US-0011-pluggable-rebalancer-logging.md` (US-0011: Pluggable Rebalancer logging)
+- `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md` (TM-0001: ZooKeeper coordination backend and znode
+  ACLs)

@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0019", "ADR-0002", "ADR-0003", "PRB-0003", "TM-0002", "TM-0003", "US-0002", "US-0005", "US-0006", "US-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # No fencing token for resource handlers for now (assignment generation deferred)
@@ -151,3 +151,22 @@ verified while implementing ADR-0022. Corrected in place in Context ("Finding"),
 option-B sketch for ZooKeeper. The decision (option D) is unchanged; the correction only strengthens the case against
 A. Corrected in place rather than superseded, at dradoaica's explicit request (2026-10-19), as an exception to the
 immutability of accepted records.
+
+## Sources
+
+- `docs/adrs/0019-stop-unresponsive-followers-holding-reassigned-resources.md` (ADR-0019: Stop unresponsive followers
+  that still hold reassigned resources)
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md` (PRB-0003: A resumed SQL Server / Redis
+  follower keeps processing resources that were reassigned)
+- `docs/threat-models/TM-0002-sql-server-coordination.md` (TM-0002: SQL Server coordination backend)
+- `docs/threat-models/TM-0003-redis-coordination.md` (TM-0003: Redis coordination backend)
+- `docs/user-stories/US-0002-react-to-assignment-unassignment-and-abort.md` (US-0002: React to assignment, unassignment,
+  and fatal abort)
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (US-0005: Coordinate via SQL Server backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

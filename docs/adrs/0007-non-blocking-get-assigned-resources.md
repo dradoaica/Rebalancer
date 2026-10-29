@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "US-0003" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Make `GetAssignedResources()` non-blocking in the SQL Server and Redis providers
@@ -70,3 +70,10 @@ it is unaffected.
 ## More Information
 
 * Related: [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) (provider contract), US-0003.
+
+## Sources
+
+- `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (ADR-0001: Pluggable Rebalancer provider and
+  client lifecycle)
+- `docs/user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md` (US-0003: Graceful shutdown and read
+  assignment state)

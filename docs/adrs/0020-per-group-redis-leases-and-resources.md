@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0015", "ADR-0017", "TM-0003", "US-0006" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Per-group Redis keys for leases and resource lists
@@ -93,3 +93,14 @@ ADR-0013.
   [ADR-0017](0017-redis-lease-timing-and-atomic-updates.md) and [ADR-0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md).
 * Follow-up of [TM-0003](../threat-models/TM-0003-redis-coordination.md) (residual risks).
 * Releases: deprecation in a 3.x minor; layout change in 4.0.0.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0015-store-redis-clients-per-resource-group.md` (ADR-0015: Store Redis client records in one hash per
+  resource group)
+- `docs/adrs/0017-redis-lease-timing-and-atomic-updates.md` (ADR-0017: Redis leases use the server clock and
+  compare-and-set updates)
+- `docs/threat-models/TM-0003-redis-coordination.md` (TM-0003: Redis coordination backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

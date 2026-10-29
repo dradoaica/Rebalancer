@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0006", "US-0007" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Opt-in ZooKeeper ACLs in 2.x
@@ -58,3 +58,12 @@ is only useful if `ZooKeeperProvider` users can set it.
 * Scope is 2.x only. The policy from 3.0 is [ADR-0011](0011-zookeeper-acls-by-default-in-next-major-version.md); the
   open-znode warning is [ADR-0010](0010-warn-on-open-operator-znodes-when-acls-are-configured.md).
 * No code change.
+
+## Sources
+
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md` (ADR-0006: Provider resource ownership, Redis
+  server-time leases, and ZooKeeper ACLs)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0005", "ADR-0007", "ADR-0016", "US-0018", "US-0003", "US-0012" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Health check for a Rebalancer client in its own optional package
@@ -137,3 +137,16 @@ the check clears the abort when the client is assigned again, so the table's fir
 until the client is assigned again"; SQL Server and Redis now also report `ClientState.Aborted` after a final error.
 The decision (option A) is unchanged. Appended at dradoaica's request (follow-up of the open-topics review).
 
+## Sources
+
+- `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (ADR-0005: Dependency injection for provider
+  registration (v2))
+- `docs/adrs/0007-non-blocking-get-assigned-resources.md` (ADR-0007: Make `GetAssignedResources()` non-blocking in the
+  SQL Server and Redis providers)
+- `docs/adrs/0016-rebalancer-client-owns-its-provider.md` (ADR-0016: `RebalancerClient` owns and disposes its provider)
+- `docs/user-stories/US-0018-report-client-health-to-the-host.md` (US-0018: Report a Rebalancer client's health to the
+  host)
+- `docs/user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md` (US-0003: Graceful shutdown and read
+  assignment state)
+- `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md` (US-0012: Register Rebalancer with
+  dependency injection)

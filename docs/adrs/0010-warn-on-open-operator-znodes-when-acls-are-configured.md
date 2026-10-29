@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0006", "TM-0001", "US-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Warn when ZooKeeper ACLs are configured but operator-created znodes are still open
@@ -70,3 +70,12 @@ leaves room for B in the next major version (see ADR 0011).
 * Related: [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md),
   [ADR 0011](0011-zookeeper-acls-by-default-in-next-major-version.md),
   [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (Tampering T1, residual risks), US-0007.
+
+## Sources
+
+- `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md` (ADR-0006: Provider resource ownership, Redis
+  server-time leases, and ZooKeeper ACLs)
+- `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md` (TM-0001: ZooKeeper coordination backend and znode
+  ACLs)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

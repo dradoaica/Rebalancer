@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Use Markdown Architectural Decision Records
@@ -36,3 +36,7 @@ Chosen option: "MADR 4.0.0", because
 * The MADR format is lean and fits our development style.
 * The MADR structure is comprehensible and facilitates usage & maintenance.
 * The MADR project is vivid.
+
+## Sources
+
+- None: `depends-on` is empty.

@@ -31,6 +31,9 @@ model selection), never contradictory governance.
 - **Otherwise**, make reading `.agents/AGENTS.md` the explicit first step of every task.
 - **Never copy** its content into an adapter; copies drift.
 - Add every new adapter to the table above.
+- **Skills:** `.agents/skills/` stays the only copy. If the tool does not scan `.agents/skills/`, expose it with a
+  relative symlink from the tool's project skills directory (e.g., `.claude/skills` → `../.agents/skills`), never a
+  copy. Record the tool in `.agents/skills/README.md` → Skill discovery.
 
 **Rule:** If a vendor file contradicts `.agents/AGENTS.md`, `.agents/AGENTS.md` wins. Surface the contradiction to the
 human.

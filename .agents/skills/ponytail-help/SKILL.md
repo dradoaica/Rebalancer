@@ -35,9 +35,9 @@ and governance relationships.
     - `ponytail-help`: Command reference card.
 3. **Document governance interoperability**:
     - Explain how Ponytail functions within `cogov-a-sdlc` (YAGNI execution bounded by ADR and User Story gates).
-4. **Display configuration and activation options**:
-    - Environment variables (`PONYTAIL_DEFAULT_MODE`).
-    - Config file locations and host-specific invocation syntax.
+4. **Display activation options**:
+    - Invocation by skill name (e.g., `/ponytail full`) where the host supports skills; levels are passed as the
+      argument. This repository defines no ponytail environment variables or config files; do not list any.
 
 ## Outputs
 

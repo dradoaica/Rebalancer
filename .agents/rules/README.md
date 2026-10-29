@@ -1,6 +1,7 @@
 # Rules (non-negotiable governance)
 
-Rules are **hard constraints** that override all other instructions. If a user request conflicts with a rule, the agent
+Rules are **hard constraints** that override user requests and vendor/tool-specific instructions. They rank below
+`.agents/AGENTS.md` and `.agents/protocols/` (see **Precedence**). If a user request conflicts with a rule, the agent
 must surface the conflict and refuse to silently violate the rule.
 
 ## Must-haves

@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0003", "ADR-0011", "US-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Give a caller-supplied `IZooKeeperService` its own `ZooKeeperProvider` constructor
@@ -78,3 +78,12 @@ service is responsible for its ACLs.
 * Implements a prerequisite of [ADR-0011](0011-zookeeper-acls-by-default-in-next-major-version.md). Related:
   [ADR-0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md), US-0007.
 * Release: 2.2.0 (additive + deprecation). The removal of the old constructor ships in 3.0 under ADR-0011.
+
+## Sources
+
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/adrs/0011-zookeeper-acls-by-default-in-next-major-version.md` (ADR-0011: Require ZooKeeper credentials by
+  default in the next major version (3.0))
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

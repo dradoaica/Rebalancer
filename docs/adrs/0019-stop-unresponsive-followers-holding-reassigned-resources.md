@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0014", "PRB-0003", "US-0005", "US-0006", "US-0013" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Stop unresponsive followers that still hold reassigned resources
@@ -85,3 +85,15 @@ worth deciding on its own, because it is the only full fix and it needs consumer
   Builds on [ADR-0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md) and
   [ADR-0014](0014-expire-stale-client-records.md).
 * Release: next minor (3.1.0). Behavior change for non-live records only; no breaking API change.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0014-expire-stale-client-records.md` (ADR-0014: Expire stale client records in the SQL Server and Redis
+  stores)
+- `docs/problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md` (PRB-0003: A resumed SQL Server / Redis
+  follower keeps processing resources that were reassigned)
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (US-0005: Coordinate via SQL Server backend)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)
+- `docs/user-stories/US-0013-cross-backend-assignment-safety-tests.md` (US-0013: Cross-backend assignment-safety tests)

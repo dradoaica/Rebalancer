@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0006", "US-0003", "US-0006" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # `RebalancerClient` owns and disposes its provider
@@ -64,4 +64,15 @@ supported pattern, and the DI registrations are transient.
   ADR-0018 here.
 * Appended 2026-10-20 at dradoaica's request: `superseded-by` is now a list, and ADR-0006 lists ADR-0016, ADR-0017
   and ADR-0018. The decision is unchanged.
+* Appended 2026-10-29 at dradoaica's request: `superseded-by` is a single identifier again, so ADR-0006 records
+  `superseded-by: "ADR-0016"` as first planned above; ADR-0017 and ADR-0018 also supersede it. The decision is
+  unchanged.
 * No code change.
+
+## Sources
+
+- `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md` (ADR-0006: Provider resource ownership, Redis
+  server-time leases, and ZooKeeper ACLs)
+- `docs/user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md` (US-0003: Graceful shutdown and read
+  assignment state)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

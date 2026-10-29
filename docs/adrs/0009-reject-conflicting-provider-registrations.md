@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "ADR-0005", "US-0001", "PRB-0002" ]
 supersedes: [ ]
-superseded-by: [ "ADR-0013" ]
+superseded-by: "ADR-0013"
 ---
 
 # Reject a conflicting second `Providers.Register` call instead of ignoring it
@@ -70,3 +70,14 @@ idempotent startup code. E leaves the trap in place.
 
 * Related: [ADR 0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md) (drawback recorded),
   [ADR 0005](0005-dependency-injection-for-provider-registration-v2.md) (`Providers` kept in this milestone), US-0001.
+
+## Sources
+
+- `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (ADR-0001: Pluggable Rebalancer provider and
+  client lifecycle)
+- `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (ADR-0005: Dependency injection for provider
+  registration (v2))
+- `docs/user-stories/US-0001-register-provider-and-join-resource-group.md` (US-0001: Register backend provider and join
+  a resource group)
+- `docs/problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md` (PRB-0002: ZooKeeper integration tests ran
+  with the first test's provider)

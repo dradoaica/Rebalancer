@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # ZooKeeper backend: leader election, barrier algorithms, and rebalancing modes
@@ -66,3 +66,7 @@ Chosen option: **Expose both `ResourceBarrier` and `GlobalBarrier`** on the ZooK
 ## More Information
 
 * Invariants stated in `src/Rebalancer.ZooKeeper/README.md` (e.g., never assign one resource to two nodes) guide test intent; formal TLA+ proofs referenced in the product README are out of scope for this ADR.
+
+## Sources
+
+- None: `depends-on` is empty.

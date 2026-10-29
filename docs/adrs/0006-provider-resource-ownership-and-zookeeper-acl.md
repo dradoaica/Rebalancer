@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "ADR-0002", "ADR-0003", "US-0003", "US-0006", "US-0007" ]
 supersedes: [ ]
-superseded-by: [ "ADR-0016", "ADR-0017", "ADR-0018" ]
+superseded-by: "ADR-0016"
 ---
 
 # Provider resource ownership, Redis server-time leases, and ZooKeeper ACLs
@@ -72,3 +72,17 @@ so always uses `OPEN_ACL_UNSAFE`.
   [ADR 0002](0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md),
   [ADR 0003](0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md).
 * Stories: US-0003 (shutdown), US-0006 (Redis), US-0007 (ZooKeeper).
+
+## Sources
+
+- `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (ADR-0001: Pluggable Rebalancer provider and
+  client lifecycle)
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md` (ADR-0003: ZooKeeper backend: leader
+  election, barrier algorithms, and rebalancing modes)
+- `docs/user-stories/US-0003-graceful-shutdown-and-read-assignment-state.md` (US-0003: Graceful shutdown and read
+  assignment state)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

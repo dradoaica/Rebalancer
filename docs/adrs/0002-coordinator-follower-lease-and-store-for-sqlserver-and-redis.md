@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Coordinator, follower, lease, and resource store pattern for SQL Server and Redis backends
@@ -67,3 +67,7 @@ Chosen option: **Parallel implementations** with the same **lease service**, **r
 
 * Product-level description of resource groups and barriers appears in the repository [`README.md`](../../README.md).
 * Redis uses `StackExchange.Redis` (`ConnectionMultiplexer`) as seen in `RedisProvider` constructor.
+
+## Sources
+
+- None: `depends-on` is empty.

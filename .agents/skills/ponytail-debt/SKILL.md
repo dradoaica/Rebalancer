@@ -48,8 +48,9 @@ and compiles them into a structured, auditable technical debt ledger.
       `No shortcut debt. Clean ledger.`).
 5. **Optional ledger persistence**:
     - If explicitly requested by the user, draft a problem record from `docs/problem-records/problem-record-template.md`
-      at `docs/problem-records/PRB-YYYY-MM-DD-tech-debt-ledger.md` (status `Open`), with the ledger as evidence.
-      It stays a draft until a human reviews it (Rule 00).
+      at `docs/problem-records/PRB-NNNN-tech-debt-ledger.md` (status `Open`), with the ledger as evidence. Allocate
+      `NNNN` per `.agents/protocols/multi-human-collaboration.md` → Collision-free identifiers. It stays a draft until
+      a human reviews it (Rule 00).
 
 ## Outputs
 

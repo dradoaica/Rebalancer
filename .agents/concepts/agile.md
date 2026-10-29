@@ -40,7 +40,8 @@ Adapt names and cadence to your organization; keep the **intent**:
 
 - Story as clear **As a / I want / So that** (or equivalent) and **acceptance criteria**.
 - Dependencies and **SSDLC phase** are identified (Planning vs. Design vs. Coding, etc.).
-- If the work implies a **durable technical choice**, a **decision record** exists or is in flight.
+- If the work implies a **durable technical choice**, its **decision record** is `Accepted` on the shared trunk. A
+  record that is only `Proposed` keeps the story in `Draft` (Tier 1 gate in `.agents/AGENTS.md`).
 - Security/privacy notes are addressed or explicitly "N/A" with rationale.
 
 ## Definition of Done (DoD) – minimum before "done"

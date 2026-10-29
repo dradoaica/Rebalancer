@@ -32,8 +32,7 @@ Copy the front matter from the chosen template and keep every key.
 - **Accepted**: approved by a human; implementation may proceed.
 - **Rejected**: considered and declined; kept for the record.
 - **Deprecated**: no longer applies, with no direct replacement.
-- **Superseded**: replaced by one or more newer ADRs, all listed in `superseded-by`; each newer ADR lists this one in
-  `supersedes`.
+- **Superseded**: replaced by a newer ADR, named in `superseded-by`; the newer ADR lists this one in `supersedes`.
 
 ## Review expectations (human vs. agent)
 

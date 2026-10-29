@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0001", "US-0012" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Dependency injection for provider registration (v2)
@@ -68,3 +68,10 @@ Chosen option: **Dual registration** — **DI extensions** live in `Rebalancer.E
 
 * Does not supersede [0001](0001-pluggable-rebalancer-provider-and-client-lifecycle.md); both registration styles coexist until a future ADR deprecates static `Providers`.
 * Implementation: [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md).
+
+## Sources
+
+- `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md` (ADR-0001: Pluggable Rebalancer provider and
+  client lifecycle)
+- `docs/user-stories/US-0012-register-rebalancer-with-dependency-injection.md` (US-0012: Register Rebalancer with
+  dependency injection)

@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: [ "ADR-0013" ]
+superseded-by: "ADR-0013"
 ---
 
 # Pluggable Rebalancer provider and client lifecycle
@@ -71,3 +71,7 @@ Structured logging uses **`IRebalancerLogger`** (`src/Rebalancer.Core/Logging/IR
 
 * Provider implementers wire user callbacks through `OnChangeActions` (`src/Rebalancer.Core/OnChangeActions.cs`).
 * If the registry is never populated, `Providers.GetProvider()` throws `ProviderException` (`src/Rebalancer.Core/Providers.cs`).
+
+## Sources
+
+- None: `depends-on` is empty.

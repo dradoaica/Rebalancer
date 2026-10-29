@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "US-0022", "US-0023", "US-0008", "US-0009", "ADR-0025" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Dependencies of the RabbitMQ example projects: add a super-streams example, remove Consul
@@ -105,3 +105,16 @@ replaced by `System.Text.Json`).
   [US-0009](../user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md).
 * Client documentation: https://rabbitmq.github.io/rabbitmq-stream-dotnet-client/stable/htmlsingle/index.html
 * Guide: [RabbitMQ: ordered consumer groups](../guides/rabbitmq-ordered-consumer-groups.md).
+
+## Sources
+
+- `docs/user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md` (US-0022: RabbitMQ example of an
+  ordered consumer group with quorum queues, single active consumer and dead-lettering)
+- `docs/user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md` (US-0023: Show RabbitMQ super
+  streams as the alternative for ordered consumer groups)
+- `docs/user-stories/US-0008-run-rabbitmq-example-with-sql-server-backend.md` (US-0008: Run RabbitMQ sample with SQL
+  Server backend)
+- `docs/user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md` (US-0009: RabbitMQ tools CLI for queue and group
+  setup)
+- `docs/adrs/0025-pin-patched-system-security-cryptography-pkcs.md` (ADR-0025: Pin a patched
+  System.Security.Cryptography.Pkcs (CVE-2026-84008))

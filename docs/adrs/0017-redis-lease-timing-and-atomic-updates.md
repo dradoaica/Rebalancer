@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0002", "ADR-0006", "US-0006" ]
 supersedes: [ "ADR-0006" ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Redis leases use the server clock and compare-and-set updates
@@ -52,3 +52,11 @@ judge leases with two clocks. That is why Redis groups are upgraded all nodes at
   [ADR-0015](0015-store-redis-clients-per-resource-group.md) changes the key layout of client records in 3.0, not
   this record's clock and atomicity rules.
 * No code change.
+
+## Sources
+
+- `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md` (ADR-0002: Coordinator, follower,
+  lease, and resource store pattern for SQL Server and Redis backends)
+- `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md` (ADR-0006: Provider resource ownership, Redis
+  server-time leases, and ZooKeeper ACLs)
+- `docs/user-stories/US-0006-coordinate-via-redis-backend.md` (US-0006: Coordinate via Redis backend)

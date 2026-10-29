@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "ADR-0006", "ADR-0010", "TM-0001", "US-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Require ZooKeeper credentials by default in the next major version (3.0)
@@ -69,3 +69,14 @@ This decision does not change 2.x behavior. It supersedes ADR 0006 only for 3.0 
 * Related: [ADR 0006](0006-provider-resource-ownership-and-zookeeper-acl.md) (superseded for 3.0+ on this point),
   [ADR 0010](0010-warn-on-open-operator-znodes-when-acls-are-configured.md),
   [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md), US-0007.
+
+## Sources
+
+- `docs/adrs/0006-provider-resource-ownership-and-zookeeper-acl.md` (ADR-0006: Provider resource ownership, Redis
+  server-time leases, and ZooKeeper ACLs)
+- `docs/adrs/0010-warn-on-open-operator-znodes-when-acls-are-configured.md` (ADR-0010: Warn when ZooKeeper ACLs are
+  configured but operator-created znodes are still open)
+- `docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md` (TM-0001: ZooKeeper coordination backend and znode
+  ACLs)
+- `docs/user-stories/US-0007-coordinate-via-zookeeper-with-barrier-mode.md` (US-0007: Coordinate via ZooKeeper with
+  selectable barrier mode)

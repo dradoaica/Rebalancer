@@ -7,7 +7,7 @@ owner: "dradoaica"
 approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0002", "ADR-0014", "US-0005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Threat model: SQL Server coordination backend

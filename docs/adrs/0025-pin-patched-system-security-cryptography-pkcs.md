@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ "PRB-0004", "TM-0002", "US-0005" ]
 supersedes: [ ]
-superseded-by: [ ]
+superseded-by: ""
 ---
 
 # Pin a patched System.Security.Cryptography.Pkcs (CVE-2026-84008)
@@ -66,3 +66,10 @@ published packages vulnerable for an unknown time.
 * Problem record: [PRB-0004](../problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md).
 * Advisory: https://github.com/advisories/GHSA-846f-f764-76mx
 * Release: patch 4.2.1 with a change record.
+
+## Sources
+
+- `docs/problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md` (PRB-0004: Published SQL Server
+  packages pull in a vulnerable System.Security.Cryptography.Pkcs)
+- `docs/threat-models/TM-0002-sql-server-coordination.md` (TM-0002: SQL Server coordination backend)
+- `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (US-0005: Coordinate via SQL Server backend)
