@@ -62,7 +62,7 @@ were verified by an agent against this story's text on 2026-10-18; the human rea
 
 - `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md`
 - `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- `src/Rebalancer.Core/Providers.cs`
+- `Providers.cs` in `src/Rebalancer.Core` (removed in 3.0 by commit `a8b6bb0`; see the Note below)
 - `src/Rebalancer.Core/RebalancerClient.cs`
 - `src/Rebalancer.Extensions.DependencyInjection/`
 - `tests/Rebalancer.UnitTests/`

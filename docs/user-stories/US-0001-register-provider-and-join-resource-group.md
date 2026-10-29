@@ -64,9 +64,9 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 ## Sources
 
 - `docs/adrs/0001-pluggable-rebalancer-provider-and-client-lifecycle.md`
-- `src/Rebalancer.Core/Providers.cs`
+- `Providers.cs` in `src/Rebalancer.Core` (removed in 3.0 by commit `a8b6bb0`; see the Note below)
 - `src/Rebalancer.Core/RebalancerClient.cs`
-- `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
+- `examples/Rebalancer.RabbitMq.QuorumQueuesExample/Program.cs` (renamed 2026-10-20; see the Note below)
 - `README.md`
 
 ## Note (2026-10-20)

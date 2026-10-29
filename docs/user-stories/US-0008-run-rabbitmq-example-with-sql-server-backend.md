@@ -65,7 +65,7 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 
 ## Sources
 
-- `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
+- `examples/Rebalancer.RabbitMq.QuorumQueuesExample/Program.cs` (renamed 2026-10-20; see the Note below)
 - `README.md`
 - `docs/adrs/0004-client-options-recovery-and-assignment-delay.md`
 

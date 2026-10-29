@@ -65,7 +65,7 @@ agreed with a team" confirmed by dradoaica on 2026-10-18; change-record traceabi
 
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
 - `src/Rebalancer.SqlServer/SqlServerProvider.cs`
-- `examples/Rebalancer.RabbitMq.ExampleWithSqlServerBackend/Program.cs`
+- `examples/Rebalancer.RabbitMq.QuorumQueuesExample/Program.cs` (renamed 2026-10-20; see the Note below)
 - `README.md`
 
 ## Note (2026-10-20)
