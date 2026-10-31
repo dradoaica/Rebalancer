@@ -76,8 +76,8 @@ When agents run concurrently, isolate their work so one agent can never disrupt 
    human-only act. See `.agents/rules/00-no-self-approval.md`.
 4. **Gates before an MR.** An agent may open an MR only after all applicable checks in the **pre-MR gate** pass,
    including the full test suite, regression tests, and static analysis (e.g., Sonar/SAST) when relevant. Where quality
-   baselines exist (e.g., extraction accuracy), any negative drift against baseline **aborts** the MR. See the pre-MR
-   gate in `.agents/AGENTS.md` → **SSDLC Phase Awareness**.
+   baselines exist (e.g., extraction accuracy), any negative drift against baseline **aborts** the MR. See
+   `.agents/protocols/pre-mr-gate.md`.
 
 These rules are extensions in `.agents/rules/` (`00-no-self-approval.md`, `01-execution-isolation.md`);
 `.agents/AGENTS.md`

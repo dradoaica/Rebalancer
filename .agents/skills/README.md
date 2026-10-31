@@ -47,11 +47,12 @@ When two skills cover the same concern (for example, two coding modes), only one
 | Native: scans `.agents/skills/`             | OpenAI Codex, Gemini CLI, GitHub Copilot, OpenCode, Cursor, Windsurf (now Devin Desktop), Roo Code, Zed (trusted trees) |
 | Symlink `.claude/skills` → `.agents/skills` | Claude Code; also Cline, which reads `.claude/skills/`                                                                  |
 | Symlink `.kiro/skills` → `.agents/skills`   | Kiro (symlink support is not documented – unverified)                                                                   |
+| Symlink `.grok/skills` → `.agents/skills`   | Grok Build (xAI CLI; symlink support is not documented – unverified)                                                    |
 | Manual (no skill discovery found in docs)   | Aider, Sourcegraph Cody, Amazon Q Developer (IDE), JetBrains Junie                                                      |
 
 In the manual case, when the human names a skill (e.g., `/ub-mode`), read `.agents/skills/<name>/SKILL.md` in full and
 follow it. On Windows, clone with `git config core.symlinks true` (and Developer Mode or admin rights) so the symlink
-works; otherwise Claude Code and Cline fall back to the manual case.
+works; otherwise Claude Code, Cline, Kiro, and Grok Build fall back to the manual case.
 
 ### Provenance of imported skills
 

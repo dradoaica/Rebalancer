@@ -10,7 +10,8 @@ The **single canonical entrypoint** for AI agents and humans using agents in thi
 - `.agents/AGENTS.md`
 
 If you are configuring a tool/vendor (Copilot, Claude, OpenAI, Gemini, Codex, OpenCode, Windsurf, Cline, JetBrains,
-Amazon Q, Kiro, Cody, Aider, etc.), use its adapter file (e.g., `.github/copilot-instructions.md`, `.windsurfrules`,
+Amazon Q, Kiro, Grok, Cody, Aider, etc.), use its adapter file (e.g., `.github/copilot-instructions.md`,
+`.windsurfrules`,
 `.clinerules`, `.junie/guidelines.md`, `.amazonq/rules/project-rules.md`, root `AGENTS.md`, or `GEMINI.md`) which defers
 to `.agents/AGENTS.md`.
 

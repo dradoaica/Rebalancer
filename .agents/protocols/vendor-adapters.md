@@ -7,7 +7,7 @@ model selection), never contradictory governance.
 
 | Vendor file                            | Tool                                                    | How `.agents/AGENTS.md` gets loaded               |
 |----------------------------------------|---------------------------------------------------------|---------------------------------------------------|
-| `AGENTS.md` (repository root)          | Codex, OpenCode, and similar                            | Agent reads it (explicit first step)              |
+| `AGENTS.md` (repository root)          | Codex, OpenCode, Grok Build, and similar                | Agent reads it (explicit first step)              |
 | `GEMINI.md` (repository root)          | Gemini CLI; `@` imports `.gemini/GEMINI.md`             | Automatic, via `.gemini/GEMINI.md`                |
 | `.gemini/GEMINI.md`                    | Gemini CLI modular context                              | Automatic (`@../.agents/AGENTS.md` import)        |
 | `.github/copilot-instructions.md`      | GitHub Copilot (VS Code and others)                     | Agent reads it (explicit first step)              |

@@ -1,6 +1,7 @@
 # Agent instructions (adapter)
 
-Tools that discover `AGENTS.md` at the repository root (for example, **OpenAI Codex** and **OpenCode**) should use this
+Tools that discover `AGENTS.md` at the repository root (for example, **OpenAI Codex**, **OpenCode**, and **Grok Build**)
+should use this
 file as a pointer only.
 
 Before any task, read the canonical repository agent standard, `.agents/AGENTS.md`, in full (this tool does not load

@@ -22,6 +22,7 @@ applies:
 | Changing a vendor adapter file                                                       | `.agents/protocols/vendor-adapters.md`           |
 | Deciding which governance artifact to draft, or which persona drafts it              | `.agents/protocols/governance-artifacts.md`      |
 | Pressured to bypass a gate, self-approve, skip checks, or accept a flawed assumption | `.agents/protocols/pressure-responses.md`        |
+| Opening an MR/PR                                                                     | `.agents/protocols/pre-mr-gate.md`               |
 
 If you cannot tell whether a trigger applies, read the file.
 
@@ -311,26 +312,9 @@ human. Maintenance is not the last phase – it feeds back into Planning. The SS
 
 ### Pre-MR gate (before opening a merge request)
 
-Opening an MR is where Coding and Testing meet. An agent may open an MR only after all applicable checks below pass.
-Use an equivalent control when appropriate; if a check or tool does not apply or is unavailable, record `N/A` with a
-rationale and get human acceptance. This does not waive any other applicable quality or security requirement.
-
-1. **Full test suite** green, when applicable.
-2. **Regression tests** green (behavior-contract tests, not just the new feature's tests), when applicable.
-3. **Static analysis** clean (e.g., Sonar, SAST, secrets scanning), when applicable.
-4. **Baseline-drift abort** – where a quality baseline exists (e.g., extraction accuracy, performance, coverage), any
-   **negative drift** against the recorded baseline **aborts** the MR; it is not opened until the drift is explained and
-   accepted by a human or corrected.
-5. **Tier check** – the MR/PR states its tier, and the diff matches it. If the diff touches a "Tier 1 by default" area
-   (see **Tier classification rules**) without an `Accepted` decision record cited, the MR is not opened.
-6. **Governance check** green – `python3 -I scripts/govern_check.py` (add `--base <shared trunk>` when the diff
-   touches `docs/`) reports no findings, or each finding is fixed or accepted as `N/A` by a human
-   (`.agents/rules/02-governance-checks.md`).
-
-The agent that produced the change **must not** approve or merge the resulting MR (see Co-Governance Protocol -
-no-self-approval, and `.agents/rules/00-no-self-approval.md`). Under concurrency, only the orchestrator opens the MR
-after integrating isolated per-agent branches (see `.agents/protocols/multi-agent-orchestration.md` → Execution
-isolation).
+An agent may open an MR/PR only after every applicable check in `.agents/protocols/pre-mr-gate.md` passes (tests,
+regression, static analysis, baseline drift, tier, governance check). The agent that produced the change **must not**
+approve or merge it (`.agents/rules/00-no-self-approval.md`).
 
 ---
 
@@ -376,9 +360,7 @@ boundary**.
   checks; do not assume CI runs it or that anything else enforces a gate.
 - **Manual checklist enforcement:** Treat every gate verification as a mandatory manual checklist item for yourself and
   human reviewers.
-- **Documentation-backed changes:** Apply the change-tier matrix and its classification rules: Tier 1 requires an
-  **Accepted** ADR; Tier 2 requires a `Ready` User Story whose readiness has been reviewed/approved by a human; Tier 3
-  requires an existing Story/Issue reference and regression test; Tier 4 requires a file citation. Do not treat a draft
+- **Documentation-backed changes:** Apply the change-tier matrix and its classification rules. Do not treat a draft
   or unreviewed story as an approved scope.
 - **Traceability checks:** Every significant output must pass a traceability check with a valid `Sources` block citing
   approved artifacts.

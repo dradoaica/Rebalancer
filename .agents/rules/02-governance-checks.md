@@ -89,8 +89,8 @@ its numbering.
 
 ## Sources
 
-- `.agents/AGENTS.md` (sections: Pre-MR gate; Anti-Delusional Safeguards → Immutable audit trail; Governance
-  Guardrails)
+- `.agents/protocols/pre-mr-gate.md`
+- `.agents/AGENTS.md` (sections: Anti-Delusional Safeguards → Immutable audit trail; Governance Guardrails)
 - `.agents/protocols/multi-human-collaboration.md` (section: Governance reconciliation)
 - `.agents/rules/00-no-self-approval.md`, `.agents/rules/10-imported-assets.md`
 - `.agents/rules/README.md` (precedence and format)
