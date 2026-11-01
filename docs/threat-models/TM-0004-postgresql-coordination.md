@@ -22,7 +22,7 @@ and adds four that are specific to PostgreSQL: a stalled node holding the group'
 `search_path`, lease writes lost on failover to an asynchronous standby, and connection exhaustion. Written before the
 implementation (US-0026); controls marked "to verify" are confirmed by its tests.
 
-**Revision 2 (5.0.0, CR-0013; proposed 2026-11-01, not yet accepted):** the controls as built and tested.
+**Revision 2 (5.0.0, CR-0013; accepted by dradoaica, 2026-11-01):** the controls as built and tested.
 
 - **D2:** the backend sets `lock_timeout` and `idle_in_transaction_session_timeout` itself, to half the group's lease
   expiry, in every lease transaction and in the coordinator's multi-row grant (`StartActivityAsync`); the role script
@@ -210,8 +210,8 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 |--------------------------------------|-----------|------------|
 | Service owner                        | dradoaica | 2026-11-01 |
 | Security / architecture              | dradoaica | 2026-11-01 |
-| Service owner (revision 2)           |           |            |
-| Security / architecture (revision 2) |           |            |
+| Service owner (revision 2)           | dradoaica | 2026-11-01 |
+| Security / architecture (revision 2) | dradoaica | 2026-11-01 |
 
 ## Sources
 

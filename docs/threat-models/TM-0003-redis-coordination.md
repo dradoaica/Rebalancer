@@ -1,7 +1,7 @@
 ---
 id: TM-0003
 status: Accepted
-date: 2026-10-18
+date: 2026-11-01
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
@@ -57,7 +57,7 @@ see revision 4.]
 - **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
   in-process state and never calls Redis.
 
-**Revision 6 (5.0.0, CR-0013; proposed 2026-11-01, not yet accepted):** carries revision 4 (per-group keys, 4.0) into
+**Revision 6 (5.0.0, CR-0013; accepted by dradoaica, 2026-11-01):** carries revision 4 (per-group keys, 4.0) into
 the body, and records 5.0.
 
 - **Body brought up to 4.0:** the trust boundary between groups, the assets, the data flows and the ACL control now
@@ -236,8 +236,8 @@ the body, and records 5.0.
 | Security / architecture (revision 4) | dradoaica | 2026-10-19 |
 | Service owner (revision 5)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 5) | dradoaica | 2026-10-19 |
-| Service owner (revision 6)           |           |            |
-| Security / architecture (revision 6) |           |            |
+| Service owner (revision 6)           | dradoaica | 2026-11-01 |
+| Security / architecture (revision 6) | dradoaica | 2026-11-01 |
 
 ## Sources
 

@@ -1,10 +1,10 @@
 ---
 id: ADR-0035
-status: Proposed
+status: Accepted
 date: 2026-11-01
 decides: "which checks run in CI before and besides publishing the packages"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

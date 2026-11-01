@@ -1,10 +1,10 @@
 ---
 id: ADR-0034
-status: Proposed
+status: Accepted
 date: 2026-11-01
 decides: "public API of Rebalancer.LeaseCoordination and the lease-based backends beyond the providers (6.0)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]

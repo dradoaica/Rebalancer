@@ -1,7 +1,7 @@
 ---
 id: TM-0002
 status: Accepted
-date: 2026-10-18
+date: 2026-11-01
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
@@ -37,7 +37,7 @@ resource groups, and unbounded growth of the client table.
 - **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
   in-process state and never calls SQL Server.
 
-**Revision 4 (5.0.0, CR-0013; proposed 2026-11-01, not yet accepted):**
+**Revision 4 (5.0.0, CR-0013; accepted by dradoaica, 2026-11-01):**
 
 - **Scope:** the coordinator, follower, store and provider loop that make the fenced writes of flows 4 and 6 moved,
   unchanged, to `src/Rebalancer.LeaseCoordination` (ADR-0029, superseding ADR-0002); they are in scope here for SQL
@@ -196,8 +196,8 @@ resource groups, and unbounded growth of the client table.
 | Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 | Service owner (revision 3)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 3) | dradoaica | 2026-10-19 |
-| Service owner (revision 4)           |           |            |
-| Security / architecture (revision 4) |           |            |
+| Service owner (revision 4)           | dradoaica | 2026-11-01 |
+| Security / architecture (revision 4) | dradoaica | 2026-11-01 |
 
 ## Sources
 
