@@ -128,4 +128,50 @@ public sealed class PostgreSqlClientRecordTests
         Assert.Equal(3, reset.FencingToken);
         Assert.Empty((await service.KeepAliveAsync(follower)).AssignedResources);
     }
+
+    // A15: RecreateClientAsync writes a new registration whether or not the record still exists, as on Redis: the
+    // record is replaced (Waiting, StopActivity, no resources, token 1), not rejected by the primary key
+    [SkippableFact]
+    public async Task CreatingAnExistingClient_ReplacesItsRecordWithANewRegistration()
+    {
+        await using var pg = await PostgreSqlSchema.StartAsync();
+        var cs = pg.GetConnectionString();
+        const string group = "orders";
+        await PostgreSqlSchema.SeedResourceGroupAsync(cs, group, "r1");
+        var coordinator = Guid.NewGuid();
+        await PostgreSqlSchema.ExecAsync(
+            cs,
+            "UPDATE rbr.resource_groups SET coordinator_id = @c, fencing_token = 3 WHERE resource_group = @g",
+            ("c", coordinator),
+            ("g", group)
+        );
+        var service = new ClientService(cs);
+        IFencedClientService fenced = service;
+        var follower = Guid.NewGuid();
+        await service.CreateClientAsync(group, follower);
+        Assert.Equal(
+            ModifyClientResult.Ok,
+            await fenced.StartActivityAsync(
+                group,
+                coordinator,
+                3,
+                [
+                    new ClientStartRequest
+                    {
+                        ClientId = follower,
+                        AssignedResources = ["r1",],
+                    },
+                ]
+            )
+        );
+        await service.SetClientStatusAsync(follower, ClientStatus.Active);
+
+        await service.CreateClientAsync(group, follower);
+
+        var record = (await service.GetActiveClientsAsync(group)).Single(x => x.ClientId == follower);
+        Assert.Equal(ClientStatus.Waiting, record.ClientStatus);
+        Assert.Equal(CoordinatorStatus.StopActivity, record.CoordinatorStatus);
+        Assert.Equal(1, record.FencingToken);
+        Assert.Empty((await service.KeepAliveAsync(follower)).AssignedResources);
+    }
 }

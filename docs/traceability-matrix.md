@@ -63,6 +63,7 @@ test project is added.
 | [CR-0011](change-records/CR-0011-release-4-3-1.md)                               | **Implemented** (4.3.1, `76a66ae`); [release notes](release-notes/4.3.1.md)                                                        | SQL Server / Redis clean stop; network tests                                                                    |
 | [CR-0012](change-records/CR-0012-release-4-3-2.md)                               | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md)                                                        | PRB-0006, PRB-0007, US-0024                                                                                     |
 | [CR-0013](change-records/CR-0013-release-5-0-0.md)                               | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md)  | ADR-0029..0033, US-0025, US-0026, TM-0004                                                                       |
+| [CR-0014](change-records/CR-0014-release-5-1-0.md)                               | **Approved** (5.1.0); [release notes](release-notes/5.1.0.md)                                                                      | Fixes from the 5.0 cross-check; PRB-0008 (documented limit)                                                     |
 
 ### Problem records
 
@@ -75,7 +76,8 @@ test project is added.
 | [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md)               | Closed (4.3.0)                                | US-0005, US-0006                                                                                                                                             |
 | [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md)              | Closed (4.3.2)                                | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
 | [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)               | Closed (4.3.2)                                | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
-| [PRB-0008](problem-records/PRB-0008-resource-key-can-exceed-sql-server-index-limit.md)    | **Open**                                      | `QueuesPK` on `RBR.Resources` over the 900-byte key limit                                                                                                    |
+| [PRB-0008](problem-records/PRB-0008-resource-key-can-exceed-sql-server-index-limit.md)    | Closed (5.1.0)                                | `QueuesPK` 900-byte key: documented limit, `SqlServerSchemaTests`                                                                                            |
+| [PRB-0009](problem-records/PRB-0009-redis-group-does-not-converge-over-a-lossy-link.md)   | **Open**                                      | `RedisNetworkFaultTests` liveness over a lossy link (Redis 7.0, Valkey)                                                                                      |
 
 ### Threat models
 

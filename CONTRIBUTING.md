@@ -35,9 +35,13 @@ You need:
 ```shell
 dotnet build Rebalancer.slnx
 dotnet test tests/Rebalancer.UnitTests
-# SQL Server, PostgreSQL and Redis (Docker); with less than 8 GiB for Docker, add: -- xUnit.MaxParallelThreads=3
+# SQL Server, PostgreSQL and Redis (Docker)
 dotnet test tests/Rebalancer.IntegrationTests --filter "FullyQualifiedName!~ZooKeeper"
 ```
+
+The integration tests run at most 3 at a time (`tests/Rebalancer.IntegrationTests/xunit.runner.json`), as each starts
+its own containers; with more memory for Docker, raise it with `-- xUnit.MaxParallelThreads=N`. The network-fault
+tests run alone after the others: they check that a degraded group converges in time, which a loaded machine can miss.
 
 The ZooKeeper suites also run the randomised tests, about 46 hours in total; cap each with
 `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` (see the README, "Building and testing").

@@ -11,8 +11,11 @@ against an older one.
 
 | Version | Supported                                    |
 |---------|----------------------------------------------|
-| 5.0.x   | Yes                                          |
-| < 5.0   | No – upgrade; see the migration guides below |
+| 5.1.x   | Yes                                          |
+| < 5.1   | No – upgrade; see the migration guides below |
+
+4.3.x gets no further fixes. 5.0 and later need .NET 10 (ADR-0033); hosts on .NET 8 or .NET 9 lose Microsoft's own
+security fixes on 10 November 2026, when both reach end of support, so move them to .NET 10 together with Rebalancer.
 
 All packages (`Rebalancer.Core`, `Rebalancer.LeaseCoordination`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`,
 `Rebalancer.Redis`, `Rebalancer.ZooKeeper`, `Rebalancer.Extensions.DependencyInjection`,
@@ -87,9 +90,9 @@ In short:
   influence each other in separate databases.
 - **PostgreSQL:** use the least-privilege role from [
   `db/postgresql/RebalancerLeastPrivilege.sql`](db/postgresql/RebalancerLeastPrivilege.sql).
-  TM-0004 D2 currently points to role-script configuration for its transaction timeouts, but the implementation sets
-  them per lease transaction; the accepted threat model needs a governed correction. See
-  [`LeaseService`](src/Rebalancer.PostgreSql/Leases/LeaseService.cs) and the role script for the current behavior.
+  The backend bounds every transaction that takes a row lock (`lock_timeout` and
+  `idle_in_transaction_session_timeout`, half the lease expiry, set per transaction), so a stalled node cannot block
+  the others for longer (TM-0004 D2).
 - **Redis:** Rebalancer has no access control of its own. Use a dedicated ACL user limited to the Rebalancer keys and
   `ssl=true` with certificate validation; without a password, anyone who reaches the port controls assignment.
 - **ZooKeeper:** configure ACLs (`authScheme` / `authData`) and encrypt client connections when using the digest scheme,

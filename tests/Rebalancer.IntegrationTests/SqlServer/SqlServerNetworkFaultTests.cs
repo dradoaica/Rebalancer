@@ -11,6 +11,7 @@ namespace Rebalancer.IntegrationTests.SqlServer;
 ///     Requires Docker. Nodes whose link to SQL Server is slow and lossy come and go; no resource is ever processed
 ///     by two nodes at once, and the group converges.
 /// </summary>
+[Collection(NetworkFaultCollection.Name)]
 public sealed class SqlServerNetworkFaultTests(ITestOutputHelper output)
 {
     [SkippableFact]

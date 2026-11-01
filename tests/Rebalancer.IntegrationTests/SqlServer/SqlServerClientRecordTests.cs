@@ -136,6 +136,55 @@ public sealed class SqlServerClientRecordTests
         Assert.Empty((await service.KeepAliveAsync(follower)).AssignedResources);
     }
 
+    // A15: RecreateClientAsync writes a new registration whether or not the record still exists, as on Redis: the
+    // record is replaced (Waiting, StopActivity, no resources, token 1), not rejected by the primary key
+    [SkippableFact]
+    public async Task CreatingAnExistingClient_ReplacesItsRecordWithANewRegistration()
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
+        await sql.StartAsync();
+        var cs = sql.GetConnectionString();
+        await SchemaSetup.ApplyRbrSchemaAsync(cs);
+        const string group = "orders";
+        await SchemaSetup.SeedResourceGroupAsync(cs, group, "r1");
+        var coordinator = Guid.NewGuid();
+        await ExecAsync(
+            cs,
+            "UPDATE RBR.ResourceGroups SET CoordinatorId = @c, FencingToken = 3 WHERE ResourceGroup = @g",
+            ("@c", coordinator),
+            ("@g", group)
+        );
+        var service = new ClientService(cs);
+        IFencedClientService fenced = service;
+        var follower = Guid.NewGuid();
+        await service.CreateClientAsync(group, follower);
+        Assert.Equal(
+            ModifyClientResult.Ok,
+            await fenced.StartActivityAsync(
+                group,
+                coordinator,
+                3,
+                [
+                    new ClientStartRequest
+                    {
+                        ClientId = follower,
+                        AssignedResources = ["r1",],
+                    },
+                ]
+            )
+        );
+        await service.SetClientStatusAsync(follower, ClientStatus.Active);
+
+        await service.CreateClientAsync(group, follower);
+
+        var record = (await service.GetActiveClientsAsync(group)).Single(x => x.ClientId == follower);
+        Assert.Equal(ClientStatus.Waiting, record.ClientStatus);
+        Assert.Equal(CoordinatorStatus.StopActivity, record.CoordinatorStatus);
+        Assert.Equal(1, record.FencingToken);
+        Assert.Empty((await service.KeepAliveAsync(follower)).AssignedResources);
+    }
+
     private static async Task ExecAsync(string cs, string sql, params (string Name, object Value)[] parameters)
     {
         await using var conn = new SqlConnection(cs);

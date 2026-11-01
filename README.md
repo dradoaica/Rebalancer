@@ -86,6 +86,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 5.1.0](docs/release-notes/5.1.0.md) — fixes from the 5.0 review: fencing tokens in SQL Server /
+  PostgreSQL keep-alives, the SQL Server lease time after a lock wait, `RecreateClientAsync` on SQL Server / PostgreSQL
 - [Release notes 5.0.0](docs/release-notes/5.0.0.md) and [migration guide](docs/release-notes/migrating-to-5.0.md) —
   PostgreSQL backend, Valkey support, .NET 10 requirement, the SQL Server / Redis service types moved to
   `Rebalancer.LeaseCoordination` (source-breaking for code that names them), and a SQL Server schema fix
@@ -176,7 +178,9 @@ this for you.
 ### Operating the backends
 
 - **SQL Server:** create the schema from [`db/sqlserver/`](db/sqlserver/) and give the nodes' login only the role
-  `rebalancer_node` ([`db/sqlserver/RebalancerLeastPrivilege.sql`](db/sqlserver/RebalancerLeastPrivilege.sql)).
+  `rebalancer_node` ([`db/sqlserver/RebalancerLeastPrivilege.sql`](db/sqlserver/RebalancerLeastPrivilege.sql)). A
+  resource's group and name together must fit in 900 bytes, the limit of the table's key: SQL Server rejects a longer
+  `RBR.Resources` row ([PRB-0008](docs/problem-records/PRB-0008-resource-key-can-exceed-sql-server-index-limit.md)).
 - **PostgreSQL:** create the schema from [`db/postgresql/`](db/postgresql/) (the same three scripts as for SQL Server)
   and make the nodes' logins members of the role `rebalancer_node`
   ([`db/postgresql/RebalancerLeastPrivilege.sql`](db/postgresql/RebalancerLeastPrivilege.sql)); groups and resources

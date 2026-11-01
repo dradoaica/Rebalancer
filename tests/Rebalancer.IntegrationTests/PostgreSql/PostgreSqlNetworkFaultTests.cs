@@ -10,6 +10,7 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 ///     Requires Docker. Nodes whose link to PostgreSQL is slow and lossy come and go; no resource is ever processed
 ///     by two nodes at once, and the group converges.
 /// </summary>
+[Collection(NetworkFaultCollection.Name)]
 public sealed class PostgreSqlNetworkFaultTests(ITestOutputHelper output)
 {
     [SkippableFact]

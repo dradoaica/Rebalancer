@@ -53,9 +53,9 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **5.0.0**: SQL Server, PostgreSQL and Redis share their coordination code in
-`Rebalancer.LeaseCoordination`; SQL Server and Redis service types moved namespace (eight library packages; CR-0013,
-[migration guide](../release-notes/migrating-to-5.0.md)).
+Current version: **5.1.0** (fixes, CR-0014). Since 5.0.0, SQL Server, PostgreSQL and Redis share their coordination
+code in `Rebalancer.LeaseCoordination`; SQL Server and Redis service types moved namespace (eight library packages;
+CR-0013, [migration guide](../release-notes/migrating-to-5.0.md)).
 Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend

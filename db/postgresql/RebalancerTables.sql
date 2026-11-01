@@ -28,6 +28,8 @@ CREATE TABLE rbr.clients
 -- No foreign key to rbr.resource_groups, unlike rbr.resources: a client of a missing group must reach its lease
 -- query, which reports the group missing, so the client reports Aborted (US-0021) instead of failing to register; and
 -- the key check would wait for any lease transaction holding the group row.
+-- The index is the one structural difference from the SQL Server tables, which predate it and scan RBR.Clients (one row
+-- per node); both serve the same queries (CR-0014).
 CREATE INDEX clients_resource_group ON rbr.clients (resource_group);
 
 CREATE TABLE rbr.resources

@@ -10,6 +10,21 @@ namespace Rebalancer.SqlServer.Leases;
 
 internal class LeaseService : ILeaseService
 {
+    // obtain lock on the record blocking other nodes until the transaction is committed, and read it; the time comes
+    // from a second statement, which starts only once the lock is held: GETUTCDATE() inside the UPDATE is fixed when
+    // the statement starts, before any wait for the lock, so a waiting node would see the lease younger than it is
+    private const string LockGroupRow = @"UPDATE [RBR].[ResourceGroups]
+   SET LockedByClient = @ClientId
+OUTPUT inserted.[CoordinatorId]
+      ,inserted.[LastCoordinatorRenewal]
+      ,inserted.[CoordinatorServer]
+      ,inserted.[LockedByClient]
+      ,inserted.[FencingToken]
+      ,inserted.[LeaseExpirySeconds]
+      ,inserted.[HeartbeatSeconds]
+WHERE ResourceGroup = @ResourceGroup;
+SELECT GETUTCDATE() AS [TimeNow];";
+
     private readonly string connectionString;
     private readonly IRebalancerLogger logger;
 
@@ -30,42 +45,12 @@ internal class LeaseService : ILeaseService
 
             try
             {
-                // obtain lock on the record blocking other nodes until the transaction is committed, and read it
-                command.CommandText = @"UPDATE [RBR].[ResourceGroups]
-   SET LockedByClient = @ClientId
-OUTPUT inserted.[ResourceGroup]
-      ,inserted.[CoordinatorId]
-      ,inserted.[LastCoordinatorRenewal]
-      ,inserted.[CoordinatorServer]
-      ,inserted.[LockedByClient]
-      ,inserted.[FencingToken]
-      ,inserted.[LeaseExpirySeconds]
-      ,inserted.[HeartbeatSeconds]
-      ,GETUTCDATE() AS [TimeNow]
-WHERE ResourceGroup = @ResourceGroup";
+                command.CommandText = LockGroupRow;
                 command.Parameters.AddWithValue("@ClientId", acquireLeaseRequest.ClientId);
                 command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
                     acquireLeaseRequest.ResourceGroup;
 
-                ResourceGroup rg = null;
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        rg = new ResourceGroup
-                        {
-                            Name = acquireLeaseRequest.ResourceGroup,
-                            CoordinatorId = GetGuidFromNullableGuid(reader, "CoordinatorId"),
-                            CoordinatorServer = GetStringFromNullableGuid(reader, "CoordinatorServer"),
-                            LastCoordinatorRenewal = GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
-                            TimeNow = (DateTime)reader["TimeNow"],
-                            LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
-                            FencingToken = (int)reader["FencingToken"],
-                            LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
-                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"],
-                        };
-                    }
-                }
+                var rg = await ReadLockedGroupAsync(command, acquireLeaseRequest.ResourceGroup);
 
                 if (rg == null)
                 {
@@ -153,42 +138,12 @@ WHERE ResourceGroup = @ResourceGroup";
 
             try
             {
-                // obtain lock on the record blocking other nodes until the transaction is committed, and read it
-                command.CommandText = @"UPDATE [RBR].[ResourceGroups]
-   SET LockedByClient = @ClientId
-OUTPUT inserted.[ResourceGroup]
-      ,inserted.[CoordinatorId]
-      ,inserted.[LastCoordinatorRenewal]
-      ,inserted.[CoordinatorServer]
-      ,inserted.[LockedByClient]
-      ,inserted.[FencingToken]
-      ,inserted.[LeaseExpirySeconds]
-      ,inserted.[HeartbeatSeconds]
-      ,GETUTCDATE() AS [TimeNow]
-WHERE ResourceGroup = @ResourceGroup";
+                command.CommandText = LockGroupRow;
                 command.Parameters.AddWithValue("@ClientId", renewLeaseRequest.ClientId);
                 command.Parameters.Add("@ResourceGroup", SqlDbType.VarChar, 100).Value =
                     renewLeaseRequest.ResourceGroup;
 
-                ResourceGroup rg = null;
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        rg = new ResourceGroup
-                        {
-                            Name = renewLeaseRequest.ResourceGroup,
-                            CoordinatorId = GetGuidFromNullableGuid(reader, "CoordinatorId"),
-                            CoordinatorServer = GetStringFromNullableGuid(reader, "CoordinatorServer"),
-                            LastCoordinatorRenewal = GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
-                            TimeNow = (DateTime)reader["TimeNow"],
-                            LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
-                            FencingToken = (int)reader["FencingToken"],
-                            LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
-                            HeartbeatSeconds = (int)reader["HeartbeatSeconds"],
-                        };
-                    }
-                }
+                var rg = await ReadLockedGroupAsync(command, renewLeaseRequest.ResourceGroup);
 
                 if (rg == null)
                 {
@@ -276,6 +231,36 @@ AND [FencingToken] = @FencingToken";
             command.Parameters.AddWithValue("@FencingToken", relinquishLeaseRequest.FencingToken);
             await command.ExecuteNonQueryAsync();
         }
+    }
+
+    private async Task<ResourceGroup> ReadLockedGroupAsync(SqlCommand command, string resourceGroup)
+    {
+        ResourceGroup rg = null;
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            rg = new ResourceGroup
+            {
+                Name = resourceGroup,
+                CoordinatorId = GetGuidFromNullableGuid(reader, "CoordinatorId"),
+                CoordinatorServer = GetStringFromNullableGuid(reader, "CoordinatorServer"),
+                LastCoordinatorRenewal = GetDateTimeFromNullable(reader, "LastCoordinatorRenewal"),
+                LockedByClientId = GetGuidFromNullableGuid(reader, "LockedByClient"),
+                FencingToken = (int)reader["FencingToken"],
+                LeaseExpirySeconds = (int)reader["LeaseExpirySeconds"],
+                HeartbeatSeconds = (int)reader["HeartbeatSeconds"],
+            };
+        }
+
+        if (rg != null)
+        {
+            // never a default time: a missing result throws, and the request fails instead of seeing the lease expired
+            await reader.NextResultAsync();
+            await reader.ReadAsync();
+            rg.TimeNow = (DateTime)reader["TimeNow"];
+        }
+
+        return rg;
     }
 
     private DateTime GetDateTimeFromNullable(SqlDataReader reader, string key)

@@ -30,7 +30,17 @@ internal class ClientService : IClientService, IFencedClientService
         using (var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString))
         {
             var command = conn.CreateCommand();
-            command.CommandText = @"INSERT INTO [RBR].[Clients]
+            // a new registration, also over a record that still exists (RecreateClientAsync), as on Redis
+            command.CommandText = @"UPDATE [RBR].[Clients]
+   SET [ResourceGroup] = @ResourceGroup
+      ,[LastKeepAlive] = GETUTCDATE()
+      ,[ClientStatus] = @ClientStatus
+      ,[CoordinatorStatus] = @CoordinatorStatus
+      ,[Resources] = ''
+      ,[FencingToken] = 1
+ WHERE ClientId = @ClientId;
+IF @@ROWCOUNT = 0
+INSERT INTO [RBR].[Clients]
            ([ClientId]
            ,[ResourceGroup]
            ,[LastKeepAlive]

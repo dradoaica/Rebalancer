@@ -27,6 +27,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- at most 3 tests at once: each starts its own containers, and SQL Server needs about 2 GiB (CR-0014) -->
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\src\Rebalancer.Core\Rebalancer.Core.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.Extensions.Diagnostics.HealthChecks\Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.PostgreSql\Rebalancer.PostgreSql.csproj"/>

@@ -73,7 +73,8 @@ internal class Coordinator
         }
 
         // ADR-0026: act only while the lease names this client with the event's token; the event may have been queued
-        // before a stall longer than the lease expiry
+        // before a stall longer than the lease expiry. A separate call, not read in the keep-alive as ADR-0026's outline
+        // (item 2) proposed: one more round trip per tick for the same check, kept per CR-0014
         if (clientService is IFencedClientService fenced &&
             !await fenced.HoldsLeaseAsync(clientEvent.ResourceGroup, coordinatorClientId, clientEvent.FencingToken))
         {

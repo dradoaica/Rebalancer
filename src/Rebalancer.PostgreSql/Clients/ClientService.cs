@@ -27,9 +27,17 @@ internal class ClientService : IClientService, IFencedClientService
     {
         await using var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString);
         await using var command = conn.CreateCommand();
+        // a new registration, also over a record that still exists (RecreateClientAsync), as on Redis
         command.CommandText = @"INSERT INTO rbr.clients
        (client_id, resource_group, last_keep_alive, client_status, coordinator_status, resources, fencing_token)
-VALUES (@ClientId, @ResourceGroup, clock_timestamp(), @ClientStatus, @CoordinatorStatus, '', 1)";
+VALUES (@ClientId, @ResourceGroup, clock_timestamp(), @ClientStatus, @CoordinatorStatus, '', 1)
+ON CONFLICT (client_id) DO UPDATE
+   SET resource_group = EXCLUDED.resource_group,
+       last_keep_alive = EXCLUDED.last_keep_alive,
+       client_status = EXCLUDED.client_status,
+       coordinator_status = EXCLUDED.coordinator_status,
+       resources = EXCLUDED.resources,
+       fencing_token = EXCLUDED.fencing_token";
         command.Parameters.AddWithValue("ClientId", clientId);
         command.Parameters.AddWithValue("ResourceGroup", resourceGroup);
         command.Parameters.AddWithValue("ClientStatus", (short)ClientStatus.Waiting);

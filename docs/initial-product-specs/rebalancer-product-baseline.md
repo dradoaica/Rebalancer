@@ -56,7 +56,9 @@ this repository).
   ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **5.0.0**, all packages target `net10.0` and require .NET 10 or later; it adds PostgreSQL and Valkey
+- Current release: **5.1.0** (fixes from the 5.0 review: fencing token in SQL Server / PostgreSQL keep-alives, the
+  SQL Server lease time after the lock wait, the PostgreSQL stall bound when assigning, `RecreateClientAsync`; CR-0014).
+  Previous: **5.0.0**, all packages target `net10.0` and require .NET 10 or later; it adds PostgreSQL and Valkey
   support, and SQL Server, PostgreSQL and Redis share `Rebalancer.LeaseCoordination`. SQL Server / Redis service types
   moved namespaces; the shipped SQL Server schema also removes the client-to-group foreign key, with an optional step
   for existing databases ([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
@@ -91,4 +93,5 @@ this repository).
 3. **4.1.0** — metrics and traces (ADR-0022), health check package (ADR-0023), randomised SQL Server / Redis tests.
 4. **5.0.0** — shared lease coordination (ADR-0029), PostgreSQL backend (ADR-0030), Valkey (ADR-0031), .NET 10
    (ADR-0033).
-5. **Next** — a CI test job with Docker (backlog).
+5. **5.1.0** — fixes from the 5.0 review (CR-0014).
+6. **Next** — tests and a dependency scan in CI (ADR-0035); the 6.0 public API (ADR-0034).

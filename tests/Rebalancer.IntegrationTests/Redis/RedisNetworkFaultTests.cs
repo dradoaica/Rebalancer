@@ -10,6 +10,7 @@ namespace Rebalancer.IntegrationTests.Redis;
 ///     Requires Docker. Nodes whose link to Redis is slow and lossy come and go; no resource is ever processed by two
 ///     nodes at once, and the group converges.
 /// </summary>
+[Collection(NetworkFaultCollection.Name)]
 public sealed class RedisNetworkFaultTests(ITestOutputHelper output)
 {
     [SkippableTheory]
