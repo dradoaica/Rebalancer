@@ -21,9 +21,6 @@ namespace Rebalancer.LeaseCoordination;
 /// </summary>
 internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
 {
-    // guards this instance's started flag; one per provider, so providers in one process do not share it
-    private readonly object startLockObj = new();
-
     // the rebalancer.backend tag of the telemetry (ADR-0022), e.g. "sqlserver" or "redis"
     private readonly string backend;
     private readonly Guid clientId;
@@ -35,6 +32,9 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
 
     // backend work after the start check and before the client record is created (resource group, client id)
     private readonly Func<string, string, Task> onStarting;
+
+    // guards this instance's started flag; one per provider, so providers in one process do not share it
+    private readonly object startLockObj = new();
     private readonly ResourceGroupStore store;
     private volatile bool aborted;
     private ClientOptions currentClientOptions;

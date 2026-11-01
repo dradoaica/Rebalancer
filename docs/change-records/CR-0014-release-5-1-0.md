@@ -38,8 +38,7 @@ dradoaica with this record (2026-11-02).
 - **A1:** SQL Server and PostgreSQL `KeepAliveAsync` return the record's `FencingToken` (Redis did already); the
   `*ClientRecordTests` assert it.
 - **A2, A3:** PostgreSQL `StartActivityAsync` sets the stall bound (`lock_timeout`,
-  `idle_in_transaction_session_timeout`) before it locks client rows, shared with the lease operations
-  (`Connections/StallBound.cs`).
+  `idle_in_transaction_session_timeout`) before it locks client rows, shared with the lease operations (`Connections/StallBound.cs`).
 - **A4:** `GetAssignedResources(CancellationToken)` returns at once after an abort or stop (US-0021); failed before.
 - **A5:** a coordinator relinquishes the lease with the token it was granted, also when its role never ran.
 - **A14 (confirmed):** SQL Server's lease acquire and renew read `GETUTCDATE()` in a second statement, after the
@@ -57,8 +56,7 @@ dradoaica with this record (2026-11-02).
 - Tests: the cross-check's test findings B2, B4, B5, B8, B9, B11–B14, B16; the shadowing test uses decoy tables that can
   take effect; a PostgreSQL test that a renewal which waited for the row lock is stamped after the wait (failed with
   `now()`); a SQL Server test of the 900-byte resource key (PRB-0008).
-- **Test runs (decided):** the integration tests run at most 3 at a time by default
-  (`tests/Rebalancer.IntegrationTests/xunit.runner.json`; `-- xUnit.MaxParallelThreads=N` overrides it), and the SQL
+- **Test runs (decided):** the integration tests run at most 3 at a time by default (`tests/Rebalancer.IntegrationTests/xunit.runner.json`; `-- xUnit.MaxParallelThreads=N` overrides it), and the SQL
   Server, PostgreSQL and Redis network-fault tests run alone after the others (`NetworkFaultCollection`).
 - Build (Tier 4): one `<Version>` in `src/Directory.Build.props`, no BOMs in project files, `end_of_line = lf` in
   `.editorconfig`, a redundant `Nullable` setting removed from an example.
@@ -98,13 +96,13 @@ SQL Server and PostgreSQL (it no longer throws when the record exists) and the n
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                                                                   |
-|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Area                  | Impact                                                                                                                                                                                                      |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Users / customers     | None to change. `RecreateClientAsync` on SQL Server and PostgreSQL succeeds where it threw. After an abort, `GetAssignedResources(token)` returns instead of waiting for the token. .NET 8/9 hosts: see C3. |
-| Services / components | SQL Server lease calls run one more statement in the same batch; a node that waited for the group row may now take a lease that expired during the wait (as intended).                                    |
-| Data / schema         | None. The scripts change only in comments.                                                                                                                                                               |
-| Security              | TM-0004 revision 2 is met (A2). TM-0002 unchanged: the SQL Server change is a timing fix. No dependency change; scan clean.                                                                               |
-| Operations            | Nodes can be upgraded one at a time: the stored records and the protocol are unchanged.                                                                                                                  |
+| Services / components | SQL Server lease calls run one more statement in the same batch; a node that waited for the group row may now take a lease that expired during the wait (as intended).                                      |
+| Data / schema         | None. The scripts change only in comments.                                                                                                                                                                  |
+| Security              | TM-0004 revision 2 is met (A2). TM-0002 unchanged: the SQL Server change is a timing fix. No dependency change; scan clean.                                                                                 |
+| Operations            | Nodes can be upgraded one at a time: the stored records and the protocol are unchanged.                                                                                                                     |
 
 ## Preconditions
 
@@ -112,8 +110,7 @@ SQL Server and PostgreSQL (it no longer throws when the record exists) and the n
 - [x] Build: succeeded (2026-11-02).
 - [x] Unit tests: 110/110 (2026-11-02).
 - [x] Integration tests, all but ZooKeeper, on the final branch, with the new defaults (3 at a time, network-fault
-  tests alone): **110/111** (2026-11-02, 27.7 min). The failure: `RedisNetworkFaultTests` on Valkey 8.1.11, liveness
-  ("the nodes did not converge after the churn", seed `1196549739`), while running alone; the SQL Server, PostgreSQL
+  tests alone): **110/111** (2026-11-02, 27.7 min). The failure: `RedisNetworkFaultTests` on Valkey 8.1.11, liveness ("the nodes did not converge after the churn", seed `1196549739`), while running alone; the SQL Server, PostgreSQL
   and Redis 7.0 network-fault tests passed. Opened as PRB-0009. The run before A14/A15 was 106/107.
 - [x] `RedisNetworkFaultTests` is flaky on `main` too: replayed alone, it failed twice on Redis 7.0 with the fixes, and
   on clean `main` (`e62e30c`) it failed once on Valkey and passed twice on Redis 7.0 (2026-11-01). Not caused by this
@@ -148,8 +145,8 @@ Release notes `docs/release-notes/5.1.0.md`.
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date                                                 |
+|------------------------|-----------|------------------------------------------------------|
 | Maintainer (code)      | dradoaica | 2026-11-02 (approved in session, before the release) |
 | Release / CAB (or org) | dradoaica | 2026-11-02 (approved in session, before the release) |
 

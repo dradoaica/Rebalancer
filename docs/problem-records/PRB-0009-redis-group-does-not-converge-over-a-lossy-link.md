@@ -30,11 +30,11 @@ resource at once.
 
 ## Timeline
 
-| When       | Event                                                                                                           |
-|------------|-----------------------------------------------------------------------------------------------------------------|
-| 2026-11-01 | US-0025: one failure on Redis 7.0 in a full run (seed `104995485`); passed alone; attributed to load            |
-| 2026-11-01 | CR-0013: failed in three of four full runs since the Redis suites run on two servers; passed alone              |
-| 2026-11-01 | Cross-check branch: failed twice running alone on Redis 7.0; on `main` (`e62e30c`) failed once alone on Valkey  |
+| When       | Event                                                                                                                    |
+|------------|--------------------------------------------------------------------------------------------------------------------------|
+| 2026-11-01 | US-0025: one failure on Redis 7.0 in a full run (seed `104995485`); passed alone; attributed to load                     |
+| 2026-11-01 | CR-0013: failed in three of four full runs since the Redis suites run on two servers; passed alone                       |
+| 2026-11-01 | Cross-check branch: failed twice running alone on Redis 7.0; on `main` (`e62e30c`) failed once alone on Valkey           |
 | 2026-11-02 | CR-0014 final run, network-fault tests alone after the others: failed on Valkey (seed `1196549739`), passed on Redis 7.0 |
 
 ## Evidence
@@ -63,10 +63,10 @@ Not yet known. To investigate:
 
 ## Corrective actions
 
-| Action                                                                                         | Owner     | Status |
-|------------------------------------------------------------------------------------------------|-----------|--------|
-| Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Open   |
-| Fix the cause; if it is in the backend, a regression test that fails before the fix            |           | Open   |
+| Action                                                                                     | Owner     | Status |
+|--------------------------------------------------------------------------------------------|-----------|--------|
+| Reproduce with seed `1196549739` and find the root cause (backend, client library or test) | dradoaica | Open   |
+| Fix the cause; if it is in the backend, a regression test that fails before the fix        |           | Open   |
 
 ## Preventive measures
 

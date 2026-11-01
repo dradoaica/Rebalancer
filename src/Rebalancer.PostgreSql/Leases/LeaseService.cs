@@ -16,7 +16,8 @@ namespace Rebalancer.PostgreSql.Leases;
 internal class LeaseService : ILeaseService
 {
     // TM-0004 D2: the stall bound (StallBound) comes first, then the row lock, then the time read after the lock
-    private const string LockGroupRow = StallBound.SetTimeouts + @"
+    private const string LockGroupRow = StallBound.SetTimeouts +
+                                        @"
 SELECT coordinator_id, last_coordinator_renewal, fencing_token, lease_expiry_seconds, heartbeat_seconds
   FROM rbr.resource_groups
  WHERE resource_group = @ResourceGroup

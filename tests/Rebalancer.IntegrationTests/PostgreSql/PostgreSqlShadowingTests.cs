@@ -7,9 +7,9 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
 ///     Requires Docker. US-0026 criterion 9, TM-0004 T3: tables with the backend's names in the two schemas of the
-///     default search_path, <c>"$user"</c> (a schema named after the login role, searched first) and <c>public</c>,
-///     change nothing, because every statement names <c>rbr</c>. (A function cannot shadow a built-in: unqualified
-///     names resolve from <c>pg_catalog</c> first.)
+///     default search_path, <c>"$user"</c> (a schema named after the login role, searched first) and <c>public</c>, change
+///     nothing, because every statement names <c>rbr</c>. (A function cannot shadow a built-in: unqualified names resolve
+///     from <c>pg_catalog</c> first.)
 /// </summary>
 public sealed class PostgreSqlShadowingTests
 {
@@ -23,7 +23,10 @@ public sealed class PostgreSqlShadowingTests
 
         // the decoys: the same table names, with a decoy resource, in "$user" and in public
         var user = new NpgsqlConnectionStringBuilder(connectionString).Username!;
-        foreach (var schema in new[] { $"\"{user}\"", "public", })
+        foreach (var schema in new[]
+                 {
+                     $"\"{user}\"", "public",
+                 })
         {
             await PostgreSqlSchema.ExecAsync(
                 connectionString,

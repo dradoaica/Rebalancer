@@ -8,8 +8,9 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
-///     Requires Docker. A14 of the CR-0013 cross-check, as ADR-0030 Clock A for PostgreSQL: a lease request that waited for the group row judges
-///     the lease's age by the database time after the wait, not the time its statement started.
+///     Requires Docker. A14 of the CR-0013 cross-check, as ADR-0030 Clock A for PostgreSQL: a lease request that
+///     waited for the group row judges the lease's age by the database time after the wait, not the time its statement
+///     started.
 /// </summary>
 public sealed class SqlServerLeaseClockTests
 {

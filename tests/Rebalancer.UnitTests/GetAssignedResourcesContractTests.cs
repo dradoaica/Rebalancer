@@ -2,6 +2,7 @@ using Rebalancer.Core;
 using Rebalancer.PostgreSql;
 using Rebalancer.Redis;
 using Rebalancer.SqlServer;
+using System.Reflection;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
@@ -45,13 +46,14 @@ public sealed class GetAssignedResourcesContractTests
     [Fact]
     public void TheLeaseBasedProviders_HaveTheSamePublicMembers()
     {
-        static string[] Members(Type type) =>
-            type.GetMembers(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance |
-                            System.Reflection.BindingFlags.DeclaredOnly)
+        static string[] Members(Type type)
+        {
+            return type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Select(m => m.ToString()!.Replace(type.Name, "Provider"))
                 .Where(m => m != "Void Dispose()")
                 .OrderBy(m => m)
                 .ToArray();
+        }
 
         Assert.Equal(Members(typeof(SqlServerProvider)), Members(typeof(PostgreSqlProvider)));
         Assert.Equal(Members(typeof(SqlServerProvider)), Members(typeof(RedisProvider)));

@@ -190,8 +190,7 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
     the SQL Server client foreign key (ADR-0032) and targets `net10.0` only (ADR-0033), both in Scope.
   - `depends-on` does not list US-0024, whose `ProcessingMonitor` fix shipped here; ADR-0033 does not list US-0026,
     whose criterion 1 it replaces.
-  - Accepted records keep paths that have since changed, as they describe the code at the time: ADR-0026
-    (`src/Rebalancer.{SqlServer,Redis}/Roles/Coordinator.cs`, now in `Rebalancer.LeaseCoordination`), ADR-0030 and
+  - Accepted records keep paths that have since changed, as they describe the code at the time: ADR-0026 (`src/Rebalancer.{SqlServer,Redis}/Roles/Coordinator.cs`, now in `Rebalancer.LeaseCoordination`), ADR-0030 and
     ADR-0032 (`Rebalanser*.sql`, now `Rebalancer*.sql`). TLA+ configurations named in ADR-0026/0027/0028 are not in
     `docs/tlaplus/`.
   - Earlier exceptions to the immutable-record rule, each made at dradoaica's request: notes or errata appended to

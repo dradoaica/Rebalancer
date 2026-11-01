@@ -5,8 +5,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
-///     Requires Docker. PRB-0008: on the shipped tables a resource's group and name together are at most 900 bytes, the
-///     limit of SQL Server's clustered key <c>QueuesPK</c> (the README states it).
+///     Requires Docker. PRB-0008: on the shipped tables a resource's group and name together are at most 900 bytes,
+///     the limit of SQL Server's clustered key <c>QueuesPK</c> (the README states it).
 /// </summary>
 public sealed class SqlServerSchemaTests
 {
@@ -24,8 +24,11 @@ public sealed class SqlServerSchemaTests
         await SchemaSetup.SeedResourceGroupAsync(cs, group, ["r1",], 300, 25);
 
         await InsertResourceAsync(cs, group, new string('a', KeyLimitBytes - group.Length));
-        var tooLong = await Assert.ThrowsAsync<SqlException>(() =>
-            InsertResourceAsync(cs, group, new string('b', KeyLimitBytes - group.Length + 1))
+        var tooLong = await Assert.ThrowsAsync<SqlException>(() => InsertResourceAsync(
+                cs,
+                group,
+                new string('b', KeyLimitBytes - group.Length + 1)
+            )
         );
         Assert.Equal(1946, tooLong.Number); // the index entry exceeds the maximum key length
     }

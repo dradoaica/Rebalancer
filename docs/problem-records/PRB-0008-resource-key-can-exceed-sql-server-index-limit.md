@@ -42,8 +42,7 @@ and `ResourceName VARCHAR(1000)`: up to 1100 bytes, above SQL Server's 900-byte 
 ## Root cause analysis
 
 The column sizes and the key predate the governance records. Until 5.0 the SQL Server tests did not use the shipped
-scripts: their own schema had `ResourceName VARCHAR(255)`, which fits, so the warning never appeared in a test run
-(ADR-0032 moved the tests to the shipped scripts).
+scripts: their own schema had `ResourceName VARCHAR(255)`, which fits, so the warning never appeared in a test run (ADR-0032 moved the tests to the shipped scripts).
 
 ### Contributing factors
 
@@ -51,10 +50,10 @@ scripts: their own schema had `ResourceName VARCHAR(255)`, which fits, so the wa
 
 ## Corrective actions
 
-| Action                                                                                                         | Owner     | Status |
-|----------------------------------------------------------------------------------------------------------------|-----------|--------|
-| Decide the fix (schema change, Tier 1): shorten `ResourceName` so the key fits, or document the 900-byte limit | dradoaica | Done: document (CR-0014, Approved)         |
-| A test that inserts a resource at the documented maximum length, on the shipped scripts                        | dradoaica | Done: `SqlServerSchemaTests` (CR-0014)     |
+| Action                                                                                                         | Owner     | Status                                 |
+|----------------------------------------------------------------------------------------------------------------|-----------|----------------------------------------|
+| Decide the fix (schema change, Tier 1): shorten `ResourceName` so the key fits, or document the 900-byte limit | dradoaica | Done: document (CR-0014, Approved)     |
+| A test that inserts a resource at the documented maximum length, on the shipped scripts                        | dradoaica | Done: `SqlServerSchemaTests` (CR-0014) |
 
 ## Preventive measures
 
