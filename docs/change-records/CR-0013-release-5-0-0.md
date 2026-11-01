@@ -89,9 +89,11 @@ minor version must not break them.
 - [x] Decision record: ADR-0029 (Accepted by dradoaica, 2026-11-01; on `main`).
 - [x] Build: 0 warnings (2026-11-01).
 - [x] Unit tests: 103/103 (89 before the new backends).
-- [x] Integration tests, all but ZooKeeper (2026-11-01, branch at `6375471`): 101/102. The one failure is
-  `RedisNetworkFaultTests` on Redis 7.0, liveness ("never converged"), which passes when run alone; it has failed
-  that way in three of four full runs since the Redis suites run on two servers (load; US-0025 notes).
+- [x] **Final build** (`b253454`: `net10.0`, Npgsql 10.0.3, package patch updates, ADR-0032): integration tests,
+  all but ZooKeeper, **102/102** with `-- xUnit.MaxParallelThreads=3` (2026-11-01); unit tests 103/103.
+- [x] Earlier runs on the way, kept for the record: integration tests, all but ZooKeeper (branch at `6375471`): 101/102.
+  The one failure is `RedisNetworkFaultTests` on Redis 7.0, liveness ("never converged"), which passes when run alone;
+  it has failed that way in three of four full runs since the Redis suites run on two servers (load; US-0025 notes).
 - [x] After ADR-0032 (shipped scripts, no client foreign key): SQL Server suite 18/18 and PostgreSQL suite 20/20.
   Docker here is limited to 7.3 GiB: with xUnit's default parallelism, SQL Server containers fail to start
   (exit codes 17, 114, 183, 235, 255), as in the `main` baseline run; the SQL Server run used
