@@ -96,6 +96,12 @@ test project is added.
 |----------------------------------------------------|-----------------------------------------------------------------------------|-----------------------------|
 | [CR-0012](change-records/CR-0012-release-4-3-2.md) | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md) | PRB-0006, PRB-0007, US-0024 |
 
+### 5.0.0 records
+
+| Record                                             | Status                                                                                                   | Covers                               |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------------|--------------------------------------|
+| [CR-0013](change-records/CR-0013-release-5-0-0.md) | **Draft**; [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029 (shared lease coordination) |
+
 ### 4.3.2 problem records and stories
 
 | Record                                                                       | Status         | Covers                                                                                                                                                       |

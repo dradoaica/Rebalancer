@@ -89,6 +89,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 5.0.0](docs/release-notes/5.0.0.md) and [migration guide](docs/release-notes/migrating-to-5.0.md) —
+  SQL Server and Redis share `Rebalancer.LeaseCoordination`; breaking for code that names the service types
 - [Release notes 4.3.2](docs/release-notes/4.3.2.md) — every client reports `Stopped` after `StopAsync`; SQL Server /
   Redis apply `OnAssignmentDelay` once per assignment, not before every heartbeat
 - [Release notes 4.3.1](docs/release-notes/4.3.1.md) — SQL Server / Redis: `StopAsync` raises `OnUnassignment`;

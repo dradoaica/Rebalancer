@@ -56,8 +56,10 @@ repository).
   ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **4.3.2** (`Stopped` state after `StopAsync`, `OnAssignmentDelay` per assignment; PRB-0006,
-  PRB-0007, CR-0012). Previous: **4.3.1** (SQL Server / Redis `StopAsync` raises `OnUnassignment`), **4.3.0**
+- Current release: **5.0.0** (SQL Server and Redis share `Rebalancer.LeaseCoordination`; breaking for code that
+  names the service types, [ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
+  [migration guide](../release-notes/migrating-to-5.0.md), CR-0013). Previous: **4.3.2** (`Stopped` state after
+  `StopAsync`, `OnAssignmentDelay` per assignment; PRB-0006, PRB-0007, CR-0012), **4.3.1** (SQL Server / Redis `StopAsync` raises `OnUnassignment`), **4.3.0**
   (coordination safety fixes found with TLA+, ADR-0026..0028), **4.2.1** (security patch: CVE-2026-84008 in a SQL
   Server dependency, ADR-0025), **4.2.0** (Aborted state on SQL Server / Redis, health-check and Redis fixes), **4.1.0**
   (metrics, traces, health check), **4.0.0** (breaking for Redis provisioning only: per-group
