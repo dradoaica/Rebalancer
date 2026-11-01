@@ -1,9 +1,9 @@
 ---
 id: CR-0013
-status: Draft
+status: Approved
 date: 2026-11-01
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-01)
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -151,10 +151,10 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Role                   | Name      | Date                                                 |
+|------------------------|-----------|------------------------------------------------------|
+| Maintainer (code)      | dradoaica | 2026-11-01 (approved in session, before the release) |
+| Release / CAB (or org) | dradoaica | 2026-11-01 (approved in session, before the release) |
 
 ## Post-implementation
 

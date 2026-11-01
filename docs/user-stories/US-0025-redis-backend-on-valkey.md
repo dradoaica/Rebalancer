@@ -1,11 +1,11 @@
 ---
 id: US-0025
-status: In progress
+status: Done
 date: 2026-11-01
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
-ssdlc-phase: Coding
+ssdlc-phase: Release
 depends-on: [ "ADR-0031", "ADR-0017", "ADR-0020", "TM-0003", "US-0006" ]
 ---
 
@@ -48,7 +48,7 @@ it.
 4. The minimal per-group ACL user from `docs/release-notes/migrating-to-4.0.md` is checked on Valkey: a node using only
    that user starts, is assigned, and stops cleanly (`RedisClientRecordTests.ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, run on both servers).
 5. `README.md` (Languages and Backends) and the release notes of the release that ships this name the supported
-   Valkey version (s); the traceability matrix row of ADR-0031 points to the tests.
+   Valkey version(s); the traceability matrix row of ADR-0031 points to the tests.
 6. The SQL Server, ZooKeeper and unit tests are unchanged and still pass.
 
 ## Implementation notes for the reviewer (2026-11-01)
@@ -90,10 +90,11 @@ run local containers.
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
-- [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Acceptance criteria met (deviations in "Implementation notes for the reviewer", reviewed by dradoaica)
+- [x] Tests / checks agreed with a team (confirmed by dradoaica, in session 2026-11-01)
+- [x] Docs / runbooks updated if needed
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (5.0.0, Approved;
+  not yet released)
 
 ## Sources
 

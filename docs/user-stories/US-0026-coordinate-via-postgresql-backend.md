@@ -1,11 +1,11 @@
 ---
 id: US-0026
-status: In progress
+status: Done
 date: 2026-11-01
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
-ssdlc-phase: Coding
+ssdlc-phase: Release
 depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-0005", "TM-0004" ]
 ---
 
@@ -122,10 +122,11 @@ credentials and TLS in the connection string, the least-privilege role (criterio
 
 ## Definition of done
 
-- [ ] Acceptance criteria met
-- [ ] Tests / checks agreed with a team
-- [ ] Docs / runbooks updated if needed
-- [ ] Traceable to change record (if released) - `docs/change-records/…`
+- [x] Acceptance criteria met (deviations in "Implementation notes for the reviewer", reviewed by dradoaica)
+- [x] Tests / checks agreed with a team (confirmed by dradoaica, in session 2026-11-01)
+- [x] Docs / runbooks updated if needed
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (5.0.0, Approved;
+  not yet released)
 
 ## Sources
 
