@@ -1,9 +1,9 @@
 ---
 id: US-0025
-status: Draft
+status: Ready
 date: 2026-11-01
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
 ssdlc-phase: Planning
 depends-on: [ "ADR-0031", "ADR-0017", "ADR-0020", "TM-0003", "US-0006" ]
@@ -23,12 +23,12 @@ ADR-0031 (Accepted) decides that the Redis backend supports Valkey with no code 
 suites pass on a pinned Valkey image with the same assertions. Today every Redis test starts its own container with
 `new RedisBuilder(DockerSupport.RedisImage)` (`redis:7.0`).
 
-**Decision for the reviewer: how the suites run on both servers.** Recommended: turn each Redis integration test into
-an xUnit theory over the servers in `DockerSupport` (Redis and Valkey), so the default test run covers both. The
-strongest argument against: it roughly doubles the Redis part of the run (54 SQL Server and Redis tests take about
-4–6 minutes today), and every new Redis test has to remember the theory. The alternative, an environment variable that
-selects the server for a second run, keeps the run short but makes Valkey a run that nobody does by default, which is
-the gap ADR-0031 closes.
+**Decided (dradoaica, 2026-11-01): the suites run on both servers by default.** Each Redis integration test becomes an
+xUnit theory over the servers in `DockerSupport` (Redis and Valkey), so the default test run covers both. The strongest
+argument against, accepted: it roughly doubles the Redis part of the run (54 SQL Server and Redis tests take about 4–6
+minutes today), and every new Redis test has to remember the theory. The rejected alternative, an environment variable
+that selects the server for a second run, keeps the run short but makes Valkey a run that nobody does by default, which
+is the gap ADR-0031 closes.
 
 Whether Testcontainers' `RedisBuilder` starts a Valkey image (it waits for Redis's log line and readiness check) is
 unverified – please confirm; if it does not, a generic container with the same wait is used instead.
@@ -41,7 +41,8 @@ it.
 1. `DockerSupport` names the Valkey image next to `RedisImage`, pinned to one tag (to be chosen in the MR/PR; no
    `latest`).
 2. Every test class under `tests/Rebalancer.IntegrationTests/Redis/` runs against both Redis and the pinned Valkey
-   image in the default run, per the reviewer's decision above. Test names or output say which server ran.
+   image in the default run (xUnit theories over the servers in `DockerSupport`). Test names or output say which
+   server ran.
 3. All of them pass on Valkey with their assertions unchanged. A failure that comes from a server difference is not
    worked around in the tests: it is recorded as a note on ADR-0031 and stops this story (ADR-0031, Confirmation).
 4. The minimal per-group ACL user from `docs/release-notes/migrating-to-4.0.md` is checked on Valkey: a node using only
@@ -76,7 +77,7 @@ run local containers.
 ## Definition of ready
 
 - [x] Governing ADR referenced and `Accepted` on the shared trunk (ADR-0031)
-- [x] Acceptance criteria are testable, unambiguous, and numbered (pending the reviewer's decision in Context)
+- [x] Acceptance criteria are testable, unambiguous, and numbered
 - [x] Security & compliance considerations addressed
 - [x] Dependencies and non-goals are explicitly identified
 
