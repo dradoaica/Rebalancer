@@ -77,7 +77,7 @@ test project is added.
 | [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md)              | Closed (4.3.2)                                | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
 | [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)               | Closed (4.3.2)                                | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
 | [PRB-0008](problem-records/PRB-0008-resource-key-can-exceed-sql-server-index-limit.md)    | Closed (5.1.0)                                | `QueuesPK` 900-byte key: documented limit, `SqlServerSchemaTests`                                                                                            |
-| [PRB-0009](problem-records/PRB-0009-redis-group-does-not-converge-over-a-lossy-link.md)   | **Open**                                      | `RedisNetworkFaultTests` liveness over a lossy link (Redis 7.0, Valkey)                                                                                      |
+| [PRB-0009](problem-records/PRB-0009-redis-group-does-not-converge-over-a-lossy-link.md)   | **Root cause identified**                     | `RedisNetworkFaultTests` liveness over a lossy link (Redis 7.0, Valkey)                                                                                      |
 
 ### Threat models
 
