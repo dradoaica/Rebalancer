@@ -46,5 +46,19 @@ public sealed class PostgreSqlLeastPrivilegeTests
 
         // both nodes stopped cleanly, which needs DELETE on rbr.clients
         Assert.Empty(await PostgreSqlSchema.QueryClientIdsAsync(adminConnectionString, group));
+
+        // and nothing beyond that: creating groups and resources stays with an operator (US-0026 criterion 3)
+        foreach (var insert in new[]
+                 {
+                     "INSERT INTO rbr.resource_groups (resource_group, lease_expiry_seconds, heartbeat_seconds) " +
+                     "VALUES ('x', 5, 1)",
+                     $"INSERT INTO rbr.resources (resource_group, resource_name) VALUES ('{group}', 'x')",
+                 })
+        {
+            var denied = await Assert.ThrowsAsync<PostgresException>(() =>
+                PostgreSqlSchema.ExecAsync(nodeConnectionString, insert)
+            );
+            Assert.Equal(PostgresErrorCodes.InsufficientPrivilege, denied.SqlState);
+        }
     }
 }

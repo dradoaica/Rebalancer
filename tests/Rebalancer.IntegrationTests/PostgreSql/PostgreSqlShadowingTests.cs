@@ -6,34 +6,38 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
-///     Requires Docker. US-0026 criterion 9, TM-0004 T3: tables and a function with the backend's names in
-///     <c>public</c>, which is on the default search_path, change nothing. Every statement names <c>rbr</c>, and built-ins
-///     resolve from <c>pg_catalog</c> first.
+///     Requires Docker. US-0026 criterion 9, TM-0004 T3: tables with the backend's names in the two schemas of the
+///     default search_path, <c>"$user"</c> (a schema named after the login role, searched first) and <c>public</c>,
+///     change nothing, because every statement names <c>rbr</c>. (A function cannot shadow a built-in: unqualified
+///     names resolve from <c>pg_catalog</c> first.)
 /// </summary>
 public sealed class PostgreSqlShadowingTests
 {
     [SkippableFact]
-    public async Task ObjectsWithTheBackendsNamesInPublic_AreNotUsed()
+    public async Task ObjectsWithTheBackendsNamesOnTheSearchPath_AreNotUsed()
     {
         await using var pg = await PostgreSqlSchema.StartAsync();
         var connectionString = pg.GetConnectionString();
         var group = "it-pg-shadow-" + Guid.NewGuid().ToString("N");
         await PostgreSqlSchema.SeedResourceGroupAsync(connectionString, group, ["r1",], 5, 1);
 
-        // the decoys: the same table names with a decoy resource, and a clock stuck in 2000
-        await PostgreSqlSchema.ExecAsync(
-            connectionString,
-            """
-            CREATE TABLE public.resource_groups (LIKE rbr.resource_groups INCLUDING ALL);
-            CREATE TABLE public.clients (LIKE rbr.clients INCLUDING ALL);
-            CREATE TABLE public.resources (LIKE rbr.resources INCLUDING ALL);
-            INSERT INTO public.resource_groups SELECT * FROM rbr.resource_groups;
-            INSERT INTO public.resources (resource_group, resource_name) VALUES (@g, 'decoy');
-            CREATE FUNCTION public.clock_timestamp() RETURNS timestamptz LANGUAGE sql
-                AS $$ SELECT timestamptz '2000-01-01 00:00:00+00' $$;
-            """,
-            ("g", group)
-        );
+        // the decoys: the same table names, with a decoy resource, in "$user" and in public
+        var user = new NpgsqlConnectionStringBuilder(connectionString).Username!;
+        foreach (var schema in new[] { $"\"{user}\"", "public", })
+        {
+            await PostgreSqlSchema.ExecAsync(
+                connectionString,
+                $"""
+                 CREATE SCHEMA IF NOT EXISTS {schema};
+                 CREATE TABLE {schema}.resource_groups (LIKE rbr.resource_groups INCLUDING ALL);
+                 CREATE TABLE {schema}.clients (LIKE rbr.clients INCLUDING ALL);
+                 CREATE TABLE {schema}.resources (LIKE rbr.resources INCLUDING ALL);
+                 INSERT INTO {schema}.resource_groups SELECT * FROM rbr.resource_groups;
+                 INSERT INTO {schema}.resources (resource_group, resource_name) VALUES (@g, 'decoy');
+                 """,
+                ("g", group)
+            );
+        }
 
         var assigned = new TaskCompletionSource<IList<string>>();
         using var client = new RebalancerClient(new PostgreSqlProvider(connectionString));
@@ -60,11 +64,12 @@ public sealed class PostgreSqlShadowingTests
         await using var conn = new NpgsqlConnection(connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
-                          SELECT (SELECT last_coordinator_renewal FROM rbr.resource_groups WHERE resource_group = @g),
-                                 (SELECT max(last_keep_alive) FROM rbr.clients WHERE resource_group = @g),
-                                 (SELECT count(*) FROM public.clients)
-                          """;
+        // no client record went to a decoy table
+        cmd.CommandText = $"""
+                           SELECT (SELECT last_coordinator_renewal FROM rbr.resource_groups WHERE resource_group = @g),
+                                  (SELECT max(last_keep_alive) FROM rbr.clients WHERE resource_group = @g),
+                                  (SELECT count(*) FROM public.clients) + (SELECT count(*) FROM "{user}".clients)
+                           """;
         cmd.Parameters.AddWithValue("g", group);
         await using (var reader = await cmd.ExecuteReaderAsync())
         {

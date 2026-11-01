@@ -48,8 +48,6 @@ internal class Coordinator
         knownClientIds = new List<Guid>();
     }
 
-    public int GetFencingToken() => currentFencingToken;
-
     public void SetStoppedDueToInternalErrorFlag() => stoppedDueToInternalErrorFlag = true;
 
     /// <summary>Forgets a grant whose start is still delayed (PRB-0007), e.g. when the node changes role.</summary>
@@ -242,8 +240,6 @@ internal class Coordinator
 
         logger.Debug(coordinatorClientId.ToString(), "COORDINATOR: Local client started");
     }
-
-    public int GetCurrentFencingToken() => currentFencingToken;
 
     private async Task<List<Client>> GetLiveClientsAsync(ClientEvent clientEvent, Guid coordinatorClientId)
     {

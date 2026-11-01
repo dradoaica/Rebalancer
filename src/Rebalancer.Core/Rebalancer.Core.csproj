@@ -12,11 +12,9 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Rebalancer.UnitTests"/>
-        <!-- the backends record the instruments of RebalancerTelemetry (ADR-0022) -->
-        <InternalsVisibleTo Include="Rebalancer.SqlServer"/>
-        <InternalsVisibleTo Include="Rebalancer.Redis"/>
+        <!-- the code that records the instruments of RebalancerTelemetry (ADR-0022): the shared lease coordination
+             (ADR-0029) and ZooKeeper -->
         <InternalsVisibleTo Include="Rebalancer.LeaseCoordination"/>
-        <InternalsVisibleTo Include="Rebalancer.PostgreSql"/>
         <InternalsVisibleTo Include="Rebalancer.ZooKeeper"/>
     </ItemGroup>
 

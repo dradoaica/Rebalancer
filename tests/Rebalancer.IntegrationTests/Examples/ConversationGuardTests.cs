@@ -73,12 +73,18 @@ public sealed class ConversationGuardTests(ConversationGuardTests.SqlServer sql)
         var (guard, conversation) = await NewConversationAsync();
         var other = new ConversationGuard(sql.ConnectionString);
         var bothInside = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstInside = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var first = guard.ProcessAsync(
             new Turn(conversation, 1),
-            async () => await Task.WhenAny(bothInside.Task, Task.Delay(TimeSpan.FromSeconds(2))),
+            async () =>
+            {
+                firstInside.TrySetResult();
+                await Task.WhenAny(bothInside.Task, Task.Delay(TimeSpan.FromSeconds(2)));
+            },
             Log
         );
-        await Task.Delay(200); // the first holds the conversation's row
+        // the second consumer starts only once the first holds the conversation's row and runs the turn's work
+        await firstInside.Task.WaitAsync(TimeSpan.FromSeconds(30));
         var second = other.ProcessAsync(
             new Turn(conversation, 1),
             () =>

@@ -1,4 +1,5 @@
 using Microsoft.Data.SqlClient;
+using System.Text.RegularExpressions;
 
 namespace Rebalancer.IntegrationTests.SqlServer;
 
@@ -25,13 +26,8 @@ internal static class SchemaSetup
         }
 
         var script = await File.ReadAllTextAsync(path, cancellationToken);
-        foreach (var batch in script.Split(
-                     new[]
-                     {
-                         "GO\r\n", "GO\n", "GO ",
-                     },
-                     StringSplitOptions.RemoveEmptyEntries
-                 ))
+        // GO separates batches only on a line of its own, as in sqlcmd
+        foreach (var batch in Regex.Split(script, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
         {
             var trimmed = batch.Trim();
             if (string.IsNullOrWhiteSpace(trimmed))

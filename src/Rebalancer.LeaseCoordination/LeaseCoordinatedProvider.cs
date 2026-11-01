@@ -21,7 +21,8 @@ namespace Rebalancer.LeaseCoordination;
 /// </summary>
 internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
 {
-    private static readonly object startLockObj = new();
+    // guards this instance's started flag; one per provider, so providers in one process do not share it
+    private readonly object startLockObj = new();
 
     // the rebalancer.backend tag of the telemetry (ADR-0022), e.g. "sqlserver" or "redis"
     private readonly string backend;
@@ -39,6 +40,9 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
     private ClientOptions currentClientOptions;
     private string currentResourceGroup;
     private volatile bool isCoordinator;
+
+    // the token of the lease this node was granted, so a relinquish names it even if the role never ran
+    private volatile int leaseFencingToken;
     private Task mainTask;
     private bool started;
     private volatile bool stopped;
@@ -202,7 +206,7 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
                                 new RelinquishLeaseRequest
                                 {
                                     ClientId = clientId,
-                                    FencingToken = coordinator.GetCurrentFencingToken(),
+                                    FencingToken = leaseFencingToken,
                                     ResourceGroup = currentResourceGroup,
                                 }
                             );
@@ -452,6 +456,7 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
     )
     {
         CoordinatorToken coordinatorToken = new();
+        leaseFencingToken = lease.FencingToken;
         PostLeaderEvent(lease.FencingToken, lease.ExpiryPeriod, coordinatorToken, clientEvents);
         await WaitFor(GetInterval(lease.HeartbeatPeriod), token, coordinatorToken);
 
@@ -525,8 +530,8 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
         return response;
     }
 
-    private TimeSpan GetInterval(TimeSpan leaseExpiry) =>
-        TimeSpan.FromMilliseconds(leaseExpiry.TotalMilliseconds / 2.5);
+    private TimeSpan GetInterval(TimeSpan heartbeatPeriod) =>
+        TimeSpan.FromMilliseconds(heartbeatPeriod.TotalMilliseconds / 2.5);
 
     private void PostLeaderEvent(
         int fencingToken,
@@ -650,6 +655,12 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
     {
         while (!token.IsCancellationRequested)
         {
+            // a client that gave up or stopped is never assigned again: report that instead of waiting (US-0021)
+            if (aborted || stopped)
+            {
+                return GetAssignedResources();
+            }
+
             var response = store.GetResources();
             if (response.AssignmentStatus == AssignmentStatus.ResourcesAssigned ||
                 response.AssignmentStatus == AssignmentStatus.NoResourcesAssigned)

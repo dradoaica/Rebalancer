@@ -74,7 +74,7 @@ VALUES (@ClientId, @ResourceGroup, clock_timestamp(), @ClientStatus, @Coordinato
         command.CommandText = @"UPDATE rbr.clients
    SET last_keep_alive = clock_timestamp()
  WHERE client_id = @ClientId
-RETURNING client_status, coordinator_status, last_keep_alive, resources";
+RETURNING client_status, coordinator_status, last_keep_alive, resources, fencing_token";
         command.Parameters.AddWithValue("ClientId", clientId);
         await using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
@@ -85,6 +85,8 @@ RETURNING client_status, coordinator_status, last_keep_alive, resources";
                 ClientStatus = (ClientStatus)reader.GetInt16(0),
                 CoordinatorStatus = (CoordinatorStatus)reader.GetInt16(1),
                 LastKeepAlive = reader.GetDateTime(2),
+                // PRB-0007: a delayed start goes on only for the same grant (resources and token)
+                FencingToken = reader.GetInt32(4),
                 AssignedResources = reader.GetString(3)
                     .Split(
                         new[]
@@ -167,6 +169,14 @@ RETURNING client_status, coordinator_status, last_keep_alive, resources";
         await using var conn = await ConnectionHelper.GetOpenConnectionAsync(connectionString);
         // all clients are started or none: disposing the uncommitted transaction rolls back earlier updates
         await using var transaction = await conn.BeginTransactionAsync();
+        if (resourceGroup != null)
+        {
+            // the updated rows stay locked until the commit: bound a stall as in the lease transaction (TM-0004 D2)
+            await using var bound = new NpgsqlCommand(StallBound.SetTimeouts, conn, transaction);
+            bound.Parameters.AddWithValue("ResourceGroup", resourceGroup);
+            await bound.ExecuteNonQueryAsync();
+        }
+
         await using var command = new NpgsqlCommand(
             @"UPDATE rbr.clients
    SET coordinator_status = @CoordinatorStatus,

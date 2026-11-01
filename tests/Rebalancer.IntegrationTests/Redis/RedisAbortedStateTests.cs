@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Rebalancer.Core;
+using Rebalancer.Extensions.Diagnostics.HealthChecks;
 using Rebalancer.LeaseCoordination.Clients;
 using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.Redis;
@@ -9,10 +11,70 @@ namespace Rebalancer.IntegrationTests.Redis;
 
 /// <summary>
 ///     Requires Docker. US-0021 for Redis: a client that gives up after an error reports Aborted; with auto-recovery
-///     it does not. The lease service always fails; the real server is only needed for the provider's start-up checks.
+///     it does not. The first two tests use the real store with a group that does not exist, as the SQL Server and
+///     PostgreSQL tests do; the last two use a lease service that always fails.
 /// </summary>
 public sealed class RedisAbortedStateTests
 {
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task WithoutAutoRecovery_AClientOfAMissingGroupReportsAborted(string image)
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(image).Build();
+        await redis.StartAsync();
+        using var client = new RebalancerClient(new RedisProvider(redis.GetConnectionString()));
+        var check = new RebalancerClientHealthCheck(client);
+
+        await client.StartAsync(
+            "it-redis-missing-" + Guid.NewGuid().ToString("N"),
+            new ClientOptions
+            {
+                AutoRecoveryOnError = false,
+            }
+        );
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (client.GetCurrentState() != ClientState.Aborted && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100);
+        }
+
+        Assert.Equal(ClientState.Aborted, client.GetCurrentState());
+        Assert.Equal(ClientState.Aborted, client.GetAssignedResources().ClientState);
+        Assert.Equal(HealthStatus.Unhealthy, (await check.CheckHealthAsync(new HealthCheckContext())).Status);
+    }
+
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task WithAutoRecovery_AClientOfAMissingGroupKeepsTryingAndIsNotAborted(string image)
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(image).Build();
+        await redis.StartAsync();
+        using var client = new RebalancerClient(new RedisProvider(redis.GetConnectionString()));
+        var aborts = 0;
+        // ReSharper disable once AccessToModifiedClosure
+        client.OnAborted += (_, _) => Interlocked.Increment(ref aborts);
+
+        await client.StartAsync(
+            "it-redis-missing-" + Guid.NewGuid().ToString("N"),
+            new ClientOptions
+            {
+                AutoRecoveryOnError = true,
+                RestartDelay = TimeSpan.FromMilliseconds(200),
+            }
+        );
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (Volatile.Read(ref aborts) < 2 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100);
+        }
+
+        Assert.True(Volatile.Read(ref aborts) >= 2, "the client did not keep trying");
+        Assert.NotEqual(ClientState.Aborted, client.GetCurrentState());
+        await client.StopAsync(TimeSpan.FromSeconds(10));
+    }
+
     [SkippableTheory]
     [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
     public async Task WithoutAutoRecovery_AFailedClientReportsAborted(string image)

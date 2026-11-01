@@ -15,10 +15,18 @@ internal static class PostgreSqlSchema
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
         var container = new PostgreSqlBuilder(DockerSupport.PostgreSqlImage).Build();
-        await container.StartAsync();
-        await ApplyScriptAsync(container.GetConnectionString(), "RebalancerSchema.sql");
-        await ApplyScriptAsync(container.GetConnectionString(), "RebalancerTables.sql");
-        return container;
+        try
+        {
+            await container.StartAsync();
+            await ApplyScriptAsync(container.GetConnectionString(), "RebalancerSchema.sql");
+            await ApplyScriptAsync(container.GetConnectionString(), "RebalancerTables.sql");
+            return container;
+        }
+        catch
+        {
+            await container.DisposeAsync();
+            throw;
+        }
     }
 
     /// <summary>Runs a script copied to the output's <c>PostgreSql</c> folder, as one batch.</summary>

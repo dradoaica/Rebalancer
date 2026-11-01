@@ -93,6 +93,7 @@ internal sealed class RandomisedScenario
             while (DateTime.UtcNow < end)
             {
                 ResumeDuePauses();
+                await CompleteStopsAsync();
                 Check();
                 if (DateTime.UtcNow >= nextAction)
                 {
@@ -105,12 +106,45 @@ internal sealed class RandomisedScenario
         }
         finally
         {
-            foreach (var node in nodes.Where(n => n.Client != null))
+            // every node is stopped even if one stop fails; the first failure still fails the run
+            Exception? failure = null;
+            foreach (var node in nodes)
             {
-                node.Pause.Resume();
-                await node.Client!.StopAsync(TimeSpan.FromSeconds(30));
-                node.Client.Dispose();
+                try
+                {
+                    node.Pause.Resume();
+                    if (node.Stopping != null)
+                    {
+                        await node.Stopping;
+                    }
+                    else if (node.Client != null)
+                    {
+                        await node.Client.StopAsync(TimeSpan.FromSeconds(30));
+                        node.Client.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failure ??= ex;
+                }
             }
+
+            if (failure != null)
+            {
+                throw failure;
+            }
+        }
+    }
+
+    // a stop runs while the checks go on (it can take up to 30 s); its node counts as stopped once it is done
+    private async Task CompleteStopsAsync()
+    {
+        foreach (var node in nodes.Where(n => n.State == NodeState.Stopping && n.Stopping!.IsCompleted))
+        {
+            await node.Stopping!;
+            node.Stopping = null;
+            node.Client = null;
+            node.State = NodeState.Stopped;
         }
     }
 
@@ -130,10 +164,13 @@ internal sealed class RandomisedScenario
             {
                 log($"{Now()} stop node {node.Id}");
                 node.State = NodeState.Stopping;
-                await node.Client!.StopAsync(TimeSpan.FromSeconds(30));
-                node.Client.Dispose();
-                node.Client = null;
-                node.State = NodeState.Stopped;
+                var client = node.Client!;
+                node.Stopping = Task.Run(async () =>
+                    {
+                        await client.StopAsync(TimeSpan.FromSeconds(30));
+                        client.Dispose();
+                    }
+                );
             }
             else if (roll == 2 || nodes.Count(n => n.State == NodeState.Killed) >= MaxKilled)
             {
@@ -270,6 +307,7 @@ internal sealed class RandomisedScenario
         public string Name => $"n{Id}";
         public NodePause Pause { get; set; } = new();
         public RebalancerClient? Client { get; set; }
+        public Task? Stopping { get; set; }
         public NodeState State { get; set; } = NodeState.Stopped;
         public DateTime ResumeAt { get; set; }
         public DateTime? ResumedAt { get; set; }

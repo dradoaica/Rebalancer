@@ -35,7 +35,7 @@ public class RebalancerClient : IDisposable
     /// <remarks>
     ///     The client owns its provider: if the provider implements <see cref="IDisposable" /> (e.g. RedisProvider, which
     ///     holds a connection), it is disposed here, also when StopAsync was called first. Do not share one provider instance
-    ///     between clients (ADR 0006).
+    ///     between clients (ADR-0016).
     /// </remarks>
     public void Dispose()
     {

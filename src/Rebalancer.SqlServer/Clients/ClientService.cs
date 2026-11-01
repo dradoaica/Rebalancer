@@ -112,6 +112,8 @@ WHERE ClientId = @ClientId";
                         ClientStatus = (ClientStatus)(byte)reader["ClientStatus"],
                         CoordinatorStatus = (CoordinatorStatus)(byte)reader["CoordinatorStatus"],
                         LastKeepAlive = (DateTime)reader["LastKeepAlive"],
+                        // PRB-0007: a delayed start goes on only for the same grant (resources and token)
+                        FencingToken = (int)reader["FencingToken"],
                         AssignedResources = reader["Resources"]
                             .ToString()
                             .Split(

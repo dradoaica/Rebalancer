@@ -17,9 +17,9 @@ namespace Rebalancer.Redis;
 
 /// <summary>
 ///     Redis backend. Each instance opens its own Redis connection and closes it on <see cref="Dispose" />;
-///     <see cref="RebalancerClient" /> disposes the provider it was given, so use one provider instance per client (ADR
-///     0006). The coordination itself (leases, coordinator and follower roles) is shared with the SQL Server backend in
-///     Rebalancer.LeaseCoordination (ADR-0029).
+///     <see cref="RebalancerClient" /> disposes the provider it was given, so use one provider instance per client
+///     (ADR-0016). The coordination itself (leases, coordinator and follower roles) is shared with the SQL Server and
+///     PostgreSQL backends in Rebalancer.LeaseCoordination (ADR-0029).
 /// </summary>
 public class RedisProvider : IRebalancerProvider, IDisposable
 {

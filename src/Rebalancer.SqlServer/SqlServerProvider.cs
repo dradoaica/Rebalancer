@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 namespace Rebalancer.SqlServer;
 
 /// <summary>
-///     SQL Server backend. The coordination itself (leases, coordinator and follower roles) is shared with the Redis
-///     backend in Rebalancer.LeaseCoordination (ADR-0029).
+///     SQL Server backend. The coordination itself (leases, coordinator and follower roles) is shared with the
+///     PostgreSQL and Redis backends in Rebalancer.LeaseCoordination (ADR-0029).
 /// </summary>
 public class SqlServerProvider : IRebalancerProvider
 {

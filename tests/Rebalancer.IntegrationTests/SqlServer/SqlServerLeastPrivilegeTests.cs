@@ -48,6 +48,18 @@ public sealed class SqlServerLeastPrivilegeTests
 
         // both nodes stopped cleanly, which needs DELETE on RBR.Clients
         Assert.Equal(0, await CountClientsAsync(adminConnectionString, group));
+
+        // and nothing beyond that: creating groups and resources stays with an operator
+        foreach (var insert in new[]
+                 {
+                     "INSERT INTO RBR.ResourceGroups (ResourceGroup, FencingToken, LeaseExpirySeconds, " +
+                     "HeartbeatSeconds) VALUES ('x', 0, 5, 1)",
+                     $"INSERT INTO RBR.Resources (ResourceGroup, ResourceName) VALUES ('{group}', 'x')",
+                 })
+        {
+            var denied = await Assert.ThrowsAsync<SqlException>(() => ExecAsync(nodeConnectionString, insert));
+            Assert.Equal(229, denied.Number); // the permission was denied on the object
+        }
     }
 
     private static async Task ExecAsync(string connectionString, string commandText)

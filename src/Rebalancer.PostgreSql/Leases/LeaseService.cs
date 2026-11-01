@@ -15,14 +15,8 @@ namespace Rebalancer.PostgreSql.Leases;
 /// </summary>
 internal class LeaseService : ILeaseService
 {
-    // TM-0004 D2: a node stalled inside this transaction holds the group row; the server ends it after half the
-    // lease expiry (idle_in_transaction_session_timeout), and waiting nodes give up after the same time (lock_timeout,
-    // SQLSTATE 55P03, retried as transient). Set per transaction, so it needs no role configuration.
-    private const string LockGroupRow = @"SELECT set_config('lock_timeout', timeout_ms, true),
-       set_config('idle_in_transaction_session_timeout', timeout_ms, true)
-  FROM (SELECT COALESCE((SELECT lease_expiry_seconds * 500
-                           FROM rbr.resource_groups
-                          WHERE resource_group = @ResourceGroup), 30000)::text AS timeout_ms) AS t;
+    // TM-0004 D2: the stall bound (StallBound) comes first, then the row lock, then the time read after the lock
+    private const string LockGroupRow = StallBound.SetTimeouts + @"
 SELECT coordinator_id, last_coordinator_renewal, fencing_token, lease_expiry_seconds, heartbeat_seconds
   FROM rbr.resource_groups
  WHERE resource_group = @ResourceGroup

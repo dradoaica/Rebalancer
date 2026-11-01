@@ -116,6 +116,7 @@ public sealed class SqlServerClientRecordTests
         var granted = await service.KeepAliveAsync(follower);
         Assert.Equal(CoordinatorStatus.ResourcesGranted, granted.CoordinatorStatus);
         Assert.Equal(["r1",], granted.AssignedResources);
+        Assert.Equal(3, granted.FencingToken); // PRB-0007: the keep-alive carries the grant's token
 
         Assert.Equal(
             ModifyClientResult.FencingTokenViolation,

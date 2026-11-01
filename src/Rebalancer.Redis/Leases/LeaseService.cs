@@ -30,7 +30,7 @@ internal class LeaseService : ILeaseService
         catch (Exception ex)
         {
             // never write on failure: the stored lease may belong to another, healthy coordinator
-            return ErrorResponse(ex);
+            return ErrorResponse(ex, "Lease acquisition failure");
         }
     }
 
@@ -47,7 +47,7 @@ internal class LeaseService : ILeaseService
         }
         catch (Exception ex)
         {
-            return ErrorResponse(ex);
+            return ErrorResponse(ex, "Lease renew failure");
         }
     }
 
@@ -171,11 +171,12 @@ internal class LeaseService : ILeaseService
     private static bool IsExpired(ResourceGroup resourceGroup, DateTime now) =>
         (now - resourceGroup.LastCoordinatorRenewal).TotalSeconds > resourceGroup.LeaseExpirySeconds;
 
-    private static LeaseResponse ErrorResponse(Exception ex) =>
+    // the same messages as the SQL Server and PostgreSQL lease services
+    private static LeaseResponse ErrorResponse(Exception ex, string message) =>
         new()
         {
             Result = TransientErrorDetector.IsTransient(ex) ? LeaseResult.TransientError : LeaseResult.Error,
-            Message = "Lease acquisition failure",
+            Message = message,
             Exception = ex,
         };
 }

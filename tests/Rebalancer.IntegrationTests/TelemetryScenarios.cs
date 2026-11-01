@@ -22,13 +22,14 @@ internal static class TelemetryScenarios
             AutoRecoveryOnError = true,
             RestartDelay = TimeSpan.FromSeconds(1),
         };
+        var converged = false;
         try
         {
             await first.StartAsync(group, options);
             await second.StartAsync(group, options);
             var deadline = DateTime.UtcNow.AddSeconds(60);
             while (DateTime.UtcNow < deadline &&
-                   !(Held(first) + Held(second) == resources.Length && Held(first) > 0 && Held(second) > 0))
+                   !(converged = Held(first) + Held(second) == resources.Length && Held(first) > 0 && Held(second) > 0))
             {
                 await Task.Delay(200);
             }
@@ -39,6 +40,7 @@ internal static class TelemetryScenarios
             await second.StopAsync(TimeSpan.FromSeconds(30));
         }
 
+        Assert.True(converged, "the two nodes never shared the resources");
         Assert.True(recorder.Sum("rebalancer.coordinator.elections") >= 1, "no coordinator election was recorded");
         Assert.True(recorder.Sum("rebalancer.rebalances", "completed") >= 1, "no completed rebalance was recorded");
         Assert.True(recorder.Sum("rebalancer.assignments") >= 2, "fewer than two assignments were recorded");

@@ -214,10 +214,10 @@ public sealed class RedisClientRecordTests
     }
 
     // The documented minimal Redis ACL user for one resource group in 4.0, with no shared keys (ADR-0020; command set
-    // verified 2026-10-18 against redis:7.0 and
-    // StackExchange.Redis 3.4.5): data and transaction commands, TIME for the server clock, and ECHO, which the
-    // client library's connection handshake requires. Its other handshake commands (CLIENT, CLUSTER, CONFIG GET,
-    // INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
+    // first verified 2026-10-18 against redis:7.0 and StackExchange.Redis 3.4.5; the tests using it run on every server
+    // in DockerSupport.RedisServers with the current client library): data and transaction commands, TIME for the
+    // server clock, and ECHO, which the client library's connection handshake requires. Its other handshake commands
+    // (CLIENT, CLUSTER, CONFIG GET, INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
     private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
         adminDb.ExecuteAsync(
             "ACL",
@@ -281,6 +281,7 @@ public sealed class RedisClientRecordTests
         var granted = await service.KeepAliveAsync(follower);
         Assert.Equal(CoordinatorStatus.ResourcesGranted, granted.CoordinatorStatus);
         Assert.Equal(["r1",], granted.AssignedResources);
+        Assert.Equal(3, granted.FencingToken); // PRB-0007: the keep-alive carries the grant's token
 
         Assert.Equal(
             ModifyClientResult.FencingTokenViolation,
