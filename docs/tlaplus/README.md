@@ -1,9 +1,9 @@
 # TLA+ specifications
 
-| Folder                                             | Protocol                                                                                      | Used by                                                                                                                                                                             |
-|----------------------------------------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`LeaderGlobalBarrier/`](LeaderGlobalBarrier/)     | Coordinator lease with fencing token, stop barrier for all clients, then grant                | SQL Server and Redis ([ADR-0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)); ZooKeeper `RebalancingMode.GlobalBarrier` follows the same barrier |
-| [`LeaderResourceBarrier/`](LeaderResourceBarrier/) | The coordinator writes a versioned assignment table; each client holds a barrier per resource | ZooKeeper `RebalancingMode.ResourceBarrier` ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md))                                                  |
+| Folder                                             | Protocol                                                                                      | Used by                                                                                                                                                                                |
+|----------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`LeaderGlobalBarrier/`](LeaderGlobalBarrier/)     | Coordinator lease with fencing token, stop barrier for all clients, then grant                | SQL Server, PostgreSQL and Redis ([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md)); ZooKeeper `RebalancingMode.GlobalBarrier` follows the same barrier |
+| [`LeaderResourceBarrier/`](LeaderResourceBarrier/) | The coordinator writes a versioned assignment table; each client holds a barrier per resource | ZooKeeper `RebalancingMode.ResourceBarrier` ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md))                                                     |
 
 Each folder has `RebalancerStore.tla` (the coordination store) and a protocol module named after the folder. The specs
 document the protocols as implemented; they are not part of the build, and passing them is not a release gate.
@@ -37,7 +37,7 @@ and the configs were merged or renamed. Verified from the git history on 2026-10
 `RebalancerStore.tla` models the lease, the client records and the resources; `LeaderGlobalBarrier.tla` models the
 nodes. Each action names the code it stands for:
 
-| Spec                                                 | Code (`src/Rebalancer.SqlServer`, mirrored in `src/Rebalancer.Redis`)                                       |
+| Spec                                                 | Code (`src/Rebalancer.LeaseCoordination`; `Leases/LeaseService.cs` per backend)                             |
 |------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | `AcquireLeadership`, `DenyLeadership`, `Demote`      | `StartLeadershipTask`, `ExecuteLeaseRenewals`, `Leases/LeaseService.cs`                                     |
 | `CoordinatorTick`                                    | `Coordinator.ExecuteCoordinatorRoleAsync` up to the stop barrier, `StopUnresponsiveClientsAsync` (ADR-0019) |

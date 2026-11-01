@@ -18,7 +18,8 @@ superseded-by: ""
 ## Context and Problem Statement
 
 Rebalancer coordinates through SQL Server, Redis or ZooKeeper; the README names PostgreSQL as a store that "would fit
-the same pattern but [is] not implemented". Since ADR-0029 a lease-based backend supplies only three services (`ILeaseService`, `IClientService` with the internal `IFencedClientService`, `IResourceService`) to
+the same pattern but [is] not implemented". Since ADR-0029 a lease-based backend supplies only three services
+(`ILeaseService`, `IClientService` with the internal `IFencedClientService`, `IResourceService`) to
 `Rebalancer.LeaseCoordination`. Those services must give:
 
 1. a lease per resource group with an increasing integer fencing token, acquired and renewed atomically;

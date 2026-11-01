@@ -1,6 +1,6 @@
 -- Least-privilege role for Rebalancer nodes (SQL Server backend; TM-0002 follow-up).
--- Grants exactly what Rebalancer.SqlServer 3.x executes: it reads resources, renews leases in RBR.ResourceGroups and
--- registers, updates and deletes client records in RBR.Clients (deletes since 3.0, ADR-0014).
+-- Grants exactly what Rebalancer.SqlServer executes (3.x to 5.x): it reads resources, renews leases in
+-- RBR.ResourceGroups and registers, updates and deletes client records in RBR.Clients (deletes since 3.0, ADR-0014).
 -- Creating groups and resources (INSERT into RBR.ResourceGroups / RBR.Resources) stays with an operator principal.
 --
 -- Run in the Rebalancer database after RebalancerSchema.sql and RebalancerTables.sql, then add each node's database

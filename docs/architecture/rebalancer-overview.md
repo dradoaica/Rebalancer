@@ -150,4 +150,6 @@ The library has no access control of its own; it relies on the store's identity.
 - **ZooKeeper:** credentials or an explicit ACL are required since 3.0 (ADR-0011); operator-created znodes are secured
   with the runbook in [`src/Rebalancer.ZooKeeper/README.md`](../../src/Rebalancer.ZooKeeper/README.md).
 - **SQL Server:** a dedicated login in the role `rebalancer_node`.
+- **PostgreSQL:** logins that are members of the role `rebalancer_node` (`db/postgresql/RebalancerLeastPrivilege.sql`),
+  TLS with full verification (TM-0004).
 - **Redis:** one ACL user per group, confined to `RBR:Lease:{g}`, `RBR:Resources:{g}` and `RBR:Clients:{g}` (4.0).

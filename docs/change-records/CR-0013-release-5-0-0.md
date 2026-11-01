@@ -182,6 +182,32 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
   - `QueuesPK` on `RBR.Resources` can exceed SQL Server's 900-byte key limit (found in the rollback rehearsal).
   - Hosts on .NET 8 or 9 stay on 4.3.x (ADR-0033): decide whether 4.3.x gets patch releases.
   - The ADR-0025 Pkcs pin stays until `Microsoft.Data.SqlClient` brings a patched version on `net10.0`.
+- **Cross-check after the release (appended 2026-11-01):** four read-only reviews of code, tests, docs and governance
+  records. Corrections to this record, which stays as written:
+  - Preconditions say "No third-party dependency changed … 12 projects". That was true when written; the release added
+    Npgsql 10.0.3, updated `StackExchange.Redis` 3.4.5 → 3.4.29, and the final scan covered 13 projects (Scope).
+  - Summary says "No behavior, configuration or data format change for SQL Server and Redis". The release also drops
+    the SQL Server client foreign key (ADR-0032) and targets `net10.0` only (ADR-0033), both in Scope.
+  - `depends-on` does not list US-0024, whose `ProcessingMonitor` fix shipped here; ADR-0033 does not list US-0026,
+    whose criterion 1 it replaces.
+  - Accepted records keep paths that have since changed, as they describe the code at the time: ADR-0026
+    (`src/Rebalancer.{SqlServer,Redis}/Roles/Coordinator.cs`, now in `Rebalancer.LeaseCoordination`), ADR-0030 and
+    ADR-0032 (`Rebalanser*.sql`, now `Rebalancer*.sql`). TLA+ configurations named in ADR-0026/0027/0028 are not in
+    `docs/tlaplus/`.
+  - Earlier exceptions to the immutable-record rule, each made at dradoaica's request: notes or errata appended to
+    ADR-0014, ADR-0016, ADR-0021, ADR-0023, CR-0007; ADR-0024 revised and re-accepted; ADR-0030 corrected in `731be8b`.
+- **Follow-ups from the cross-check, not fixed in code yet:**
+  - `CreateClientAsync` inserts on SQL Server and PostgreSQL but overwrites on Redis, so `RecreateClientAsync` fails on
+    the first two if the record still exists.
+  - ADR-0026's outline puts the lease check in the coordinator's keep-alive; the code makes a separate `HoldsLeaseAsync`
+    call per tick and keeps the token pre-check. Safe (every write is guarded), but a deviation to record (unverified
+    whether it was accepted in the ADR-0026 review).
+  - SQL Server reads the lease time with `GETUTCDATE()` in the locking `UPDATE … OUTPUT`; if SQL Server evaluates it
+    before the lock wait, the lease looks younger than it is after a wait (liveness only; unverified).
+  - Build: `<Version>` is set in each of the eight projects; `Rebalancer.Extensions.Diagnostics.HealthChecks`
+    references both `Microsoft.Extensions.Diagnostics.HealthChecks` and its `.Abstractions` (removing one is a
+    dependency change).
+  - The release workflow publishes without running tests (a CI test job, decision pending).
 
 ## Sources
 

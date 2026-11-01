@@ -93,8 +93,8 @@ run local containers.
 - [x] Acceptance criteria met (deviations in "Implementation notes for the reviewer", reviewed by dradoaica)
 - [x] Tests / checks agreed with a team (confirmed by dradoaica, in session 2026-11-01)
 - [x] Docs / runbooks updated if needed
-- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (5.0.0, Approved;
-  not yet released)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (released in 5.0.0,
+  `86de520`)
 
 ## Sources
 

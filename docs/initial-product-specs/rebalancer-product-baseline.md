@@ -42,7 +42,7 @@ this repository).
 
 ## Out of scope (explicit non-goals for this repo today)
 
-- Other language ports (README describes a future multi-language suite; this repo is .NET).
+- Other language ports (other languages would need their own implementation of the protocol; this repo is .NET).
 - etcd / Consul backends (mentioned in product vision, not implemented here).
 - Guaranteed exactly-once message processing (hosts must design idempotency).
 - Production RabbitMQ or SQL topology in the sample projects (samples are illustrative).
@@ -77,19 +77,18 @@ this repository).
   least-privilege identities.
 - ZooKeeper paths may hold assignment metadata — use **ACLs** and private networks. Credentials or an explicit ACL are
   required since 3.0 (ADR-0011); operator-created znodes: runbook in `src/Rebalancer.ZooKeeper/README.md`.
-- SQL Server: role `rebalancer_node` in `db/sqlserver/RebalancerLeastPrivilege.sql`. Redis 4.0: one ACL user per group,
-  no shared keys.
+- SQL Server: role `rebalancer_node` in `db/sqlserver/RebalancerLeastPrivilege.sql`. PostgreSQL: role
+  `rebalancer_node` in `db/postgresql/RebalancerLeastPrivilege.sql`. Redis 4.0: one ACL user per group, no shared
+  keys.
 - Threat models: [`docs/threat-models/`](../threat-models/) (TM-0001 ZooKeeper, TM-0002 SQL Server, TM-0003 Redis,
   TM-0004 PostgreSQL).
 
 ## Roadmap themes (v2)
 
 1. **DI-first registration** — shipped: ADR 0005, US-0012, `Rebalancer.Extensions.DependencyInjection`.
-2. **Assignment-safety tests for SqlServer + Redis** — shipped: US-0013, `tests/Rebalancer.IntegrationTests` (Docker).
+2. **Assignment-safety tests for SQL Server, PostgreSQL and Redis** — shipped: US-0013,
+   `tests/Rebalancer.IntegrationTests` (Docker).
 3. **4.1.0** — metrics and traces (ADR-0022), health check package (ADR-0023), randomised SQL Server / Redis tests.
-4. **Next** — CI matrix with Docker (backlog). Formerly listed here: OpenTelemetry
-   ([US-0017](../user-stories/US-0017-emit-rebalancing-metrics-and-traces.md)), health checks
-   ([US-0018](../user-stories/US-0018-report-client-health-to-the-host.md)), CI matrix with Docker, deeper randomized
-   parity with ZK tests
-   ([US-0019](../user-stories/US-0019-randomised-assignment-safety-tests-for-sql-server-and-redis.md)) (implemented in
-   4.1.0).
+4. **5.0.0** — shared lease coordination (ADR-0029), PostgreSQL backend (ADR-0030), Valkey (ADR-0031), .NET 10
+   (ADR-0033).
+5. **Next** — a CI test job with Docker (backlog).

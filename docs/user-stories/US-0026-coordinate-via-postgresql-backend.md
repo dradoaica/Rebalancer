@@ -6,7 +6,7 @@ owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
 ssdlc-phase: Release
-depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-0005", "TM-0004" ]
+depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-0005", "TM-0004", "ADR-0032", "ADR-0033" ]
 ---
 
 # User story: Coordinate via a PostgreSQL backend
@@ -90,6 +90,14 @@ Where the implementation differs from the criteria above or from ADR-0030's word
    replaces criterion 1's `netstandard2.1`, and the backend uses Npgsql 10.0.3.
 6. **Recommendation, not done:** `SELECT … FOR NO KEY UPDATE` would serialize lease operations as `FOR UPDATE` does
    without conflicting with key-share locks. Kept `FOR UPDATE`, as ADR-0030 and criterion 4 state.
+7. **Command timeout (criterion 8, appended 2026-11-01 after the cross-check):** no `CommandTimeout` is set; the
+   per-transaction `lock_timeout` and `idle_in_transaction_session_timeout` (half the lease expiry) bound the waits that
+   a command timeout below the lease expiry was meant to bound. The same bound now also covers the coordinator's
+   multi-row `StartActivityAsync` transaction.
+8. **Script differences from SQL Server (appended 2026-11-01):** besides the missing client foreign key (ADR-0032),
+   `rbr.clients` has an index on `resource_group` (`RBR.Clients` has none), `rbr.clients.resources` defaults to `''`,
+   `rbr.resource_groups.fencing_token` defaults to `0`, and `coordinator_server` is `varchar(500)` (SQL Server:
+   `NCHAR(500)`). None changes behavior; the grants are the same.
 
 ## Non-goals
 
@@ -125,13 +133,15 @@ credentials and TLS in the connection string, the least-privilege role (criterio
 - [x] Acceptance criteria met (deviations in "Implementation notes for the reviewer", reviewed by dradoaica)
 - [x] Tests / checks agreed with a team (confirmed by dradoaica, in session 2026-11-01)
 - [x] Docs / runbooks updated if needed
-- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (5.0.0, Approved;
-  not yet released)
+- [x] Traceable to change record (if released) - `docs/change-records/CR-0013-release-5-0-0.md` (released in 5.0.0,
+  `86de520`)
 
 ## Sources
 
 - `docs/adrs/0030-postgresql-backend.md` (Decision Outcome)
 - `docs/adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md` (the services a backend supplies)
+- `docs/adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md` (the client-table foreign key)
+- `docs/adrs/0033-target-net-10-only.md` (replaces criterion 1's `netstandard2.1`)
 - `docs/adrs/0026-coordinator-acts-only-under-a-valid-lease.md` (the guard)
 - `docs/adrs/0014-expire-stale-client-records.md` (expiry by the store's clock)
 - `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (registration)

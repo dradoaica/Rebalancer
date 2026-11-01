@@ -28,14 +28,19 @@ You need:
 - Docker, for the SQL Server, PostgreSQL, Redis and Valkey integration tests (Testcontainers starts the servers; the
   tests are skipped when Docker is not available);
 - for the ZooKeeper integration tests, a three-node ZooKeeper ensemble on `localhost:2181`, `2182` and `2183`. These
-  tests are **not** skipped automatically – they fail without the ensemble. `DisconnectionTests` pauses the ensemble's
-  containers and needs them under the names the [README](README.md) uses (`rbr-it-zk1`..`3`); it is skipped otherwise.
+  tests are **not** skipped automatically – they fail without the ensemble. `DisconnectionTests` and
+  `NetworkFaultTests` pause or cut off the ensemble's containers and need them under the names the [README](README.md)
+  uses (`rbr-it-zk1`..`3`); they are skipped otherwise.
 
 ```shell
 dotnet build Rebalancer.slnx
 dotnet test tests/Rebalancer.UnitTests
-dotnet test tests/Rebalancer.IntegrationTests
+# SQL Server, PostgreSQL and Redis (Docker); with less than 8 GiB for Docker, add: -- xUnit.MaxParallelThreads=3
+dotnet test tests/Rebalancer.IntegrationTests --filter "FullyQualifiedName!~ZooKeeper"
 ```
+
+The ZooKeeper suites also run the randomised tests, about 46 hours in total; cap each with
+`REBALANCER_RANDOMISED_TEST_MAX_MINUTES` (see the README, "Building and testing").
 
 Repository layout:
 
@@ -67,8 +72,8 @@ not edited – a changed decision gets a new, superseding ADR.
 
 Things that are Tier 1 here even when they look small:
 
-- changing what is stored in SQL Server tables, Redis keys or znodes – nodes of different versions share the store
-  during a rolling upgrade;
+- changing what is stored in SQL Server or PostgreSQL tables, Redis keys or znodes – nodes of different versions share
+  the store during a rolling upgrade;
 - changing timing (lease, keep-alive, expiry) or the order of steps in a rebalance;
 - anything in the public surface of `RebalancerClient`, `IRebalancerProvider`, options or DI registrations;
 - adding or upgrading a NuGet dependency of a package in `src/`.

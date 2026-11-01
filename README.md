@@ -87,8 +87,8 @@ Other languages would need their own implementation of the protocol.
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
 - [Release notes 5.0.0](docs/release-notes/5.0.0.md) and [migration guide](docs/release-notes/migrating-to-5.0.md) —
-  PostgreSQL backend, Valkey support, .NET 10 requirement, and SQL Server / Redis coordination changes; source-breaking
-  for code that names the moved service types
+  PostgreSQL backend, Valkey support, .NET 10 requirement, the SQL Server / Redis service types moved to
+  `Rebalancer.LeaseCoordination` (source-breaking for code that names them), and a SQL Server schema fix
 - [Release notes 4.3.2](docs/release-notes/4.3.2.md) — every client reports `Stopped` after `StopAsync`; SQL Server /
   Redis apply `OnAssignmentDelay` once per assignment, not before every heartbeat
 - [Release notes 4.3.1](docs/release-notes/4.3.1.md) — SQL Server / Redis: `StopAsync` raises `OnUnassignment`;
@@ -123,7 +123,7 @@ Other languages would need their own implementation of the protocol.
 - [`README(cogov-a-sdlc).md`](README%28cogov-a-sdlc%29.md) — overview of the co-governed SDLC layout (single vs.
   multi-repo, `docs/` artifacts).
 
-### Dependency injection (v2)
+### Dependency injection
 
 Reference `Rebalancer.Extensions.DependencyInjection` and register the backend you use, for example:
 
@@ -188,10 +188,10 @@ this for you.
     - bound the connection pool (`Maximum Pool Size`) so that nodes times pool size stays below `max_connections` (D4);
     - a node that stalls inside a lease transaction is cut off by the server after half the lease expiry, so the others
       continue; the backend sets these timeouts itself (D2).
-- **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first
-  4.0
-  node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
-  [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once. Valkey 8.1 works
+- **Redis:** since 4.0 a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the
+  first 4.0 node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
+  [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). From 3.x to 4.0, upgrade all nodes of a group at
+  once. Valkey 8.1 works
   the same way, including the per-group ACL user (ADR-0031).
 - **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
   [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md). A client stops its handlers as soon as
@@ -239,7 +239,7 @@ for i in 1 2 3; do
 done
 ```
 
-The randomised ZooKeeper tests run 2–8 hours each (about 38 hours in total). Set
+The randomised ZooKeeper tests run 2–8 hours each (about 46 hours in total). Set
 `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` (e.g. `2`) to cap each test and run the suite as a smoke test.
 
 ### Repository layout

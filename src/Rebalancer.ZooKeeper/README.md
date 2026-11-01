@@ -2,7 +2,7 @@
 
 ZooKeeper backend for .NET Rebalancer.
 
-To learn more about the project check out the [wiki](https://github.com/Rebalancer/wiki/wiki).
+To learn more about the project, see the [architecture overview](../../docs/architecture/rebalancer-overview.md).
 
 ## Securing znodes with an ACL
 
@@ -119,7 +119,7 @@ cause a BadVersion error for the coordinator during a rebalancing.
 
 When a client starts it registers an ephemeral sequential znode under the /chroot/group/clients path. ZooKeeper appends
 a monotonically increasing counter to the end of path that is unique to that client. This will create a path such as
-/chroot/group/clients/client_0000000007.
+/chroot/group/clients/c_0000000007.
 
 If the client sees that it has the lowest sequence number then it designates itself the leader. The leader is called
 the "coordinator". If it sees that it is not the lowest, then it designates itself a follower.
@@ -149,7 +149,7 @@ to negatively impact rebalancing and will also detect their zombie state and rev
 
 ### Rebalancing Algorithms
 
-There are many possible algorithms and two are being implemented: Resource Barrier and Global Barrier.
+There are many possible algorithms; two are implemented: Resource Barrier and Global Barrier.
 
 The Resource Barrier algorithm ensures that no resource can be consumed concurrently by two or more clients by placing
 barriers on individual resources. The pros of this algorithm are its simplicity and speed, and the negative is that it
@@ -245,7 +245,7 @@ The steps in a rebalancing are as follows:
 2. Coordinator: SetData () "StopActivity" on /chroot/group/status
 3. Followers: Receive /chroot/group/status notification.
 4. Followers: Invoke OnStop event handlers which call user code to stop consumption/writing of resources
-5. Followers: create () ephemeral znode with ClientId (client_000000007) to /chroot/group/stopped
+5. Followers: create () ephemeral znode with ClientId (c_0000000007) to /chroot/group/stopped
 6. Coordinator: Receives /chroot/group/stopped notification and all ClientIds found in /chroot/group/clients match
    /chroot/group/stopped (excluding itself). GetChildren () /chroot/group/resources and /chroot/group/clients, then
    create key/value pairs in memory with resource-client assignments.
@@ -282,6 +282,6 @@ The integration tests validate that invariant 1 holds no matter what and they te
 minimum stability of the system. For example, I can overload the system, I can kill off parts of it, I can mess with the
 network, invariant 1 must always hold. Invariant 2 should hold as long as it is given sufficient stability where we
 should expect it to operate successfully. To test that I have a suite of integration tests that operate the distributed
-nodes in one process, with a physical ZooKeeper cluster. A second suite of tests not yet developed will deploy the nodes
-to multiple machines and stresses will be placed. Both invariants should hold and overall performance of the system
-should be reasonable.
+nodes in one process, with a physical ZooKeeper cluster; the network-fault tests also cut nodes off through local TCP
+proxies. A suite that deploys the nodes to multiple machines is not developed. Both invariants should hold and overall
+performance of the system should be reasonable.
