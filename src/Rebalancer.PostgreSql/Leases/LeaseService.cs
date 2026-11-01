@@ -10,8 +10,8 @@ namespace Rebalancer.PostgreSql.Leases;
 
 /// <summary>
 ///     The lease of a resource group (ADR-0030): one READ COMMITTED transaction locks the group row with
-///     <c>SELECT … FOR UPDATE</c>, then reads the time with <c>clock_timestamp()</c>, so a node that waited for the
-///     lock never stamps a lease with a time from before its wait (<c>now()</c> is fixed at the transaction start).
+///     <c>SELECT … FOR UPDATE</c>, then reads the time with <c>clock_timestamp()</c>, so a node that waited for the lock
+///     never stamps a lease with a time from before its wait (<c>now()</c> is fixed at the transaction start).
 /// </summary>
 internal class LeaseService : ILeaseService
 {
@@ -223,9 +223,9 @@ SELECT clock_timestamp();";
                 {
                     Name = resourceGroup,
                     CoordinatorId = reader.IsDBNull(0) ? Guid.Empty : reader.GetGuid(0),
-                    LastCoordinatorRenewal = reader.IsDBNull(1)
-                        ? new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                        : reader.GetDateTime(1),
+                    LastCoordinatorRenewal =
+                        reader.IsDBNull(1) ? new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                            : reader.GetDateTime(1),
                     FencingToken = reader.GetInt32(2),
                     LeaseExpirySeconds = reader.GetInt32(3),
                     HeartbeatSeconds = reader.GetInt32(4),

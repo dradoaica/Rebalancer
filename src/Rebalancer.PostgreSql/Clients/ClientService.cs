@@ -173,7 +173,8 @@ RETURNING client_status, coordinator_status, last_keep_alive, resources";
        resources = @Resources,
        fencing_token = @FencingToken
  WHERE client_id = @ClientId
-   AND fencing_token <= @FencingToken" + (resourceGroup == null ? "" : $@"
+   AND fencing_token <= @FencingToken" +
+            (resourceGroup == null ? "" : $@"
    AND {LeaseGuard}"),
             conn,
             transaction
@@ -212,7 +213,8 @@ RETURNING client_status, coordinator_status, last_keep_alive, resources";
        resources = '',
        fencing_token = @FencingToken
  WHERE client_id = ANY(@ClientIds)
-   AND fencing_token <= @FencingToken" + (resourceGroup == null ? "" : $@"
+   AND fencing_token <= @FencingToken" +
+                              (resourceGroup == null ? "" : $@"
    AND {LeaseGuard}");
         command.Parameters.AddWithValue("CoordinatorStatus", (short)CoordinatorStatus.StopActivity);
         command.Parameters.AddWithValue("ClientIds", clients.Select(x => x.ClientId).ToArray());

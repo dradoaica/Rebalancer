@@ -12,7 +12,13 @@ public sealed class PostgreSqlAssignmentDelayTests
         await using var pg = await PostgreSqlSchema.StartAsync();
         var connectionString = pg.GetConnectionString();
         var group = "it-pg-delay-" + Guid.NewGuid().ToString("N");
-        await PostgreSqlSchema.SeedResourceGroupAsync(connectionString, group, AssignmentDelayScenarios.Resources, 5, 1);
+        await PostgreSqlSchema.SeedResourceGroupAsync(
+            connectionString,
+            group,
+            AssignmentDelayScenarios.Resources,
+            5,
+            1
+        );
 
         await AssignmentDelayScenarios.ADelayLongerThanTheKeepAliveExpiry_StillConvergesAndStaysStable(
             group,

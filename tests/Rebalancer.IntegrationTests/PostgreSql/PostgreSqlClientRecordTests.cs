@@ -4,9 +4,7 @@ using Xunit;
 
 namespace Rebalancer.IntegrationTests.PostgreSql;
 
-/// <summary>
-///     Requires Docker. ADR-0014 against a real PostgreSQL: stale records expire only under the coordinator's lease.
-/// </summary>
+/// <summary>Requires Docker. ADR-0014 against a real PostgreSQL: stale records expire only under the coordinator's lease.</summary>
 public sealed class PostgreSqlClientRecordTests
 {
     [SkippableFact]

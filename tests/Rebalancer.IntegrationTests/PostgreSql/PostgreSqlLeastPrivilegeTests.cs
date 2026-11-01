@@ -6,9 +6,9 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
 ///     Requires Docker. A database installed from the shipped <c>db/postgresql/</c> scripts works, and
-///     <c>RebalancerLeastPrivilege.sql</c> grants everything a node needs (US-0026 criterion 3, TM-0004): two nodes
-///     whose login is only a member of that role coordinate, survive a paused follower, and delete their records on a
-///     clean stop (ADR-0014).
+///     <c>RebalancerLeastPrivilege.sql</c> grants everything a node needs (US-0026 criterion 3, TM-0004): two nodes whose
+///     login is only a member of that role coordinate, survive a paused follower, and delete their records on a clean stop
+///     (ADR-0014).
 /// </summary>
 public sealed class PostgreSqlLeastPrivilegeTests
 {

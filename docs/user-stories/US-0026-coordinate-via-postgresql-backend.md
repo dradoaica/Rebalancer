@@ -19,8 +19,7 @@ depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-00
 
 ## Context
 
-ADR-0030 (Accepted) decides the backend: Npgsql, a `rbr` schema mirroring the SQL Server tables, a row lock
-(`SELECT … FOR UPDATE`) per lease operation, `clock_timestamp()` after the lock as the store clock, the ADR-0026 lease
+ADR-0030 (Accepted) decides the backend: Npgsql, a `rbr` schema mirroring the SQL Server tables, a row lock (`SELECT … FOR UPDATE`) per lease operation, `clock_timestamp()` after the lock as the store clock, the ADR-0026 lease
 guard on client writes, and a `PostgreSqlProvider` that delegates to `LeaseCoordinatedProvider` (ADR-0029). This story
 is that backend, end to end; its behavior is the SQL Server backend's (US-0005), on PostgreSQL.
 
@@ -58,16 +57,14 @@ corrects the tier.
    health check, telemetry), against a PostgreSQL container image pinned in `DockerSupport.cs`.
 8. **Stall:** a node whose lease transaction stalls holding the row lock does not block the others beyond the lease
    expiry: the command timeout and the role's server-side timeouts end the stalled transaction, and the waiting nodes
-   retry a lock timeout as transient. A test pauses a node inside a lease transaction and shows the others continue
-   (TM-0004, D2).
+   retry a lock timeout as transient. A test pauses a node inside a lease transaction and shows the others continue (TM-0004, D2).
 9. **Shadowing:** every statement names the `rbr` schema; a test creates a table and a function with the backend's
    names in `public` and shows the backend still uses `rbr` (TM-0004, T3).
 10. **Registration:** `AddRebalancerPostgreSql` in `Rebalancer.Extensions.DependencyInjection`, with a test like
-   `DiRegistrationTests.AddRebalancerSqlServer_Resolves_RebalancerClient_Without_Static_Providers` (ADR-0005). The name
-   follows the existing `AddRebalancerSqlServer` (ADR-0030, corrected 2026-11-01).
+    `DiRegistrationTests.AddRebalancerSqlServer_Resolves_RebalancerClient_Without_Static_Providers` (ADR-0005). The name
+    follows the existing `AddRebalancerSqlServer` (ADR-0030, corrected 2026-11-01).
 11. **Docs:** README (Languages and Backends, quick start, and guidance on TLS with full verification, synchronous
-    replication or a lease expiry above the failover time, and pool sizing; TM-0004 I2, T4, D4), architecture overview
-    (backend table and diagram), release notes, and the traceability matrix (ADR-0030 row, this story).
+    replication or a lease expiry above the failover time, and pool sizing; TM-0004 I2, T4, D4), architecture overview (backend table and diagram), release notes, and the traceability matrix (ADR-0030 row, this story).
 12. The SQL Server, Redis, ZooKeeper and unit tests still pass unchanged.
 
 ## Implementation notes for the reviewer (2026-11-01)
@@ -80,8 +77,7 @@ Where the implementation differs from the criteria above or from ADR-0030's word
    could not have done it; the stall test shows the bound works.
 2. **No foreign key from `rbr.clients` to `rbr.resource_groups`:** with it, a client of a missing group fails inside
    `StartAsync` (SQLSTATE `23503`) instead of reporting `Aborted` (US-0021), and the key check waits for any lease
-   transaction holding the group row. `rbr.resources` keeps its key. The shipped SQL Server schema
-   (`db/sqlserver/RebalancerTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
+   transaction holding the group row. `rbr.resources` keeps its key. The shipped SQL Server schema (`db/sqlserver/RebalancerTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
    pass only because they use their own schema without it. Fixed for both by ADR-0032 (5.0.0).
 3. **Transient errors (criterion 6):** besides the codes ADR-0030 names, `55P03` (the waiting nodes' lock timeout) and
    `25P03` (the stalled node's own session ended by the server) are retried, as TM-0004 D2 requires.
@@ -114,9 +110,7 @@ Where the implementation differs from the criteria above or from ADR-0030's word
 ## Security & compliance
 
 New network exposure: nodes connect to PostgreSQL with credentials from the connection string. Covered by TM-0004:
-credentials and TLS in the connection string, the least-privilege role (criterion 3), who may write the `rbr` schema
-(a writer can forge leases or assignments, as on SQL Server), the row-lock stall (criterion 8), object shadowing
-(criterion 9), lost lease writes on failover to an asynchronous standby, and pool sizing (README guidance, criterion
+credentials and TLS in the connection string, the least-privilege role (criterion 3), who may write the `rbr` schema (a writer can forge leases or assignments, as on SQL Server), the row-lock stall (criterion 8), object shadowing (criterion 9), lost lease writes on failover to an asynchronous standby, and pool sizing (README guidance, criterion
 11). No personal data is stored: client ids, group and resource names only.
 
 ## Definition of ready

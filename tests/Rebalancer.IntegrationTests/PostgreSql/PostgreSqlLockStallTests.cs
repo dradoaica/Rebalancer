@@ -9,9 +9,9 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
 ///     Requires Docker. US-0026 criterion 8, TM-0004 D2: a node that stalls while its lease transaction holds the
-///     group row does not block the others beyond the lease expiry. The server ends the stalled transaction
-///     (<c>idle_in_transaction_session_timeout</c>) and the waiting nodes give up and retry (<c>lock_timeout</c>), both
-///     set by the backend to half the lease expiry.
+///     group row does not block the others beyond the lease expiry. The server ends the stalled transaction (
+///     <c>idle_in_transaction_session_timeout</c>) and the waiting nodes give up and retry (<c>lock_timeout</c>), both set
+///     by the backend to half the lease expiry.
 /// </summary>
 public sealed class PostgreSqlLockStallTests
 {
@@ -48,7 +48,10 @@ public sealed class PostgreSqlLockStallTests
         var assigned = new TaskCompletionSource();
         using var first = new RebalancerClient(new PostgreSqlProvider(connectionString));
         using var second = new RebalancerClient(new PostgreSqlProvider(connectionString));
-        foreach (var client in new[] { first, second, })
+        foreach (var client in new[]
+                 {
+                     first, second,
+                 })
         {
             client.OnAssignment += (_, args) =>
             {

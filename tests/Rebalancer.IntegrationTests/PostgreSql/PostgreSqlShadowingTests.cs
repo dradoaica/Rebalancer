@@ -7,8 +7,8 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
 ///     Requires Docker. US-0026 criterion 9, TM-0004 T3: tables and a function with the backend's names in
-///     <c>public</c>, which is on the default search_path, change nothing. Every statement names <c>rbr</c>, and
-///     built-ins resolve from <c>pg_catalog</c> first.
+///     <c>public</c>, which is on the default search_path, change nothing. Every statement names <c>rbr</c>, and built-ins
+///     resolve from <c>pg_catalog</c> first.
 /// </summary>
 public sealed class PostgreSqlShadowingTests
 {

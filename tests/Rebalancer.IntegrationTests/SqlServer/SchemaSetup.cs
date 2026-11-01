@@ -4,13 +4,8 @@ namespace Rebalancer.IntegrationTests.SqlServer;
 
 internal static class SchemaSetup
 {
-    /// <summary>
-    ///     The schema and tables from the shipped <c>db/sqlserver/</c> scripts, as an operator installs them (ADR-0032).
-    /// </summary>
-    public static async Task ApplyRbrSchemaAsync(
-        string connectionString,
-        CancellationToken cancellationToken = default
-    )
+    /// <summary>The schema and tables from the shipped <c>db/sqlserver/</c> scripts, as an operator installs them (ADR-0032).</summary>
+    public static async Task ApplyRbrSchemaAsync(string connectionString, CancellationToken cancellationToken = default)
     {
         await ApplyScriptAsync(connectionString, "RebalancerSchema.sql", cancellationToken);
         await ApplyScriptAsync(connectionString, "RebalancerTables.sql", cancellationToken);

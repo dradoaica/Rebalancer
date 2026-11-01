@@ -16,8 +16,8 @@ using System.Threading.Tasks;
 namespace Rebalancer.LeaseCoordination;
 
 /// <summary>
-///     The client loop of a lease-based backend (ADR-0029): leader election under a lease, the coordinator and follower
-///     roles, recovery and clean stop. A backend provider builds its services and delegates to this class.
+///     The client loop of a lease-based backend (ADR-0029): leader election under a lease, the coordinator and
+///     follower roles, recovery and clean stop. A backend provider builds its services and delegates to this class.
 /// </summary>
 internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
 {
@@ -25,6 +25,7 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
 
     // the rebalancer.backend tag of the telemetry (ADR-0022), e.g. "sqlserver" or "redis"
     private readonly string backend;
+    private readonly Guid clientId;
     private readonly IClientService clientService;
     private readonly Coordinator coordinator;
     private readonly Follower follower;
@@ -35,7 +36,6 @@ internal sealed class LeaseCoordinatedProvider : IRebalancerProvider
     private readonly Func<string, string, Task> onStarting;
     private readonly ResourceGroupStore store;
     private volatile bool aborted;
-    private Guid clientId;
     private ClientOptions currentClientOptions;
     private string currentResourceGroup;
     private volatile bool isCoordinator;

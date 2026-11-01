@@ -189,12 +189,12 @@ this for you.
   ([`db/postgresql/RebalancerLeastPrivilege.sql`](db/postgresql/RebalancerLeastPrivilege.sql)); groups and resources
   are rows you insert into `rbr.resource_groups` and `rbr.resources`. From the threat model
   ([TM-0004](docs/threat-models/TM-0004-postgresql-coordination.md)):
-  - use TLS with full certificate and host-name verification in the connection string;
-  - with standbys, use synchronous replication for this database, or a lease expiry longer than your failover time:
-    an asynchronous standby can lose the last lease renewal when it is promoted (T4);
-  - bound the connection pool (`Maximum Pool Size`) so that nodes times pool size stays below `max_connections` (D4);
-  - a node that stalls inside a lease transaction is cut off by the server after half the lease expiry, so the others
-    continue; the backend sets these timeouts itself (D2).
+    - use TLS with full certificate and host-name verification in the connection string;
+    - with standbys, use synchronous replication for this database, or a lease expiry longer than your failover time:
+      an asynchronous standby can lose the last lease renewal when it is promoted (T4);
+    - bound the connection pool (`Maximum Pool Size`) so that nodes times pool size stays below `max_connections` (D4);
+    - a node that stalls inside a lease transaction is cut off by the server after half the lease expiry, so the others
+      continue; the backend sets these timeouts itself (D2).
 - **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first
   4.0
   node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:

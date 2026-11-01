@@ -46,18 +46,16 @@ it.
 3. All of them pass on Valkey with their assertions unchanged. A failure that comes from a server difference is not
    worked around in the tests: it is recorded as a note on ADR-0031 and stops this story (ADR-0031, Confirmation).
 4. The minimal per-group ACL user from `docs/release-notes/migrating-to-4.0.md` is checked on Valkey: a node using only
-   that user starts, is assigned, and stops cleanly
-   (`RedisClientRecordTests.ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, run on both servers).
+   that user starts, is assigned, and stops cleanly (`RedisClientRecordTests.ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, run on both servers).
 5. `README.md` (Languages and Backends) and the release notes of the release that ships this name the supported
-   Valkey version(s); the traceability matrix row of ADR-0031 points to the tests.
+   Valkey version (s); the traceability matrix row of ADR-0031 points to the tests.
 6. The SQL Server, ZooKeeper and unit tests are unchanged and still pass.
 
 ## Implementation notes for the reviewer (2026-11-01)
 
 1. Pinned image: `valkey/valkey:8.1.11` (the newest 8.1 patch on Docker Hub that day). Testcontainers' `RedisBuilder`
    starts it unchanged.
-2. Result: all 25 Redis tests passed on Valkey. One run of the doubled suite failed one Redis 7.0 test on liveness
-   (`RedisNetworkFaultTests`, seed `104995485`, "the nodes never converged over the degraded network"); the same seed
+2. Result: all 25 Redis tests passed on Valkey. One run of the doubled suite failed one Redis 7.0 test on liveness (`RedisNetworkFaultTests`, seed `104995485`, "the nodes never converged over the degraded network"); the same seed
    passed on both servers when run alone. Running both servers doubles the containers started at once, which makes
    the timing-sensitive tests more likely to miss their bounds on a loaded machine.
 

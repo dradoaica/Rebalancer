@@ -5,10 +5,10 @@
 CREATE TABLE rbr.resource_groups
 (
     resource_group           varchar(100) NOT NULL PRIMARY KEY,
-    coordinator_id           uuid         NULL,
-    last_coordinator_renewal timestamptz  NULL,
+    coordinator_id           uuid NULL,
+    last_coordinator_renewal timestamptz NULL,
     coordinator_server       varchar(500) NULL,
-    locked_by_client         uuid         NULL,
+    locked_by_client         uuid NULL,
     fencing_token            integer      NOT NULL DEFAULT 0,
     lease_expiry_seconds     integer      NOT NULL,
     heartbeat_seconds        integer      NOT NULL

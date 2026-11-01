@@ -68,13 +68,8 @@ public sealed class UnresponsiveFollowerTests
         table.Add(coordinator, true, [], DateTime.UtcNow);
         table.Add(follower, true, ["r1",], DateTime.UtcNow.AddMinutes(-5));
 
-        await new Coordinator(
-            "redis",
-            new NullRebalancerLogger(),
-            new RedisR1(),
-            table,
-            new ResourceGroupStore()
-        ).ExecuteCoordinatorRoleAsync(coordinator, RedisEvent(2), new OnChangeActions(), CancellationToken.None);
+        await new Coordinator("redis", new NullRebalancerLogger(), new RedisR1(), table, new ResourceGroupStore())
+            .ExecuteCoordinatorRoleAsync(coordinator, RedisEvent(2), new OnChangeActions(), CancellationToken.None);
 
         Assert.Contains("r1", table.Rows[coordinator].AssignedResources);
         Assert.Equal(CoordinatorStatus.StopActivity, table.Rows[follower].CoordinatorStatus);
@@ -282,9 +277,7 @@ public sealed class UnresponsiveFollowerTests
 
         public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) =>
             Task.FromResult(
-                Rows.Values.Where(x =>
-                        x.ClientStatus is ClientStatus.Waiting or ClientStatus.Active
-                    )
+                Rows.Values.Where(x => x.ClientStatus is ClientStatus.Waiting or ClientStatus.Active)
                     .Select(x => Copy(x))
                     .ToList()
             );
@@ -301,10 +294,7 @@ public sealed class UnresponsiveFollowerTests
             return Task.CompletedTask;
         }
 
-        public Task<ModifyClientResult> StopActivityAsync(
-            int fencingToken,
-            List<Client> clients
-        )
+        public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
         {
             foreach (var c in clients.Select(x => Rows[x.ClientId]))
             {
@@ -316,10 +306,7 @@ public sealed class UnresponsiveFollowerTests
             return Task.FromResult(ModifyClientResult.Ok);
         }
 
-        public Task<ModifyClientResult> StartActivityAsync(
-            int fencingToken,
-            List<ClientStartRequest> requests
-        )
+        public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests)
         {
             foreach (var r in requests)
             {
@@ -336,9 +323,7 @@ public sealed class UnresponsiveFollowerTests
                 ClientId = id,
                 ResourceGroup = Group,
                 ClientStatus = ClientStatus.Active,
-                CoordinatorStatus =
-                    granted ? CoordinatorStatus.ResourcesGranted
-                        : CoordinatorStatus.StopActivity,
+                CoordinatorStatus = granted ? CoordinatorStatus.ResourcesGranted : CoordinatorStatus.StopActivity,
                 AssignedResources = resources,
                 LastKeepAlive = lastKeepAlive,
                 FencingToken = 1,

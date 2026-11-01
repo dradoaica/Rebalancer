@@ -14,7 +14,11 @@
 
 CREATE ROLE rebalancer_node NOLOGIN;
 
-GRANT USAGE ON SCHEMA rbr TO rebalancer_node;
+GRANT
+USAGE
+ON
+SCHEMA
+rbr TO rebalancer_node;
 GRANT SELECT, INSERT, UPDATE, DELETE ON rbr.clients TO rebalancer_node;
 -- UPDATE also covers SELECT ... FOR UPDATE on the lease row
 GRANT SELECT, UPDATE ON rbr.resource_groups TO rebalancer_node;

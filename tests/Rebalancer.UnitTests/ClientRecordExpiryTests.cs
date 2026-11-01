@@ -292,8 +292,7 @@ public sealed class ClientRecordExpiryTests
         }
 
         public Task<Client> KeepAliveAsync(Guid clientId) =>
-            clients.TryGetValue(clientId, out var c) ? Task.FromResult(c)
-                : throw new ClientNotFoundException(clientId);
+            clients.TryGetValue(clientId, out var c) ? Task.FromResult(c) : throw new ClientNotFoundException(clientId);
 
         public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) =>
             Task.FromResult(new List<Client>());
@@ -304,16 +303,10 @@ public sealed class ClientRecordExpiryTests
             return Task.CompletedTask;
         }
 
-        public Task<ModifyClientResult> StopActivityAsync(
-            int fencingToken,
-            List<Client> c
-        ) =>
+        public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> c) =>
             Task.FromResult(ModifyClientResult.Ok);
 
-        public Task<ModifyClientResult> StartActivityAsync(
-            int fencingToken,
-            List<ClientStartRequest> r
-        ) =>
+        public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> r) =>
             Task.FromResult(ModifyClientResult.Ok);
 
         public Task<int> DeleteExpiredClientsAsync(

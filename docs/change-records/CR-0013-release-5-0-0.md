@@ -19,8 +19,7 @@ Releases 5.0.0 of all packages and the new package `Rebalancer.LeaseCoordination
 the SQL Server and Redis backends had as two copies (ADR-0029). The code moves unchanged; the public service types move
 to `Rebalancer.LeaseCoordination.*` namespaces, a source and binary break for code that names them, hence a major
 version. No behavior, configuration or data format change for SQL Server and Redis. The release also adds the
-PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valkey support for the Redis backend
-(ADR-0031, US-0025); the maintainer decided both ship in 5.0.0 (2026-11-01). Release notes:
+PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valkey support for the Redis backend (ADR-0031, US-0025); the maintainer decided both ship in 5.0.0 (2026-11-01). Release notes:
 `docs/release-notes/5.0.0.md`; migration guide: `docs/release-notes/migrating-to-5.0.md`.
 
 ## Motivation / drivers
@@ -66,11 +65,11 @@ PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valk
   package added, removed or major-upgraded. Vulnerability scan after them: none in 13 projects.
 
 **Out of scope:**
+
 - The external NuGet version bumps found in the working tree on 2026-11-01 (stashed; their own change).
 - A CI test job (not planned).
 
-**Versioning.** A major release: the packages need .NET 10 (ADR-0033), and public types change namespace
-(`.agents/protocols/maintainability.md`, Regression-awareness rules). The strongest argument for a minor release: hosts
+**Versioning.** A major release: the packages need .NET 10 (ADR-0033), and public types change namespace (`.agents/protocols/maintainability.md`, Regression-awareness rules). The strongest argument for a minor release: hosts
 that only pass a connection string are not affected. But custom service implementations and test doubles are, and a
 minor version must not break them.
 
@@ -95,8 +94,7 @@ minor version must not break them.
   The one failure is `RedisNetworkFaultTests` on Redis 7.0, liveness ("never converged"), which passes when run alone;
   it has failed that way in three of four full runs since the Redis suites run on two servers (load; US-0025 notes).
 - [x] After ADR-0032 (shipped scripts, no client foreign key): SQL Server suite 18/18 and PostgreSQL suite 20/20.
-  Docker here is limited to 7.3 GiB: with xUnit's default parallelism, SQL Server containers fail to start
-  (exit codes 17, 114, 183, 235, 255), as in the `main` baseline run; the SQL Server run used
+  Docker here is limited to 7.3 GiB: with xUnit's default parallelism, SQL Server containers fail to start (exit codes 17, 114, 183, 235, 255), as in the `main` baseline run; the SQL Server run used
   `-- xUnit.MaxParallelThreads=3`.
 - [x] `ProcessingMonitor` fix (US-0024): seed `1306714545`, which failed on `main` (Redis) and on the branch (SQL
   Server, Valkey) before the fix, passes on Valkey and SQL Server after it.
@@ -122,13 +120,11 @@ minor version must not break them.
     resource (SQL Server 6.28 s / 7.28 s, Redis 6.13 s / 6.11 s), kept it with no overlap, and stopped cleanly reporting
     `Stopped`.
 
-  After the runs, only the two killed nodes' records were left (group `kill`), for its next coordinator to expire
-  (ADR-0014); every clean stop deleted its record and every lease was released. Result: the rollback plan works as
+  After the runs, only the two killed nodes' records were left (group `kill`), for its next coordinator to expire (ADR-0014); every clean stop deleted its record and every lease was released. Result: the rollback plan works as
   written, no data needs to move back, and a group can run 4.3.2 and 5.0.0 nodes together, so nodes can be upgraded
   one at a time. PostgreSQL and Valkey: N/A (not in 4.3.2). ZooKeeper: not rehearsed (code unchanged apart from the
   target framework; see its N/A above). Found alongside: SQL Server warns that `QueuesPK` on `RBR.Resources` can exceed
-  the 900-byte key limit (`ResourceName VARCHAR(1000)`); pre-existing, hidden by the deleted test-only schema
-  (`VARCHAR(255)`); a follow-up.
+  the 900-byte key limit (`ResourceName VARCHAR(1000)`); pre-existing, hidden by the deleted test-only schema (`VARCHAR(255)`); a follow-up.
 
 ## Implementation plan
 

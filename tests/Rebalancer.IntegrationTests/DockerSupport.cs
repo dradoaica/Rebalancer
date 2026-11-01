@@ -16,7 +16,11 @@ internal static class DockerSupport
     public const string PostgreSqlImage = "postgres:17.8";
 
     /// <summary>The servers every Redis integration test runs on (US-0025): Redis and Valkey.</summary>
-    public static TheoryData<string> RedisServers => new() { RedisImage, ValkeyImage, };
+    public static TheoryData<string> RedisServers => new()
+    {
+        RedisImage,
+        ValkeyImage,
+    };
 
     /// <summary>True if Testcontainers can reach Docker (cheap check via Redis builder validation).</summary>
     public static bool IsDockerAvailable()

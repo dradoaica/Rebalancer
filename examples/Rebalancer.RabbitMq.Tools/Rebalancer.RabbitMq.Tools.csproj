@@ -9,9 +9,9 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1"/>
         <!-- CVE-2026-84008: SqlClient 7.1.1 brings Pkcs 8.0.1 / 9.0.18; the highest patched line wins on every host (ADR-0025, PRB-0004) -->
-        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.14" />
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.14"/>
         <PackageReference Include="RabbitMQ.Client" Version="7.2.2"/>
     </ItemGroup>
 

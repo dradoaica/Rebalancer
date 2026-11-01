@@ -216,8 +216,7 @@ public sealed class CoordinatorDemotionTests
             Task.FromResult(
                 clients.Values
                     .Where(x => x.ResourceGroup == resourceGroup &&
-                                x.ClientStatus is ClientStatus.Waiting
-                                    or ClientStatus.Active
+                                x.ClientStatus is ClientStatus.Waiting or ClientStatus.Active
                     )
                     .Select(x => Copy(x, DateTime.UtcNow))
                     .ToList()
@@ -235,10 +234,7 @@ public sealed class CoordinatorDemotionTests
             return Task.CompletedTask;
         }
 
-        public Task<ModifyClientResult> StopActivityAsync(
-            int fencingToken,
-            List<Client> targets
-        )
+        public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> targets)
         {
             foreach (var client in targets.Select(x => clients[x.ClientId]))
             {
@@ -250,10 +246,7 @@ public sealed class CoordinatorDemotionTests
             return Task.FromResult(ModifyClientResult.Ok);
         }
 
-        public Task<ModifyClientResult> StartActivityAsync(
-            int fencingToken,
-            List<ClientStartRequest> requests
-        )
+        public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests)
         {
             foreach (var request in requests)
             {
