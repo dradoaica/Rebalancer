@@ -61,8 +61,7 @@ resource at once.
 
 **Optimistic writes of all client records at once lose to the keep-alives.** The Redis coordinator grants and stops
 activity with `ClientService.ModifyClientsAsync` (`src/Rebalancer.Redis/Clients/ClientService.cs`): it reads every
-target client record and the lease, then runs one `MULTI/EXEC` conditioned on all of them being unchanged
-(`Condition.HashEqual`, ADR-0017's compare-and-set; ADR-0026's lease guard), and gives up after 10 attempts. Those
+target client record and the lease, then runs one `MULTI/EXEC` conditioned on all of them being unchanged (`Condition.HashEqual`, ADR-0017's compare-and-set; ADR-0026's lease guard), and gives up after 10 attempts. Those
 values change all the time:
 
 - every node's keep-alive rewrites its own record once per heartbeat (`LastKeepAlive`), and a rebalance writes every
@@ -71,8 +70,7 @@ values change all the time:
 
 On a fast link an attempt takes milliseconds and rarely meets a change. Over the test's link an attempt is several
 round trips (`HMGET`, the lease read, `WATCH`/`MULTI`/`EXEC`) and takes about a second, as long as the heartbeat, so
-most attempts meet a keep-alive. When all 10 fail, the coordinator's role throws, the node restarts
-(`AutoRecoveryOnError`), and the next rebalance meets the same odds: a livelock that ends only by luck. SQL Server and
+most attempts meet a keep-alive. When all 10 fail, the coordinator's role throws, the node restarts (`AutoRecoveryOnError`), and the next rebalance meets the same odds: a livelock that ends only by luck. SQL Server and
 PostgreSQL take row locks, so a writer waits instead of losing; that is why only Redis fails.
 
 The test's proxy, the client library and load are not the cause: the failure reproduces alone, on both servers, and
