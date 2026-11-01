@@ -1,8 +1,8 @@
 # Security Policy
 
-Rebalancer is a set of .NET libraries that coordinate resource assignment through a backing store (SQL Server, Redis
-or ZooKeeper). The store is the trust anchor: whoever can write to it can change which node owns which resource. Most
-security questions about Rebalancer are therefore questions about how a backend is used and protected.
+Rebalancer is a set of .NET libraries that coordinate resource assignment through a backing store (SQL Server,
+PostgreSQL, Redis or ZooKeeper). The store is the trust anchor: whoever can write to it can change which node owns which
+resource. Most security questions about Rebalancer are therefore questions about how a backend is used and protected.
 
 ## Supported versions
 
@@ -11,15 +11,17 @@ against an older one.
 
 | Version | Supported                                    |
 |---------|----------------------------------------------|
-| 4.2.x   | Yes (4.2.1 or later)                         |
-| < 4.2   | No – upgrade; see the migration guides below |
+| 5.0.x   | Yes                                          |
+| < 5.0   | No – upgrade; see the migration guides below |
 
-All packages (`Rebalancer.Core`, `Rebalancer.SqlServer`, `Rebalancer.Redis`, `Rebalancer.ZooKeeper`,
-`Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`) share one version
-number; run them at the same version on every node of a resource group.
+All packages (`Rebalancer.Core`, `Rebalancer.LeaseCoordination`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`,
+`Rebalancer.Redis`, `Rebalancer.ZooKeeper`, `Rebalancer.Extensions.DependencyInjection`,
+`Rebalancer.Extensions.Diagnostics.HealthChecks`) share one version number; run them at the same version on every node
+of a resource group.
 
 If you cannot upgrade, say why in your report so we understand your situation. Upgrade notes:
-[3.0](docs/release-notes/migrating-to-3.0.md), [4.0](docs/release-notes/migrating-to-4.0.md).
+[3.0](docs/release-notes/migrating-to-3.0.md), [4.0](docs/release-notes/migrating-to-4.0.md),
+[5.0](docs/release-notes/migrating-to-5.0.md).
 
 ### Known advisories
 
@@ -34,7 +36,7 @@ If you cannot upgrade, say why in your report so we understand your situation. U
 
 Please include:
 
-- the affected package (s) and version, and the backend (SQL Server, Redis, ZooKeeper);
+- the affected packages and version, and the backend (SQL Server, PostgreSQL, Redis/Valkey, ZooKeeper);
 - the .NET runtime and backend server version;
 - what an attacker needs (network access to the store, a store login, code running in a node, …) and what they gain;
 - steps or a minimal test to reproduce it (the scenarios in `tests/Rebalancer.IntegrationTests/` are a good base).
@@ -59,8 +61,8 @@ In scope – the code in `src/` and the SQL scripts in `db/`, for example:
 
 Out of scope:
 
-- hardening of the backend servers themselves (TLS, authentication, patching, network exposure of SQL Server, Redis or
-  ZooKeeper) – this is the operator's responsibility;
+- hardening of the backend servers themselves (TLS, authentication, patching, network exposure of SQL Server,
+  PostgreSQL, Redis or ZooKeeper) – this is the operator's responsibility;
 - attacks that require already being able to write to the store with full rights, or to run code inside a node;
 - the samples in `examples/`: they are not published as packages and use development defaults (still, tell us if a
   sample teaches an unsafe practice);
@@ -74,6 +76,7 @@ for your backend before deploying:
 - [TM-0001 ZooKeeper coordination and znode ACLs](docs/threat-models/TM-0001-zookeeper-coordination-and-acl.md)
 - [TM-0002 SQL Server coordination](docs/threat-models/TM-0002-sql-server-coordination.md)
 - [TM-0003 Redis coordination](docs/threat-models/TM-0003-redis-coordination.md)
+- [TM-0004 PostgreSQL coordination](docs/threat-models/TM-0004-postgresql-coordination.md)
 
 In short:
 
@@ -82,6 +85,11 @@ In short:
   `db/sqlserver/RebalancerLeastPrivilege.sql`](db/sqlserver/RebalancerLeastPrivilege.sql)
   rather than a schema owner. All groups in one database share the `RBR` schema, so isolate groups that must not
   influence each other in separate databases.
+- **PostgreSQL:** use the least-privilege role from [
+  `db/postgresql/RebalancerLeastPrivilege.sql`](db/postgresql/RebalancerLeastPrivilege.sql).
+  TM-0004 D2 currently points to role-script configuration for its transaction timeouts, but the implementation sets
+  them per lease transaction; the accepted threat model needs a governed correction. See
+  [`LeaseService`](src/Rebalancer.PostgreSql/Leases/LeaseService.cs) and the role script for the current behavior.
 - **Redis:** Rebalancer has no access control of its own. Use a dedicated ACL user limited to the Rebalancer keys and
   `ssl=true` with certificate validation; without a password, anyone who reaches the port controls assignment.
 - **ZooKeeper:** configure ACLs (`authScheme` / `authData`) and encrypt client connections when using the digest scheme,

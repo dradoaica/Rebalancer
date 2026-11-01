@@ -48,7 +48,7 @@ it.
 4. The minimal per-group ACL user from `docs/release-notes/migrating-to-4.0.md` is checked on Valkey: a node using only
    that user starts, is assigned, and stops cleanly (`RedisClientRecordTests.ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, run on both servers).
 5. `README.md` (Languages and Backends) and the release notes of the release that ships this name the supported
-   Valkey version(s); the traceability matrix row of ADR-0031 points to the tests.
+   Valkey versions; the traceability matrix row of ADR-0031 points to the tests.
 6. The SQL Server, ZooKeeper and unit tests are unchanged and still pass.
 
 ## Implementation notes for the reviewer (2026-11-01)

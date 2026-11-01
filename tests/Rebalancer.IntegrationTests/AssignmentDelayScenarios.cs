@@ -4,8 +4,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests;
 
 /// <summary>
-///     PRB-0007: SQL Server or Redis nodes whose <see cref="ClientOptions.OnAssignmentDelay" /> is longer than the
-///     group's keep-alive expiry, as the option's documentation suggests for RabbitMQ. The delay may postpone
+///     PRB-0007: SQL Server, PostgreSQL or Redis nodes whose <see cref="ClientOptions.OnAssignmentDelay" /> is longer
+///     than the group's keep-alive expiry, as the option's documentation suggests for RabbitMQ. The delay may postpone
 ///     OnAssignment, but the nodes must still converge and then stay put. The group must hold exactly
 ///     <see cref="Resources" />, with a lease expiry of 5 s and a heartbeat of 1 s.
 /// </summary>

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 namespace Rebalancer.LeaseCoordination.Clients;
 
 /// <summary>
-///     Operations the built-in <see cref="ClientService" /> adds for the coordinator (ADR-0026) and the restart path
-///     (PRB-0005). Internal, so <see cref="IClientService" /> stays unchanged: a custom implementation keeps the behavior
-///     from before ADR-0026, without the lease guard.
+///     Operations the built-in client services add for the coordinator (ADR-0026) and the restart path (PRB-0005).
+///     Internal, so <see cref="IClientService" /> stays unchanged: a custom implementation keeps the behavior from before
+///     ADR-0026, without the lease guard.
 /// </summary>
 internal interface IFencedClientService
 {

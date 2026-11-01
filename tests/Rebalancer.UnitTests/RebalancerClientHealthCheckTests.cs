@@ -31,7 +31,7 @@ public sealed class RebalancerClientHealthCheckTests
         Assert.Equal(HealthStatus.Healthy, (await CheckAsync(check)).Status);
     }
 
-    // the SQL Server and Redis providers keep reporting their last state after an abort
+    // The abort callback can arrive while the provider still reports Assigned; the health check must honor the callback.
     [Fact]
     public async Task AnAbortWhileTheStateStillSaysAssigned_IsUnhealthy()
     {
@@ -40,7 +40,7 @@ public sealed class RebalancerClientHealthCheckTests
         Assert.Equal(HealthStatus.Unhealthy, (await CheckAsync(check)).Status);
     }
 
-    // SQL Server and Redis raise OnAborted also for errors they recover from (found 2026-10-19, after 4.1.0)
+    // Lease-based backends (SQL Server, PostgreSQL and Redis) raise OnAborted also for errors they recover from.
     [Fact]
     public async Task AnAbortFollowedByANewAssignment_IsHealthyAgain()
     {

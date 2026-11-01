@@ -5,8 +5,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests;
 
 /// <summary>
-///     US-0019: N nodes of one SQL Server or Redis group (lease expiry 5 s, heartbeat 1 s) are started, stopped, paused
-///     and killed at random, and checked every 100 ms in two views:
+///     US-0019: N nodes of one SQL Server, PostgreSQL or Redis group (lease expiry 5 s, heartbeat 1 s) are started,
+///     stopped, paused and killed at random, and checked every 100 ms in two views:
 ///     <list type="bullet">
 ///         <item>
 ///             the handler view (US-0024): what each node processes, from OnAssignment to the OnUnassignment that ends

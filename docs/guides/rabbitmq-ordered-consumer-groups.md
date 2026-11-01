@@ -39,9 +39,11 @@ queue and the next consumer gets them first; in B, the next consumer continues f
 frozen node blocks its partitions until the broker notices the dead connection (heartbeat timeout), but no two
 consumers overlap.
 
-**Scaling and deploys.** In A, every node that joins or leaves makes Rebalancer stop all consumers before reassigning
-(the SQL Server and Redis backends wait in 5-second barrier steps), so every key pauses for a few seconds. In B, only
-the partitions that change consumer pause.
+**Scaling and deploys.** In A, with SQL Server, PostgreSQL or Redis (including Valkey), a node joining or leaving makes
+the lease-based coordinator stop all consumers before reassigning. Its 5-second barrier polling can contribute to the
+pause, but does not guarantee a pause of any fixed duration; ZooKeeper has distinct resource-barrier and global-barrier
+modes ([architecture overview](../architecture/rebalancer-overview.md)). In B, only the partitions that change consumer
+pause.
 
 **A message that keeps failing.** A gets retry counting and dead-lettering from quorum queues. B has neither; the
 application retries and writes failed messages to its own parking stream or queue. For conversations, neither is
@@ -52,9 +54,9 @@ turns until the failure is handled. The example in this repository does exactly 
 **After processing.** In A, acknowledged messages are gone. In B, messages stay for the retention period, so a
 conversation can be replayed for auditing, debugging or rebuilding state.
 
-**What you run.** A needs RabbitMQ with the consistent-hash exchange plugin, and SQL Server, Redis or ZooKeeper for
-Rebalancer; clients use AMQP 0-9-1 as usual. B needs the stream plugin and a stream protocol client (for .NET,
-`RabbitMQ.Stream.Client`); the application tracks offsets.
+**What you run.** A needs RabbitMQ with the consistent-hash exchange plugin, and SQL Server, PostgreSQL, Redis
+(including Valkey) or ZooKeeper for Rebalancer; clients use AMQP 0-9-1 as usual. B needs the stream plugin and a stream
+protocol client (for .NET, `RabbitMQ.Stream.Client`); the application tracks offsets.
 
 **Without Rebalancer, A still works** (every node subscribes to every queue, the broker picks one active consumer per
 queue) but the load can be very uneven: after a restart one node may be active on every queue. Rebalancer's value in
@@ -76,8 +78,9 @@ where they are, so a key's order can break during the change; plan it as a migra
   and parking logic.
 - **Quorum queues without Rebalancer (A without it)** when you need ordinary AMQP queues with dead-lettering and a
   delivery limit, and you run only a few consumer nodes; accept some imbalance.
-- **Quorum queues with Rebalancer (A)** when that imbalance matters and you already run SQL Server or Redis. Keep
-  single active consumer on, and accept a short pause of all keys on each scaling event.
+- **Quorum queues with Rebalancer (A)** when that imbalance matters and you already run SQL Server, PostgreSQL, Redis
+  (including Valkey) or ZooKeeper. Keep single active consumer on; with lease-based backends, plan for a pause while
+  consumers stop and assignments change.
 
 ## Sources
 

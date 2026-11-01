@@ -53,8 +53,9 @@ the `Microsoft.Extensions.DependencyInjection` extensions in `src/Rebalancer.Ext
 removed in 3.0 ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md)). A client owns and disposes
 its provider; use one provider per client ([ADR-0016](../adrs/0016-rebalancer-client-owns-its-provider.md)).
 
-Current version: **5.0.0**: SQL Server and Redis share their coordination code in `Rebalancer.LeaseCoordination`;
-the service types moved namespace (seven packages; CR-0013, [migration guide](../release-notes/migrating-to-5.0.md)).
+Current version: **5.0.0**: SQL Server, PostgreSQL and Redis share their coordination code in
+`Rebalancer.LeaseCoordination`; SQL Server and Redis service types moved namespace (eight library packages; CR-0013,
+[migration guide](../release-notes/migrating-to-5.0.md)).
 Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
@@ -120,11 +121,12 @@ The coordination protocols are specified in TLA+ in [`docs/tlaplus/`](../tlaplus
 
 ## Errors
 
-`OnAborted` reports an error. ZooKeeper raises it only when a client gives up; SQL Server and Redis raise it for every
-error, and with auto-recovery the client restarts and is assigned again (a follower too since the PRB-0005 fix; until
-then its record stayed `Terminated`). A client that gives up reports
-`ClientState.Aborted` on all three backends (SQL Server and Redis since 4.2.0, US-0021). Hosts should judge
-participation by `GetCurrentState()`, not by the event.
+`OnAborted` reports an error. ZooKeeper raises it only when a client gives up; SQL Server, PostgreSQL and Redis raise it
+for every error, and with auto-recovery the client restarts and is assigned again (a follower too since the PRB-0005
+fix;
+until then its record stayed `Terminated`). A client that gives up reports `ClientState.Aborted` on all four backends;
+SQL Server and Redis have reported this state since 4.2.0 (US-0021). Hosts should judge participation by
+`GetCurrentState()`, not by the event.
 
 ## Observability
 
@@ -133,16 +135,17 @@ participation by `GetCurrentState()`, not by the event.
   the unassigned duration; the backends' coordinators record rebalances (with an activity per rebalance) and
   elections. Tags: backend and group; never resource names.
 - **Health** ([ADR-0023](../adrs/0023-health-check-for-a-rebalancer-client.md)): `RebalancerClientHealthCheck` in its
-  own
-  package observes the host's client (state, and `OnAborted` until the client is assigned again); it never calls the
-  backend. Since 4.2.0 all three backends report `ClientState.Aborted` after a final error (US-0021).
+  own package observes the host's client (state, and `OnAborted` until the client is assigned again); it never calls
+  the backend. All four backends report `ClientState.Aborted` after a final error; SQL Server and Redis have done so
+  since 4.2.0 (US-0021).
 
 ## Access control
 
 The library has no access control of its own; it relies on the store's identity. Threat models:
 [TM-0001](../threat-models/TM-0001-zookeeper-coordination-and-acl.md) (ZooKeeper),
 [TM-0002](../threat-models/TM-0002-sql-server-coordination.md) (SQL Server),
-[TM-0003](../threat-models/TM-0003-redis-coordination.md) (Redis).
+[TM-0003](../threat-models/TM-0003-redis-coordination.md) (Redis),
+[TM-0004](../threat-models/TM-0004-postgresql-coordination.md) (PostgreSQL).
 
 - **ZooKeeper:** credentials or an explicit ACL are required since 3.0 (ADR-0011); operator-created znodes are secured
   with the runbook in [`src/Rebalancer.ZooKeeper/README.md`](../../src/Rebalancer.ZooKeeper/README.md).

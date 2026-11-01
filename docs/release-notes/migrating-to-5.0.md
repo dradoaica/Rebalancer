@@ -1,6 +1,7 @@
 # Migrating from 4.x to 5.0 (SQL Server and Redis)
 
-Only code that uses the SQL Server or Redis service types is affected. ZooKeeper has no 5.0 migration steps.
+All hosts using 5.0 packages need .NET 10 or later (see below). The code migration steps in this guide apply only to
+code that uses the SQL Server or Redis service types. ZooKeeper has no backend-specific code or data migration steps.
 
 Decision: [ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md).
 
@@ -16,7 +17,8 @@ The coordination code that SQL Server and Redis had as two copies (leader electi
 follower roles, the assignment store) moves, unchanged, into one new package, `Rebalancer.LeaseCoordination`.
 `Rebalancer.SqlServer` and `Rebalancer.Redis` depend on it, so NuGet installs it with them; nothing to add by hand.
 
-Stored data does not change: the SQL Server `RBR` schema and the Redis `RBR:*` keys are the same as in 4.3.
+The SQL Server table and column layout and the Redis `RBR:*` keys are unchanged. The 5.0 SQL Server schema script
+removes the client-to-group foreign key; an existing database retains it until the optional step below.
 
 ## Who has to change code
 

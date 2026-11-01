@@ -27,13 +27,11 @@ a group of participating nodes.
 
 ## Concepts
 
-Rebalancer consists of (or will consist of when complete):
+This repository contains Rebalancer's .NET implementation:
 
-- a set of protocols for different resource allocation algorithms
-
-- a set of TLA+ specifications that verify the protocols
-
-- a set of code libraries for multiple languages and backends
+- protocols for resource-allocation algorithms
+- TLA+ specifications that verify the protocols
+- code libraries for the supported backends
 
 The important terms are:
 
@@ -45,14 +43,7 @@ changes
 to the number of resources available to the resource group. When any change happens to the nodes or resources, then the
 Coordinator triggers a rebalancing.
 
-Different rebalancing algorithms exist:
-
-- Leader-based resource barrier
-- Leader-based global barrier
-
-The rebalancing algorithm depends on the backend. With an RDBMS we use the following:
-
-With an RDBMS we use the global barrier algorithm where:
+ZooKeeper supports two rebalancing modes: a resource barrier and a global barrier. In ZooKeeper's global-barrier mode:
 
 1. The Coordinator orders all Followers to stop activity.
 
@@ -62,7 +53,8 @@ With an RDBMS we use the global barrier algorithm where:
 3. The final step is that the Coordinator notifies each Follower of the resources it has been assigned and can start its
    activity (consuming, reading, writing, etc.).
 
-Other backends are suited to either.
+SQL Server, PostgreSQL, and Redis use the lease-based coordinator/follower protocol described in the
+[architecture overview](docs/architecture/rebalancer-overview.md).
 
 Leader election determines who the Coordinator is. If the Coordinator dies, then a Follower takes its place. Leader
 election and metadata storage are performed via a backing metadata store; this library implements ZooKeeper, Redis (also
@@ -72,11 +64,11 @@ performed via this backing metadata store.
 
 ## Languages and Backends
 
-This repository is the .NET implementation: `Rebalancer.Core` plus one package per backend (`Rebalancer.ZooKeeper`,
-`Rebalancer.Redis`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`) and optional packages for dependency injection
+This repository is the .NET implementation: `Rebalancer.Core`, `Rebalancer.LeaseCoordination` (shared by SQL Server,
+Redis, and PostgreSQL), one package for each of the four backends (`Rebalancer.ZooKeeper`, `Rebalancer.Redis`,
+`Rebalancer.SqlServer`, `Rebalancer.PostgreSql`), and optional packages for dependency injection
 (`Rebalancer.Extensions.DependencyInjection`) and health checks (`Rebalancer.Extensions.Diagnostics.HealthChecks`).
-`Rebalancer.Redis`, `Rebalancer.SqlServer` and `Rebalancer.PostgreSql` share their coordination code through
-`Rebalancer.LeaseCoordination`, which NuGet installs with them (ADR-0029).
+NuGet installs `Rebalancer.LeaseCoordination` with the SQL Server, Redis, and PostgreSQL packages (ADR-0029).
 
 Supported servers: Redis (tested on 7.0) and Valkey (tested on 8.1.11; ADR-0031), SQL Server (tested on 2022),
 PostgreSQL (tested on 17.8; ADR-0030), and ZooKeeper (tested on 3.8). Other versions are not claimed. The packages
@@ -95,7 +87,8 @@ Other languages would need their own implementation of the protocol.
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
 - [Release notes 5.0.0](docs/release-notes/5.0.0.md) and [migration guide](docs/release-notes/migrating-to-5.0.md) —
-  SQL Server and Redis share `Rebalancer.LeaseCoordination`; breaking for code that names the service types
+  PostgreSQL backend, Valkey support, .NET 10 requirement, and SQL Server / Redis coordination changes; source-breaking
+  for code that names the moved service types
 - [Release notes 4.3.2](docs/release-notes/4.3.2.md) — every client reports `Stopped` after `StopAsync`; SQL Server /
   Redis apply `OnAssignmentDelay` once per assignment, not before every heartbeat
 - [Release notes 4.3.1](docs/release-notes/4.3.1.md) — SQL Server / Redis: `StopAsync` raises `OnUnassignment`;
@@ -117,7 +110,7 @@ Other languages would need their own implementation of the protocol.
 - [Release notes 2.2.0](docs/release-notes/2.2.0.md) — deprecations ahead of 3.0
 - [Release notes 2.1.0](docs/release-notes/2.1.0.md) — behavior changes, upgrade notes (Redis: upgrade all nodes at
   once)
-- [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, and Redis backends
+- [Threat models](docs/threat-models/) — ZooKeeper, SQL Server, Redis, and PostgreSQL backends
 - [Change records](docs/change-records/) and [problem records](docs/problem-records/) — releases and defects (renumbered
   on 2026-10-19; the READMEs map the old identifiers)
 
@@ -175,8 +168,8 @@ The package `Rebalancer.Extensions.Diagnostics.HealthChecks` adds a health check
 ### Errors and `OnAborted`
 
 `OnAborted` reports an error; it does not always mean the client has stopped. ZooKeeper raises it only when the client
-gives up. SQL Server and Redis raise it for every error: with `ClientOptions.AutoRecoveryOnError` the client restarts
-after `RestartDelay` and is assigned again; without it the client gives up and (since 4.2.0) reports
+gives up. SQL Server, PostgreSQL and Redis raise it for every error: with `ClientOptions.AutoRecoveryOnError` the client
+restarts after `RestartDelay` and is assigned again; without it the client gives up and (since 4.2.0) reports
 `ClientState.Aborted`. Check `GetCurrentState()` to know whether a client still takes part; the health check does
 this for you.
 

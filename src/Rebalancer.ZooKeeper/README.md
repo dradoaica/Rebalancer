@@ -1,6 +1,6 @@
 # rebalancer-net-zookeeper
 
-ZooKeeper backend for .NET Rebalancer (in development). Protocol and implementation still under development.
+ZooKeeper backend for .NET Rebalancer.
 
 To learn more about the project check out the [wiki](https://github.com/Rebalancer/wiki/wiki).
 

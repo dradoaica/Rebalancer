@@ -29,8 +29,8 @@ public class RebalancerClient : IDisposable
 
     /// <summary>
     ///     If StopAsync has not previously been called it initiates a shutdown of the node, but leaves only 5 seconds for
-    ///     shutdown, which includes invoking your OnCancelAssignment event handlers For more control use the StopAsync method
-    ///     where you can specify a longer and safer shutdown timeout
+    ///     shutdown, which includes invoking your <see cref="OnUnassignment" /> event handlers. For more control, use the
+    ///     StopAsync method where you can specify a longer and safer shutdown timeout.
     /// </summary>
     /// <remarks>
     ///     The client owns its provider: if the provider implements <see cref="IDisposable" /> (e.g. RedisProvider, which
@@ -78,7 +78,7 @@ public class RebalancerClient : IDisposable
     ///             <see cref="GetCurrentState" /> returns <see cref="ClientState.Aborted" />.
     ///         </item>
     ///         <item>
-    ///             SQL Server and Redis raise it for every error. With auto-recovery the client restarts after
+    ///             SQL Server, PostgreSQL and Redis raise it for every error. With auto-recovery the client restarts after
     ///             <see cref="ClientOptions.RestartDelay" /> and takes part again (<see cref="OnAssignment" /> follows);
     ///             without it the client gives up and, since 4.2.0, reports <see cref="ClientState.Aborted" />.
     ///         </item>
@@ -153,8 +153,8 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
-    ///     handlers have finished executing
+    ///     Shuts down the client context, including invoking the <see cref="OnUnassignment" /> event handlers. It will
+    ///     block until all handlers have finished executing.
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync()
@@ -172,8 +172,8 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
-    ///     handlers have finished executing or the timeout has been reached
+    ///     Shuts down the client context, including invoking the <see cref="OnUnassignment" /> event handlers. It will
+    ///     block until all handlers have finished executing or the timeout has been reached.
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout)
@@ -195,8 +195,9 @@ public class RebalancerClient : IDisposable
     }
 
     /// <summary>
-    ///     Shutsdown the client context, including invoking the OnCancelAssignment event handlers It will block until all
-    ///     handlers have finished executing, or the timeout has been reached or the cancellation token has been cancelled
+    ///     Shuts down the client context, including invoking the <see cref="OnUnassignment" /> event handlers. It will
+    ///     block until all handlers have finished executing, the timeout has been reached, or the cancellation token has been
+    ///     cancelled.
     /// </summary>
     /// <returns></returns>
     public async Task StopAsync(TimeSpan timeout, CancellationToken token)

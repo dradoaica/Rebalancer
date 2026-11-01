@@ -4,8 +4,8 @@ using Xunit;
 namespace Rebalancer.IntegrationTests;
 
 /// <summary>
-///     Backend-independent scenarios for a SQL Server or Redis node that stops responding longer than the lease /
-///     keep-alive expiry and then resumes, or whose store call fails once. The group must hold exactly
+///     Backend-independent scenarios for a SQL Server, PostgreSQL or Redis node that stops responding longer than the
+///     lease / keep-alive expiry and then resumes, or whose store call fails once. The group must hold exactly
 ///     <see cref="Resources" /> with a short lease expiry. Besides what the nodes report, the multi-node scenarios check
 ///     what they process with a <see cref="ProcessingMonitor" /> (US-0024 follow-up).
 /// </summary>

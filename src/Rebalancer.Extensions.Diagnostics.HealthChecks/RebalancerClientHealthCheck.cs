@@ -12,9 +12,9 @@ namespace Rebalancer.Extensions.Diagnostics.HealthChecks;
 ///     it. The check reads state only and never calls the backend.
 /// </summary>
 /// <remarks>
-///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> until the client is assigned again (SQL
-///     Server and Redis raise it also for errors they recover from), and in the states Aborted, Stopped, NotStarted and
-///     NoProvider. <c>Degraded</c> while PendingAssignment lasts longer than the threshold. <c>Healthy</c> otherwise.
+///     <c>Unhealthy</c> after <see cref="RebalancerClient.OnAborted" /> until the client is assigned again
+///     (lease-based backends also raise it for errors they recover from), and in the states Aborted, Stopped, NotStarted
+///     and NoProvider. <c>Degraded</c> while PendingAssignment lasts longer than the threshold. <c>Healthy</c> otherwise.
 /// </remarks>
 public sealed class RebalancerClientHealthCheck : IHealthCheck
 {
@@ -42,7 +42,7 @@ public sealed class RebalancerClientHealthCheck : IHealthCheck
         client.OnAssignment += (_, _) =>
         {
             Interlocked.Exchange(ref pendingSinceTicks, 0);
-            // SQL Server and Redis raise OnAborted also for errors they recover from; a new assignment means the client
+            // Lease-based backends raise OnAborted also for errors they recover from; a new assignment means the client
             // takes part again, so the abort no longer applies (a final abort reports ClientState.Aborted instead)
             Interlocked.Exchange(ref aborted, 0);
         };

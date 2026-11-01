@@ -5,10 +5,9 @@ using Xunit;
 namespace Rebalancer.UnitTests;
 
 /// <summary>
-///     Public members of the SQL Server provider that only the provider offers (not
-///     <see cref="IRebalancerProvider" />): <see cref="SqlServerProvider.RecreateClientAsync" /> and the waiting
-///     <see cref="SqlServerProvider.GetAssignedResources(CancellationToken)" /> (ADR-0007). The Redis provider has the
-///     same members on the same code and needs a server to start (see <see cref="AbortedStateTests" />).
+///     SQL Server provider API coverage for <see cref="IRebalancerProvider.RecreateClientAsync" /> and the waiting
+///     <see cref="SqlServerProvider.GetAssignedResources(CancellationToken)" /> overload, which is not on the interface
+///     (ADR-0007). Redis and PostgreSQL expose the same members through the shared lease-coordination implementation.
 /// </summary>
 public sealed class SqlServerProviderApiTests
 {

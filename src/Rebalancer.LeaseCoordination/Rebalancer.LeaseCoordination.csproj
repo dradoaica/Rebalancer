@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- the lease-based coordination shared by SQL Server and Redis (ADR-0029); no backend client library -->
+        <!-- the lease-based coordination shared by SQL Server, PostgreSQL and Redis (ADR-0029); no backend client library -->
         <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
     </ItemGroup>
 

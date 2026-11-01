@@ -5,23 +5,24 @@
 
 ## Repository layout
 
-| Area      | Path                                                                                                                                         |
-|-----------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| Libraries | `src/Rebalancer.*` (Core, SqlServer, Redis, ZooKeeper, Extensions.DependencyInjection, Extensions.Diagnostics.HealthChecks)                  |
-| Examples  | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools`, `examples/Rebalancer.RabbitMq.SuperStreamsExample` |
-| Tests     | `tests/Rebalancer.UnitTests`, `tests/Rebalancer.IntegrationTests`                                                                            |
+| Area      | Path                                                                                                                                                       |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Libraries | `src/Rebalancer.*` (Core, LeaseCoordination, SqlServer, PostgreSql, Redis, ZooKeeper, Extensions.DependencyInjection, Extensions.Diagnostics.HealthChecks) |
+| Examples  | `examples/Rebalancer.RabbitMq.QuorumQueuesExample`, `examples/Rebalancer.RabbitMq.Tools`, `examples/Rebalancer.RabbitMq.SuperStreamsExample`               |
+| Tests     | `tests/Rebalancer.UnitTests`, `tests/Rebalancer.IntegrationTests`                                                                                          |
 
 ## Product intent
 
 Rebalancer is a **.NET library** for **Kafka-style consumer groups** over arbitrary resource identifiers (queues, files,
 buckets, etc.): a **coordinator** assigns resources to **participating nodes**; nodes react via callbacks when
-assignments change. Coordination state lives in a pluggable **backend** (SQL Server, Redis, or ZooKeeper in this
-repository).
+assignments change. Coordination state lives in a pluggable **backend** (SQL Server, PostgreSQL, Redis, or ZooKeeper in
+this repository).
 
 ## In scope (current repository)
 
 - `Rebalancer.Core` — public `RebalancerClient`, `IRebalancerProvider`, `ClientOptions`, logging abstraction.
-- `Rebalancer.SqlServer`, `Rebalancer.Redis` — coordinator/follower + lease + store pattern.
+- `Rebalancer.LeaseCoordination`, `Rebalancer.SqlServer`, `Rebalancer.Redis`, `Rebalancer.PostgreSql` — shared
+  coordinator/follower + lease + store pattern; the backend packages provide their store-specific services.
 - `Rebalancer.ZooKeeper` — leader election, `ResourceBarrier` / `GlobalBarrier` modes.
 - `Rebalancer.Extensions.DependencyInjection` (ADR-0005), `Rebalancer.Extensions.Diagnostics.HealthChecks` (ADR-0023).
 - Examples: an ordered consumer group on RabbitMQ with Rebalancer, quorum queues and SQL Server
@@ -29,16 +30,15 @@ repository).
   Rebalancer (`examples/Rebalancer.RabbitMq.SuperStreamsExample`,
   US-0023); [guide](../guides/rabbitmq-ordered-consumer-groups.md) on when to choose which.
 - Tooling: RabbitMQ CLI (`examples/Rebalancer.RabbitMq.Tools`).
-- Tests: **`tests/Rebalancer.IntegrationTests`** — **ZooKeeper** barrier/randomized suite under `ZooKeeper/` (requires
-  live ZK); **SqlServer + Redis** assignment-safety sampling with Testcontainers (**Docker**). Since 3.2.0 also
-  paused-node scenarios (a follower paused past its keep-alive expiry, a coordinator stalled past its lease expiry), the
-  SQL Server least-privilege role, and (4.0) the Redis per-group key move; since 4.1.0 randomised runs, which since
-  4.3.2 also check what each node's handlers process (US-0024); since 4.3.1 network faults; since 4.3.2 the state after
-  a stop and the assignment delay. **`tests/Rebalancer.UnitTests`** — DI
-  registration, provider lifecycle, 3.0 API contract, ZooKeeper ACL API, Redis lease decisions, record expiry,
-  coordinator demotion and lease guard, unresponsive followers, ZooKeeper barriers, aborted and stopped state,
-  assignment delay; no
-  Docker — [US-0010](../user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md), [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md), [US-0013](../user-stories/US-0013-cross-backend-assignment-safety-tests.md).
+- Tests: **`tests/Rebalancer.IntegrationTests`** — SQL Server, PostgreSQL, Redis and Valkey integration tests use
+  Testcontainers (**Docker**); the ZooKeeper barrier and randomized suites under `ZooKeeper/` require a live ensemble.
+  The suites cover assignment safety, paused nodes, network faults, randomized runs, backend-specific schema / ACL
+  behavior, telemetry and health checks. **`tests/Rebalancer.UnitTests`** — DI registration, provider lifecycle, API
+  contract, lease decisions, record expiry, coordinator demotion and lease guard, unresponsive followers, ZooKeeper
+  barriers, client state and assignment delay; no external services.
+  See [US-0010](../user-stories/US-0010-zookeeper-tests-uphold-assignment-safety.md),
+  [US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md), and
+  [US-0013](../user-stories/US-0013-cross-backend-assignment-safety-tests.md).
 
 ## Out of scope (explicit non-goals for this repo today)
 
@@ -56,8 +56,11 @@ repository).
   ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **5.0.0** (SQL Server and Redis share `Rebalancer.LeaseCoordination`; breaking for code that
-  names the service types, [ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
+- Current release: **5.0.0**, all packages target `net10.0` and require .NET 10 or later; it adds PostgreSQL and Valkey
+  support, and SQL Server, PostgreSQL and Redis share `Rebalancer.LeaseCoordination`. SQL Server / Redis service types
+  moved namespaces; the shipped SQL Server schema also removes the client-to-group foreign key, with an optional step
+  for existing databases ([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
+  [ADR-0032](../adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md), [ADR-0033](../adrs/0033-target-net-10-only.md),
   [migration guide](../release-notes/migrating-to-5.0.md), CR-0013). Previous: **4.3.2** (`Stopped` state after
   `StopAsync`, `OnAssignmentDelay` per assignment; PRB-0006, PRB-0007, CR-0012), **4.3.1** (SQL Server / Redis
   `StopAsync` raises `OnUnassignment`), **4.3.0**
@@ -76,7 +79,8 @@ repository).
   required since 3.0 (ADR-0011); operator-created znodes: runbook in `src/Rebalancer.ZooKeeper/README.md`.
 - SQL Server: role `rebalancer_node` in `db/sqlserver/RebalancerLeastPrivilege.sql`. Redis 4.0: one ACL user per group,
   no shared keys.
-- Threat models: [`docs/threat-models/`](../threat-models/) (TM-0001 ZooKeeper, TM-0002 SQL Server, TM-0003 Redis).
+- Threat models: [`docs/threat-models/`](../threat-models/) (TM-0001 ZooKeeper, TM-0002 SQL Server, TM-0003 Redis,
+  TM-0004 PostgreSQL).
 
 ## Roadmap themes (v2)
 

@@ -1,8 +1,10 @@
 # Contributing to Rebalancer
 
-Thank you for your interest in Rebalancer! This is a .NET library for Kafka-style consumer groups over any set of
-resources, coordinated through SQL Server, Redis or ZooKeeper. Its value is one guarantee: **a resource is never held by
-two nodes at once.** Contributions are judged first by whether they keep that guarantee, then by everything else.
+Thank you for your interest in Rebalancer! This is a .NET library for Kafka-style consumer groups over resources,
+coordinated through SQL Server, PostgreSQL, Redis or ZooKeeper. Its coordination protocols aim to assign each resource
+to one node at a time. Resource handlers are not fenced, however, so a long-paused node may continue processing briefly
+after reassignment ([ADR-0021](docs/adrs/0021-assignment-generation-for-resource-handlers.md)). Contributions are judged
+first by whether they preserve coordination safety, then by everything else.
 
 For security issues, follow [SECURITY.md](SECURITY.md) instead of opening an issue.
 
@@ -14,7 +16,7 @@ For security issues, follow [SECURITY.md](SECURITY.md) instead of opening an iss
 - **Features and design changes:** open an issue first to discuss. Read the
   [product baseline](docs/initial-product-specs/rebalancer-product-baseline.md) for scope and non-goals, and the
   [architecture overview](docs/architecture/rebalancer-overview.md) for how the parts fit.
-- **New backends** (etcd, Consul, PostgreSQL, …): welcome, as a separate package implementing `IRebalancerProvider`.
+- **New backends** (etcd, Consul, …): welcome, as a separate package implementing `IRebalancerProvider`.
   Expect to bring a threat model and the cross-backend safety tests along with it (see below).
 
 ## Development setup
@@ -23,8 +25,8 @@ You need:
 
 - the .NET SDK pinned in [`global.json`](global.json) (10.0, rolls forward). Library packages target `net10.0`
   ([ADR-0033](docs/adrs/0033-target-net-10-only.md));
-- Docker, for the SQL Server, PostgreSQL and Redis integration tests (Testcontainers starts the servers; the tests are
-  skipped when Docker is not available);
+- Docker, for the SQL Server, PostgreSQL, Redis and Valkey integration tests (Testcontainers starts the servers; the
+  tests are skipped when Docker is not available);
 - for the ZooKeeper integration tests, a three-node ZooKeeper ensemble on `localhost:2181`, `2182` and `2183`. These
   tests are **not** skipped automatically – they fail without the ensemble. `DisconnectionTests` pauses the ensemble's
   containers and needs them under the names the [README](README.md) uses (`rbr-it-zk1`..`3`); it is skipped otherwise.
@@ -37,13 +39,13 @@ dotnet test tests/Rebalancer.IntegrationTests
 
 Repository layout:
 
-| Path        | Contents                                                                                           |
-|-------------|----------------------------------------------------------------------------------------------------|
-| `src/`      | The published packages: `Rebalancer.Core`, one package per backend, DI and health-check extensions |
-| `tests/`    | Unit tests (no external services) and integration tests (real backends)                            |
-| `db/`       | Schema, tables and least-privilege role per database: `sqlserver/`, `postgresql/`                  |
-| `examples/` | RabbitMQ samples (quorum queues, super streams) and a queue-setup CLI; not published               |
-| `docs/`     | Decision records, user stories, threat models, change/problem records, release notes, guides       |
+| Path        | Contents                                                                                                                        |
+|-------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `src/`      | Published libraries: `Rebalancer.Core`, `Rebalancer.LeaseCoordination`, four backend packages, and DI / health-check extensions |
+| `tests/`    | Unit tests (no external services) and integration tests (real backends)                                                         |
+| `db/`       | Schema, tables and least-privilege role per database: `sqlserver/`, `postgresql/`                                               |
+| `examples/` | RabbitMQ samples (quorum queues, super streams) and a queue-setup CLI; not published                                            |
+| `docs/`     | Decision records, user stories, threat models, change/problem records, release notes, guides                                    |
 
 Follow the formatting in [`.editorconfig`](.editorconfig).
 
@@ -90,7 +92,10 @@ Things that are Tier 1 here even when they look small:
 
 - **Safety over availability.** When in doubt, a node stops working on a resource. A brief gap in processing is
   acceptable; two consumers on one ordered queue is not.
-- **Backend-agnostic core.** Algorithm and lifecycle live in `Rebalancer.Core`; a provider only talks to its store.
+- **Backend-agnostic core.** `Rebalancer.Core` owns the common client API and lifecycle. SQL Server, PostgreSQL and
+  Redis
+  share their lease/coordinator/follower implementation in `Rebalancer.LeaseCoordination`, while each provider supplies
+  its store-specific services; ZooKeeper implements its own election and barrier protocols.
 - **Small dependency footprint.** Each package pulls only what its backend needs. New dependencies need a reason that
   outweighs the cost to every user.
 - **Compatibility is deliberate.** Breaking changes go into a major version, with deprecations in a prior minor release

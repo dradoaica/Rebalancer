@@ -44,71 +44,35 @@ test project is added.
 | [0032](adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md)        | No foreign key from client records to resource groups                     | US-0021                                 | `db/sqlserver/RebalancerTables.sql`, `db/postgresql/RebalancerTables.sql`                                                                                    | `*AbortedStateTests` on the shipped scripts                                                                                                                                                                                                                                   | Accepted; ships in 5.0.0                                                                                                                                                |
 | [0033](adrs/0033-target-net-10-only.md)                                           | Target .NET 10 only                                                       | (all)                                   | every `src/*/*.csproj`                                                                                                                                       | build and all suites on `net10.0`                                                                                                                                                                                                                                             | Accepted; ships in 5.0.0                                                                                                                                                |
 
-### Release records
+### Change records (releases)
 
-| Record                                                                              | Status                                                                                                                            | Covers                                                    |
-|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| [CR-0001](change-records/CR-0001-coordination-safety-and-provider-ownership.md)     | **Implemented** (2.1.0, `2952de6`); rollback rehearsed (reported 2026-10-20); [release notes](release-notes/2.1.0.md)             | ADR 0006–0009, PRB fixes; Redis all-nodes-at-once upgrade |
-| [CR-0002](change-records/CR-0002-release-2-2-0-deprecations.md)                     | **Implemented** (2.2.0, `ac6587a`); [release notes](release-notes/2.2.0.md)                                                       | Deprecations of ADR 0011, 0012, 0013                      |
-| [CR-0003](change-records/CR-0003-release-3-0-0.md)                                  | **Implemented** (3.0.0, `f3efbcb`); [release notes](release-notes/3.0.0.md), [migration guide](release-notes/migrating-to-3.0.md) | ADR 0011–0015, US-0015                                    |
-| [CR-0004](change-records/CR-0004-release-3-1-0.md)                                  | **Implemented** (3.1.0, `dd094d4`); [release notes](release-notes/3.1.0.md)                                                       | ADR-0019, PRB-0003                                        |
-| [CR-0005](change-records/CR-0005-release-3-2-0.md)                                  | **Implemented** (3.2.0, `860b3d3`); [release notes](release-notes/3.2.0.md)                                                       | US-0016, ADR-0021, operator scripts, paused-node tests    |
-| [CR-0006](change-records/CR-0006-release-4-0-0.md)                                  | **Implemented** (4.0.0, `b9b5f3f`); [release notes](release-notes/4.0.0.md), [migration guide](release-notes/migrating-to-4.0.md) | ADR-0020, US-0020                                         |
-| [PRB-0001](problem-records/PRB-0001-demoted-coordinator-keeps-resources.md)         | Closed (2.1.0)                                                                                                                    | US-0005, US-0006, US-0013                                 |
-| [PRB-0002](problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md)      | Closed (2.1.0)                                                                                                                    | US-0010                                                   |
-| [PRB-0003](problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md) | Closed (3.1.0); follow-ups owned by dradoaica                                                                                     | US-0005, US-0006, US-0013                                 |
+| Record                                                                          | Status                                                                                                                            | Covers                                                                                           |
+|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [CR-0001](change-records/CR-0001-coordination-safety-and-provider-ownership.md) | **Implemented** (2.1.0, `2952de6`); rollback rehearsed (reported 2026-10-20); [release notes](release-notes/2.1.0.md)             | ADR 0006–0009, PRB fixes; Redis all-nodes-at-once upgrade                                        |
+| [CR-0002](change-records/CR-0002-release-2-2-0-deprecations.md)                 | **Implemented** (2.2.0, `ac6587a`); [release notes](release-notes/2.2.0.md)                                                       | Deprecations of ADR 0011, 0012, 0013                                                             |
+| [CR-0003](change-records/CR-0003-release-3-0-0.md)                              | **Implemented** (3.0.0, `f3efbcb`); [release notes](release-notes/3.0.0.md), [migration guide](release-notes/migrating-to-3.0.md) | ADR 0011–0015, US-0015                                                                           |
+| [CR-0004](change-records/CR-0004-release-3-1-0.md)                              | **Implemented** (3.1.0, `dd094d4`); [release notes](release-notes/3.1.0.md)                                                       | ADR-0019, PRB-0003                                                                               |
+| [CR-0005](change-records/CR-0005-release-3-2-0.md)                              | **Implemented** (3.2.0, `860b3d3`); [release notes](release-notes/3.2.0.md)                                                       | US-0016, ADR-0021, operator scripts, paused-node tests                                           |
+| [CR-0006](change-records/CR-0006-release-4-0-0.md)                              | **Implemented** (4.0.0, `b9b5f3f`); [release notes](release-notes/4.0.0.md), [migration guide](release-notes/migrating-to-4.0.md) | ADR-0020, US-0020                                                                                |
+| [CR-0007](change-records/CR-0007-release-4-1-0.md)                              | **Implemented** (4.1.0, `a340daf`); [release notes](release-notes/4.1.0.md)                                                       | ADR-0022, ADR-0023, US-0017..0019 (US-0019: `*RandomisedTests`, governed by ADR-0002 / ADR-0019) |
+| [CR-0008](change-records/CR-0008-release-4-2-0.md)                              | **Implemented** (4.2.0, `7bd4ad8`); [release notes](release-notes/4.2.0.md)                                                       | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries               |
+| [CR-0009](change-records/CR-0009-release-4-2-1.md)                              | **Implemented** (4.2.1, `732ecd7`); [release notes](release-notes/4.2.1.md)                                                       | ADR-0025, PRB-0004 (CVE-2026-84008)                                                              |
+| [CR-0010](change-records/CR-0010-release-4-3-0.md)                              | **Implemented** (4.3.0, `b39c166`); [release notes](release-notes/4.3.0.md)                                                       | ADR-0026, ADR-0027, ADR-0028, PRB-0005                                                           |
+| [CR-0011](change-records/CR-0011-release-4-3-1.md)                              | **Implemented** (4.3.1, `76a66ae`); [release notes](release-notes/4.3.1.md)                                                       | SQL Server / Redis clean stop; network tests                                                     |
+| [CR-0012](change-records/CR-0012-release-4-3-2.md)                              | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md)                                                       | PRB-0006, PRB-0007, US-0024                                                                      |
+| [CR-0013](change-records/CR-0013-release-5-0-0.md)                              | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029..0033, US-0025, US-0026, TM-0004                                                        |
 
-### 4.1.0 records
+### Problem records
 
-| Record                                             | Status                                                                      | Covers                                                                                           |
-|----------------------------------------------------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| [CR-0007](change-records/CR-0007-release-4-1-0.md) | **Implemented** (4.1.0, `a340daf`); [release notes](release-notes/4.1.0.md) | ADR-0022, ADR-0023, US-0017..0019 (US-0019: `*RandomisedTests`, governed by ADR-0002 / ADR-0019) |
-
-### 4.2.0 records
-
-| Record                                             | Status                                                                      | Covers                                                                             |
-|----------------------------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [CR-0008](change-records/CR-0008-release-4-2-0.md) | **Implemented** (4.2.0, `7bd4ad8`); [release notes](release-notes/4.2.0.md) | US-0021 (Aborted state), health-check fix (ADR-0023 note), malformed Redis entries |
-
-### 4.2.1 records
-
-| Record                                                                                    | Status                                                                      | Covers                                                         |
-|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------|
-| [CR-0009](change-records/CR-0009-release-4-2-1.md)                                        | **Implemented** (4.2.1, `732ecd7`); [release notes](release-notes/4.2.1.md) | ADR-0025, PRB-0004 (CVE-2026-84008)                            |
-| [PRB-0004](problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md) | Closed (4.2.1)                                                              | `System.Security.Cryptography.Pkcs` in the SQL Server packages |
-
-### 4.3.0 records
-
-| Record                                                                      | Status                                                                      | Covers                                 |
-|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|----------------------------------------|
-| [CR-0010](change-records/CR-0010-release-4-3-0.md)                          | **Implemented** (4.3.0, `b39c166`); [release notes](release-notes/4.3.0.md) | ADR-0026, ADR-0027, ADR-0028, PRB-0005 |
-| [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md) | Closed (4.3.0)                                                              | US-0005, US-0006                       |
-
-### 4.3.1 records
-
-| Record                                             | Status                                                                      | Covers                                       |
-|----------------------------------------------------|-----------------------------------------------------------------------------|----------------------------------------------|
-| [CR-0011](change-records/CR-0011-release-4-3-1.md) | **Implemented** (4.3.1, `76a66ae`); [release notes](release-notes/4.3.1.md) | SQL Server / Redis clean stop; network tests |
-
-### 4.3.2 records
-
-| Record                                             | Status                                                                      | Covers                      |
-|----------------------------------------------------|-----------------------------------------------------------------------------|-----------------------------|
-| [CR-0012](change-records/CR-0012-release-4-3-2.md) | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md) | PRB-0006, PRB-0007, US-0024 |
-
-### 5.0.0 records
-
-| Record                                             | Status                                                                                                                            | Covers                                    |
-|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
-| [CR-0013](change-records/CR-0013-release-5-0-0.md) | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029..0033, US-0025, US-0026, TM-0004 |
-
-### 4.3.2 problem records and stories
-
-| Record                                                                       | Status         | Covers                                                                                                                                                       |
-|------------------------------------------------------------------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md) | Closed (4.3.2) | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
-| [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)  | Closed (4.3.2) | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
-| [US-0024](user-stories/US-0024-randomised-tests-check-what-nodes-process.md) | Done (4.3.2)   | US-0019 suites checked with `ProcessingMonitor`                                                                                                              |
+| Record                                                                                    | Status                                        | Covers                                                                                                                                                       |
+|-------------------------------------------------------------------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [PRB-0001](problem-records/PRB-0001-demoted-coordinator-keeps-resources.md)               | Closed (2.1.0)                                | US-0005, US-0006, US-0013                                                                                                                                    |
+| [PRB-0002](problem-records/PRB-0002-zookeeper-tests-ignored-their-provider.md)            | Closed (2.1.0)                                | US-0010                                                                                                                                                      |
+| [PRB-0003](problem-records/PRB-0003-resumed-follower-keeps-reassigned-resources.md)       | Closed (3.1.0); follow-ups owned by dradoaica | US-0005, US-0006, US-0013                                                                                                                                    |
+| [PRB-0004](problem-records/PRB-0004-vulnerable-transitive-pkcs-in-sql-server-packages.md) | Closed (4.2.1)                                | `System.Security.Cryptography.Pkcs` in the SQL Server packages                                                                                               |
+| [PRB-0005](problem-records/PRB-0005-recovered-follower-never-reassigned.md)               | Closed (4.3.0)                                | US-0005, US-0006                                                                                                                                             |
+| [PRB-0006](problem-records/PRB-0006-stopped-client-never-reports-stopped.md)              | Closed (4.3.2)                                | `ClientState.Stopped` after `StopAsync` (all backends): `StoppedStateTests`, `*PausedNodeTests.AStoppedClient_ReportsStopped`, `ZooKeeper/SingleClientTests` |
+| [PRB-0007](problem-records/PRB-0007-assignment-delay-delays-keep-alives.md)               | Closed (4.3.2)                                | `OnAssignmentDelay` on SQL Server / Redis: `AssignmentDelayTests`, `*AssignmentDelayTests`                                                                   |
 
 ### Threat models
 
@@ -121,11 +85,12 @@ test project is added.
 
 ### Stories without a single ADR (tooling / quality)
 
-| Story                                                                                    | Title                                     | Links                                  | Locations                                                                                                |
-|------------------------------------------------------------------------------------------|-------------------------------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------|
-| [US-0009](user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md)                    | RabbitMQ tools CLI                        | README                                 | `examples/Rebalancer.RabbitMq.Tools/`                                                                    |
-| [US-0022](user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md)     | Ordered consumer group example (option A) | ADR-0002, ADR-0019, ADR-0021, ADR-0024 | `examples/Rebalancer.RabbitMq.*`; `tests/Rebalancer.IntegrationTests/Examples/ConversationGuardTests.cs` |
-| [US-0023](user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md) | Rebalancer or super streams guide         | ADR-0024                               | `docs/guides/rabbitmq-ordered-consumer-groups.md`                                                        |
+| Story                                                                                    | Title                                     | Links                                     | Locations                                                                                                |
+|------------------------------------------------------------------------------------------|-------------------------------------------|-------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| [US-0009](user-stories/US-0009-rabbitmq-tools-cli-for-queue-setup.md)                    | RabbitMQ tools CLI                        | README                                    | `examples/Rebalancer.RabbitMq.Tools/`                                                                    |
+| [US-0022](user-stories/US-0022-ordered-consumer-group-example-with-quorum-queues.md)     | Ordered consumer group example (option A) | ADR-0002, ADR-0019, ADR-0021, ADR-0024    | `examples/Rebalancer.RabbitMq.*`; `tests/Rebalancer.IntegrationTests/Examples/ConversationGuardTests.cs` |
+| [US-0023](user-stories/US-0023-super-streams-alternative-for-ordered-consumer-groups.md) | Rebalancer or super streams guide         | ADR-0024                                  | `docs/guides/rabbitmq-ordered-consumer-groups.md`                                                        |
+| [US-0024](user-stories/US-0024-randomised-tests-check-what-nodes-process.md)             | Randomised tests check what nodes process | ADR-0019, ADR-0021, US-0019; Done (4.3.2) | `tests/Rebalancer.IntegrationTests/ProcessingMonitor.cs`, `RandomisedScenario.cs`                        |
 
 ### v2 documentation slice
 
