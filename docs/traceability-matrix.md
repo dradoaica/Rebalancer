@@ -63,7 +63,7 @@ test project is added.
 | [CR-0011](change-records/CR-0011-release-4-3-1.md)                               | **Implemented** (4.3.1, `76a66ae`); [release notes](release-notes/4.3.1.md)                                                        | SQL Server / Redis clean stop; network tests                                                                    |
 | [CR-0012](change-records/CR-0012-release-4-3-2.md)                               | **Implemented** (4.3.2, `41f3c04`); [release notes](release-notes/4.3.2.md)                                                        | PRB-0006, PRB-0007, US-0024                                                                                     |
 | [CR-0013](change-records/CR-0013-release-5-0-0.md)                               | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md)  | ADR-0029..0033, US-0025, US-0026, TM-0004                                                                       |
-| [CR-0014](change-records/CR-0014-release-5-1-0.md)                               | **Approved** (5.1.0); [release notes](release-notes/5.1.0.md)                                                                      | Fixes from the 5.0 cross-check; PRB-0008 (documented limit)                                                     |
+| [CR-0014](change-records/CR-0014-release-5-1-0.md)                               | **Implemented** (5.1.0, `35cce2c`); [release notes](release-notes/5.1.0.md)                                                        | Fixes from the 5.0 cross-check; PRB-0008 (documented limit)                                                     |
 
 ### Problem records
 

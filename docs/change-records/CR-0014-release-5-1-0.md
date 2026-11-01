@@ -1,6 +1,6 @@
 ---
 id: CR-0014
-status: Approved
+status: Implemented
 date: 2026-11-02
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
@@ -157,6 +157,19 @@ Release notes `docs/release-notes/5.1.0.md`.
 
 - **Actual outcome:** (after the release)
 - **Follow-ups:** (after the release)
+- **Actual outcome (2026-11-01 UTC):** dradoaica merged `agent/review-fixes-code` into `main` by fast-forward to
+  `35cce2c` (no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 22:48:02–22:48:56
+  UTC, including "Pack NuGet Packages" and "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/41358935641). Its log shows all eight 5.1.0 packages pushed:
+  `Rebalancer.Core`, `Rebalancer.LeaseCoordination`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`,
+  `Rebalancer.Redis`, `Rebalancer.ZooKeeper`, `Rebalancer.Extensions.DependencyInjection`,
+  `Rebalancer.Extensions.Diagnostics.HealthChecks`.
+- **Deviations:** none from the implementation plan. The ZooKeeper suite and the rollback rehearsal were N/A, accepted
+  with this record (Preconditions).
+- **Follow-ups:**
+  - PRB-0009 (Open): the Redis network-fault liveness failure.
+  - ADR-0034 (5.x deprecations, 6.0 public API) and ADR-0035 (tests and dependency scan in CI): accepted, each to be
+    released with its own change record.
 
 ## Sources
 
