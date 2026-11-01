@@ -64,8 +64,7 @@ corrects the tier.
    names in `public` and shows the backend still uses `rbr` (TM-0004, T3).
 10. **Registration:** `AddRebalancerPostgreSql` in `Rebalancer.Extensions.DependencyInjection`, with a test like
    `DiRegistrationTests.AddRebalancerSqlServer_Resolves_RebalancerClient_Without_Static_Providers` (ADR-0005). The name
-   follows the existing `AddRebalancerSqlServer`; ADR-0030 writes `AddPostgreSqlRebalancer`, which does not match the
-   convention (the reviewer confirms the name).
+   follows the existing `AddRebalancerSqlServer` (ADR-0030, corrected 2026-11-01).
 11. **Docs:** README (Languages and Backends, quick start, and guidance on TLS with full verification, synchronous
     replication or a lease expiry above the failover time, and pool sizing; TM-0004 I2, T4, D4), architecture overview
     (backend table and diagram), release notes, and the traceability matrix (ADR-0030 row, this story).

@@ -63,14 +63,14 @@ confirmed) with a `PostgreSqlProvider` that delegates to `LeaseCoordinatedProvid
   please confirm against the PostgreSQL error-code appendix).
 * **Internals:** `Rebalancer.LeaseCoordination` adds `InternalsVisibleTo` for `Rebalancer.PostgreSql`, so the backend
   implements `IFencedClientService` as the SQL Server and Redis backends do.
-* **Registration (ADR-0005):** `AddPostgreSqlRebalancer` in `Rebalancer.Extensions.DependencyInjection`, next to the
+* **Registration (ADR-0005):** `AddRebalancerPostgreSql` in `Rebalancer.Extensions.DependencyInjection`, next to the
   SQL Server and Redis methods.
 * **Tests:** the shared integration scenarios (assignment safety, randomised, paused node, network fault, assignment
   delay, aborted state, health check, telemetry, least privilege) run against a pinned PostgreSQL container image
   through Testcontainers (module and image tag unverified – please confirm), with the same assertions as for SQL
   Server.
 * **Before implementation:** a threat model for the PostgreSQL backend (TM-0004, following TM-0002) and a user story.
-  Release in a 5.x minor version: the package is new and changes no existing API.
+  Release in 5.0.0, with the ADR-0029 refactor: the package is new and changes no existing API.
 
 ### Consequences
 
