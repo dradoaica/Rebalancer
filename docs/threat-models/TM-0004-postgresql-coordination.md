@@ -1,10 +1,10 @@
 ---
 id: TM-0004
-status: Proposed
+status: Accepted
 date: 2026-11-01
 scope: "Rebalancer.PostgreSql provider and the rbr schema it uses"
 owner: "dradoaica"
-approved-by: [ ]
+approved-by: [ "dradoaica" ]
 depends-on: [ "ADR-0030", "ADR-0026", "ADR-0014", "ADR-0022", "US-0026", "TM-0002" ]
 supersedes: [ ]
 superseded-by: ""
@@ -175,7 +175,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
     accepted only with the deployment guidance in place.
   - **Telemetry exports group names** (`rebalancer.backend` = `postgresql`, ADR-0022): Low, as for the other backends.
   - **No audit trail** unless the database provides one.
-- Decision: pending review (status Proposed).
+- Decision: accepted by dradoaica (service owner and security / architecture reviewer), in session 2026-11-01.
 
 ## Dependencies and follow-ups
 
@@ -188,10 +188,10 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Approvals
 
-| Role                    | Name | Date |
-|-------------------------|------|------|
-| Service owner           |      |      |
-| Security / architecture |      |      |
+| Role                    | Name      | Date       |
+|-------------------------|-----------|------------|
+| Service owner           | dradoaica | 2026-11-01 |
+| Security / architecture | dradoaica | 2026-11-01 |
 
 ## Sources
 

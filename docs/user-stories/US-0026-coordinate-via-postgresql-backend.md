@@ -1,9 +1,9 @@
 ---
 id: US-0026
-status: Draft
+status: Ready
 date: 2026-11-01
 owner: ""
-approved-by: [ ]            # readiness approval; set by a human only
+approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
 ssdlc-phase: Planning
 depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-0005", "TM-0004" ]
@@ -24,10 +24,9 @@ ADR-0030 (Accepted) decides the backend: Npgsql, a `rbr` schema mirroring the SQ
 guard on client writes, and a `PostgreSqlProvider` that delegates to `LeaseCoordinatedProvider` (ADR-0029). This story
 is that backend, end to end; its behavior is the SQL Server backend's (US-0005), on PostgreSQL.
 
-**Blocked on:** the threat model of the PostgreSQL backend (TM-0004, Proposed) must be `Accepted` before this story
-can be `Ready` (ADR-0030; Design phase security gate), and the 5.0 refactor that creates
-`Rebalancer.LeaseCoordination` (ADR-0029, branch `agent/lease-coordination-5.0`) must be on the shared trunk before
-implementation starts.
+**Release (decided by dradoaica, 2026-11-01):** ships in 5.0.0 together with the refactor that creates
+`Rebalancer.LeaseCoordination` (ADR-0029), so it is implemented on the release branch `agent/lease-coordination-5.0`
+(CR-0013). The threat model TM-0004 is Accepted (2026-11-01).
 
 Tier 1 (new package and client library) under the Accepted ADR-0030; the story carries it. The reviewer confirms or
 corrects the tier.
@@ -83,10 +82,10 @@ corrects the tier.
 
 - Decision records: `docs/adrs/0030-postgresql-backend.md` (Accepted), `docs/adrs/0029-…` (Accepted),
   `docs/adrs/0026-…`, `docs/adrs/0014-…`, `docs/adrs/0005-…`
-- Threat model: `docs/threat-models/TM-0004-postgresql-coordination.md` (Proposed) – blocks readiness until Accepted.
-- Code: the 5.0 refactor on `agent/lease-coordination-5.0` – not on the shared trunk yet; blocks implementation.
+- Threat model: `docs/threat-models/TM-0004-postgresql-coordination.md` (Accepted)
+- Code: the 5.0 refactor on `agent/lease-coordination-5.0` (ADR-0029); this story is built on that branch.
 - Other stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md` (the behavior to match)
-- Release: a 5.x minor version with its change record.
+- Release: 5.0.0 (CR-0013).
 
 ## Security & compliance
 
@@ -100,7 +99,7 @@ credentials and TLS in the connection string, the least-privilege role (criterio
 
 - [x] Governing ADR referenced and `Accepted` on the shared trunk (ADR-0030)
 - [x] Acceptance criteria are testable, unambiguous, and numbered
-- [ ] Security & compliance considerations addressed (TM-0004 `Accepted`)
+- [x] Security & compliance considerations addressed (TM-0004 `Accepted`)
 - [x] Dependencies and non-goals are explicitly identified
 
 ## Definition of done

@@ -66,7 +66,7 @@ it.
   `docs/adrs/0017-redis-lease-timing-and-atomic-updates.md`, `docs/adrs/0020-per-group-redis-leases-and-resources.md`
 - Threat model: `docs/threat-models/TM-0003-redis-coordination.md`
 - Other stories: `docs/user-stories/US-0006-coordinate-via-redis-backend.md`
-- Release: the next 5.x release, with its change record.
+- Release: 5.0.0 (CR-0013, decided by dradoaica 2026-11-01).
 
 ## Security & compliance
 
