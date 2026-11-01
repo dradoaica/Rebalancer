@@ -8,7 +8,7 @@ risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 5.0.0, after approval"
-depends-on: [ "ADR-0029", "ADR-0030", "ADR-0031", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "TM-0004", "US-0025", "US-0026", "CR-0012" ]
+depends-on: [ "ADR-0029", "ADR-0030", "ADR-0031", "ADR-0032", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "TM-0004", "US-0025", "US-0026", "CR-0012" ]
 ---
 
 # Change record: Rebalancer 5.0.0 – shared lease coordination, PostgreSQL backend, Valkey support
@@ -51,6 +51,11 @@ PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valk
   over Redis 7.0 and Valkey 8.1.11 (`DockerSupport.RedisServers`).
 - Docs: README (backends, supported servers, PostgreSQL operating guidance), architecture overview, release notes,
   traceability matrix; US-0025, US-0026.
+- ADR-0032: `db/sqlserver/RebalanserTables.sql` without `FK_Clients_ResourceGroups`; the SQL Server tests run on the
+  shipped scripts (`SchemaSetup.ApplyRbrSchemaAsync`), and the test-only `rbr-schema.sql` is deleted. Reproduced
+  first: on the shipped scripts with the key, both `SqlServerAbortedStateTests` failed with a foreign-key violation.
+- `ProcessingMonitor` (US-0024): resume windows on every resource a node resumes with (see Preconditions).
+- `db/`: SQL Server scripts moved to `db/sqlserver/`; `db/postgresql/` has the same three scripts.
 
 **Out of scope:**
 - The external NuGet version bumps found in the working tree on 2026-11-01 (stashed; their own change).
@@ -62,22 +67,28 @@ not affected. But custom service implementations and test doubles are, and a min
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                                                       |
-|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. New: a PostgreSQL backend; Valkey 8.1.11 supported. |
-| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                               |
-| Data / schema         | None for SQL Server and Redis (schema and keys unchanged). New for PostgreSQL: the `rbr` schema from `db/postgresql/`.                                                                       |
-| Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 8.0.9.                  |
-| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                   |
+| Area                  | Impact                                                                                                                                                                                                                  |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. New: a PostgreSQL backend; Valkey 8.1.11 supported.                            |
+| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                                                          |
+| Data / schema         | Redis: none. SQL Server: the shipped script drops `FK_Clients_ResourceGroups` (ADR-0032); existing databases keep it until an operator drops it (optional). New for PostgreSQL: the `rbr` schema from `db/postgresql/`. |
+| Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 8.0.9.                                             |
+| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                                              |
 
 ## Preconditions
 
 - [x] Decision record: ADR-0029 (Accepted by dradoaica, 2026-11-01; on `main`).
 - [x] Build: 0 warnings (2026-11-01).
-- [x] Unit tests: 89/89, as on `main` before the change.
-- [x] SQL Server + Redis integration tests: 54/54 (commit `f4ad1c4`; the rebase onto `main` changed only
-  `docs/traceability-matrix.md`). Baseline on `main` the same day: 51/54, the three failures SQL Server containers out
-  of memory (`FAIL_PAGE_ALLOCATION`), not test failures.
+- [x] Unit tests: 103/103 (89 before the new backends).
+- [x] Integration tests, all but ZooKeeper (2026-11-01, branch at `6375471`): 101/102. The one failure is
+  `RedisNetworkFaultTests` on Redis 7.0, liveness ("never converged"), which passes when run alone; it has failed
+  that way in three of four full runs since the Redis suites run on two servers (load; US-0025 notes).
+- [x] After ADR-0032 (shipped scripts, no client foreign key): SQL Server suite 18/18 and PostgreSQL suite 20/20.
+  Docker here is limited to 7.3 GiB: with xUnit's default parallelism, SQL Server containers fail to start
+  (exit codes 17, 114, 183, 235, 255), as in the `main` baseline run; the SQL Server run used
+  `-- xUnit.MaxParallelThreads=3`.
+- [x] `ProcessingMonitor` fix (US-0024): seed `1306714545`, which failed on `main` (Redis) and on the branch (SQL
+  Server, Valkey) before the fix, passes on Valkey and SQL Server after it.
 - [x] ZooKeeper integration tests on the README ensemble: **N/A**, accepted by dradoaica (in session 2026-11-01).
   Rationale: no ZooKeeper code changed (`src/Rebalancer.ZooKeeper` differs from `main` only in its version number);
   the `Rebalancer.Core` changes are two `InternalsVisibleTo` entries and a `RebalancerTelemetry.BackendOf` case for
@@ -131,6 +142,7 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
   `docs/adrs/0026-coordinator-acts-only-under-a-valid-lease.md`
 - ADRs (new backends): `docs/adrs/0030-postgresql-backend.md`,
   `docs/adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md`
+- ADR (schema fix): `docs/adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md`
 - User stories: `docs/user-stories/US-0025-redis-backend-on-valkey.md`,
   `docs/user-stories/US-0026-coordinate-via-postgresql-backend.md`
 - Threat models: `docs/threat-models/TM-0002-sql-server-coordination.md`,

@@ -36,9 +36,8 @@ CREATE TABLE RBR.Resources
 
 ALTER TABLE RBR.Clients
     ADD DEFAULT (1) FOR FencingToken;
-ALTER TABLE RBR.Clients WITH CHECK ADD CONSTRAINT FK_Clients_ResourceGroups FOREIGN KEY (ResourceGroup)
-    REFERENCES RBR.ResourceGroups (ResourceGroup);
-ALTER TABLE RBR.Clients CHECK CONSTRAINT FK_Clients_ResourceGroups;
+-- No foreign key from RBR.Clients to RBR.ResourceGroups (ADR-0032): a client of a missing group must reach its lease
+-- request, which reports the group missing, so it reports Aborted (US-0021) instead of failing to register.
 ALTER TABLE RBR.Resources WITH CHECK ADD CONSTRAINT FK_Resources_ResourceGroups FOREIGN KEY (ResourceGroup)
     REFERENCES RBR.ResourceGroups (ResourceGroup);
 ALTER TABLE RBR.Resources CHECK CONSTRAINT FK_Resources_ResourceGroups;

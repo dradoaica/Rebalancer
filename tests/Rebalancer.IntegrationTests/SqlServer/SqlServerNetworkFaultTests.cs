@@ -5,7 +5,7 @@ using Testcontainers.MsSql;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. Nodes whose link to SQL Server is slow and lossy come and go; no resource is ever processed

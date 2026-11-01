@@ -3,7 +3,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. Validates that two nodes never both report the same resource as assigned (sampled), and never

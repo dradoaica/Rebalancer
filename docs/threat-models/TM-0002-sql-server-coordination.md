@@ -141,13 +141,13 @@ resource groups, and unbounded growth of the client table.
 
 ## Controls mapping
 
-| Threat / Risk                     | Control (design or runtime)                                                                                             | Evidence / Reference                                                                        |
-|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| Spoofing / tampering, D3          | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL) | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant) |
-| SQL injection                     | Parameterized statements                                                                                                | `ClientService`, `LeaseService`, `ResourceService`                                          |
-| Credential and traffic disclosure | Secret store; `Encrypt=True`; no connection strings in logs                                                             | US-0005 Security & compliance; deployment responsibility                                    |
-| Client table growth (D1)          | Coordinator expiry under the fencing token; own-row delete on clean stop                                                | ADR-0014; `tests/Rebalancer.IntegrationTests/Sql/SqlServerClientRecordTests.cs`             |
-| Cross-group tampering             | Separate database or login per trust domain                                                                             | Deployment responsibility                                                                   |
+| Threat / Risk                      | Control (design or runtime)                                                                                              | Evidence / Reference                                                                         |
+|------------------------------------|--------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Spoofing / tampering, D3           | Dedicated login with `SELECT`, `INSERT`, `UPDATE` on the three `RBR` tables and `DELETE` on `RBR.Clients` only (no DDL)  | Statements in `src/Rebalancer.SqlServer/`; `docs/release-notes/migrating-to-3.0.md` (grant)  |
+| SQL injection                      | Parameterized statements                                                                                                 | `ClientService`, `LeaseService`, `ResourceService`                                           |
+| Credential and traffic disclosure  | Secret store; `Encrypt=True`; no connection strings in logs                                                              | US-0005 Security & compliance; deployment responsibility                                     |
+| Client table growth (D1)           | Coordinator expiry under the fencing token; own-row delete on clean stop                                                 | ADR-0014; `tests/Rebalancer.IntegrationTests/SqlServer/SqlServerClientRecordTests.cs`        |
+| Cross-group tampering              | Separate database or login per trust domain                                                                              | Deployment responsibility                                                                    |
 
 ## Residual risk and acceptance
 

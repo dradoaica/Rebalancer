@@ -4,7 +4,7 @@ using Rebalancer.SqlServer.Clients;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>Requires Docker. ADR-0014 against a real SQL Server: stale records expire only under the coordinator's lease.</summary>
 public sealed class SqlServerClientRecordTests

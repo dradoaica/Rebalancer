@@ -3,7 +3,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. A database installed from the shipped <c>db/sqlserver/</c> scripts works, and
@@ -20,9 +20,7 @@ public sealed class SqlServerLeastPrivilegeTests
         await using var sql = new MsSqlBuilder(DockerSupport.MsSqlImage).WithPassword("Tests_pass_123!").Build();
         await sql.StartAsync();
         var adminConnectionString = sql.GetConnectionString();
-        // installed as an operator would: the shipped scripts, not the tests' rbr-schema.sql
-        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserSchema.sql");
-        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserTables.sql");
+        await SchemaSetup.ApplyRbrSchemaAsync(adminConnectionString);
         await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserLeastPrivilege.sql");
         var group = "it-sql-role-" + Guid.NewGuid().ToString("N");
         await SchemaSetup.SeedResourceGroupAsync(adminConnectionString, group, PausedNodeScenarios.Resources, 5, 1);

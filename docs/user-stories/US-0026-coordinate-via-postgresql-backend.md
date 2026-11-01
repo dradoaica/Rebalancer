@@ -82,7 +82,7 @@ Where the implementation differs from the criteria above or from ADR-0030's word
    `StartAsync` (SQLSTATE `23503`) instead of reporting `Aborted` (US-0021), and the key check waits for any lease
    transaction holding the group row. `rbr.resources` keeps its key. The shipped SQL Server schema
    (`db/sqlserver/RebalanserTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
-   pass only because they use their own schema without it. Not fixed here: a candidate problem record.
+   pass only because they use their own schema without it. Fixed for both by ADR-0032 (5.0.0).
 3. **Transient errors (criterion 6):** besides the codes ADR-0030 names, `55P03` (the waiting nodes' lock timeout) and
    `25P03` (the stalled node's own session ended by the server) are retried, as TM-0004 D2 requires.
 4. **Telemetry:** `RebalancerTelemetry.BackendOf` in `Rebalancer.Core` maps `PostgreSqlProvider` to `postgresql`, so

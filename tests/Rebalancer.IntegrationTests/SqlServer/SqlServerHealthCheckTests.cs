@@ -2,7 +2,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>Requires Docker. ADR-0023: the health check with a real SQL Server client.</summary>
 public sealed class SqlServerHealthCheckTests

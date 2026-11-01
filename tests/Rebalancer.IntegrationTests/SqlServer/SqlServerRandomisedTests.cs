@@ -2,7 +2,7 @@ using Testcontainers.MsSql;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>Requires Docker. US-0019 randomised assignment safety and liveness on SQL Server.</summary>
 public sealed class SqlServerRandomisedTests(ITestOutputHelper output)

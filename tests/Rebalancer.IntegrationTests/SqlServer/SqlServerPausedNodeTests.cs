@@ -3,7 +3,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. A node that stops responding past the lease / keep-alive expiry and then resumes (PRB-0003,

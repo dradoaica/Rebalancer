@@ -2,7 +2,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>Requires Docker. PRB-0007: an assignment delay longer than the keep-alive expiry, on SQL Server.</summary>
 public sealed class SqlServerAssignmentDelayTests

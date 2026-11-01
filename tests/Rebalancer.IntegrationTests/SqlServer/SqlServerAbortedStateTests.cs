@@ -5,7 +5,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. US-0021 for SQL Server against a real store: a client whose resource group does not exist

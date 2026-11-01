@@ -7,7 +7,7 @@ using Rebalancer.SqlServer.Clients;
 using Rebalancer.SqlServer.Leases;
 using Rebalancer.SqlServer.Resources;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>A SQL Server provider whose store calls wait while the given <see cref="NodePause" /> is paused.</summary>
 internal static class PausableSqlServerServices

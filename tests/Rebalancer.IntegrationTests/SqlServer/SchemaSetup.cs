@@ -1,20 +1,29 @@
 using Microsoft.Data.SqlClient;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 internal static class SchemaSetup
 {
-    public static Task ApplyRbrSchemaAsync(string connectionString, CancellationToken cancellationToken = default) =>
-        ApplyScriptAsync(connectionString, "rbr-schema.sql", cancellationToken);
+    /// <summary>
+    ///     The schema and tables from the shipped <c>db/sqlserver/</c> scripts, as an operator installs them (ADR-0032).
+    /// </summary>
+    public static async Task ApplyRbrSchemaAsync(
+        string connectionString,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await ApplyScriptAsync(connectionString, "RebalanserSchema.sql", cancellationToken);
+        await ApplyScriptAsync(connectionString, "RebalanserTables.sql", cancellationToken);
+    }
 
-    /// <summary>Runs a script copied to the output's <c>Sql</c> folder, batch by batch (split on <c>GO</c>).</summary>
+    /// <summary>Runs a script copied to the output's <c>SqlServer</c> folder, batch by batch (split on <c>GO</c>).</summary>
     public static async Task ApplyScriptAsync(
         string connectionString,
         string fileName,
         CancellationToken cancellationToken = default
     )
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Sql", fileName);
+        var path = Path.Combine(AppContext.BaseDirectory, "SqlServer", fileName);
         if (!File.Exists(path))
         {
             throw new FileNotFoundException($"Missing {fileName} (ensure Content copy is enabled).", path);

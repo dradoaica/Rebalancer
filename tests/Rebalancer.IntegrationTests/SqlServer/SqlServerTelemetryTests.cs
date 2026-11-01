@@ -2,7 +2,7 @@ using Rebalancer.SqlServer;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Rebalancer.IntegrationTests.Sql;
+namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>Requires Docker. ADR-0022 telemetry of the SQL Server backend.</summary>
 public sealed class SqlServerTelemetryTests
