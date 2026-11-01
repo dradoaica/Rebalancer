@@ -1,7 +1,7 @@
 ---
 id: ADR-0002
-status: Accepted
-date: 2026-04-11
+status: Superseded
+date: 2026-11-01
 decides: "coordination pattern (coordinator, follower, lease, store) for the SQL Server and Redis backends"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
@@ -10,7 +10,7 @@ consulted: [ ]
 informed: [ ]
 depends-on: [ ]
 supersedes: [ ]
-superseded-by: ""
+superseded-by: "ADR-0029"
 ---
 
 # Coordinator, follower, lease, and resource store pattern for SQL Server and Redis backends
