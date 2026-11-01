@@ -24,7 +24,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON rbr.clients TO rebalancer_node;
 GRANT SELECT, UPDATE ON rbr.resource_groups TO rebalancer_node;
 GRANT SELECT ON rbr.resources TO rebalancer_node;
 
--- TM-0004 T3: nodes need to create nothing. Every statement names rbr, and built-ins resolve from pg_catalog first.
--- Before PostgreSQL 15 every role may create objects in public; to close that for all roles, an operator runs
+-- TM-0004 T3 (revision 2): nodes need to create nothing, and this role is given no CREATE anywhere. Every statement
+-- names rbr, and built-ins resolve from pg_catalog first, so objects in other schemas cannot shadow them. Before
+-- PostgreSQL 15 every role may create objects in public through PUBLIC; to close that for all roles, an operator runs
 --   REVOKE CREATE ON SCHEMA public FROM PUBLIC;
-REVOKE CREATE ON SCHEMA public FROM rebalancer_node;

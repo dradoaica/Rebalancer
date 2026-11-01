@@ -5,7 +5,7 @@ date: 2026-10-18
 scope: "Rebalancer.SqlServer provider and the RBR schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0014", "US-0005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007" ]
+depends-on: [ "ADR-0002", "ADR-0014", "US-0005", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007", "ADR-0029", "ADR-0032", "CR-0013" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -37,9 +37,20 @@ resource groups, and unbounded growth of the client table.
 - **Health check output** carries only a state and a short reason (no resource names or connection details); it reads
   in-process state and never calls SQL Server.
 
+**Revision 4 (5.0.0, CR-0013; proposed 2026-11-01, not yet accepted):**
+
+- **Scope:** the coordinator, follower, store and provider loop that make the fenced writes of flows 4 and 6 moved,
+  unchanged, to `src/Rebalancer.LeaseCoordination` (ADR-0029, superseding ADR-0002); they are in scope here for SQL
+  Server, as in TM-0003 for Redis and TM-0004 for PostgreSQL. Threats and controls are unchanged by the move.
+- **D1 (ADR-0032):** the shipped schema no longer has the client foreign key. A client of a missing group leaves a
+  record no coordinator expires (ADR-0014 expiry runs under the group's lease), one per start with a new client id,
+  until a clean stop or until the group exists; a principal with `INSERT` on `RBR.Clients` can likewise add rows for
+  groups that do not exist. Risk: **Low** (bounded by restarts and the dedicated login).
+
 ## System context and boundaries
 
-- **In scope:** `SqlServerProvider`, `LeaseService`, `ClientService`, `ResourceService`, `ConnectionHelper`; tables
+- **In scope:** `SqlServerProvider`, `LeaseService`, `ClientService`, `ResourceService`, `ConnectionHelper`; the shared
+  coordination in `Rebalancer.LeaseCoordination` as used by SQL Server (revision 4); tables
   `RBR.ResourceGroups`, `RBR.Clients`, `RBR.Resources` (`db/sqlserver/RebalancerSchema.sql`,
   `db/sqlserver/RebalancerTables.sql`).
 - **Out of scope:** SQL Server hardening (patching, TDE, auditing configuration, backups); provisioning tools such as
@@ -121,7 +132,8 @@ resource groups, and unbounded growth of the client table.
 - Affected flow/asset: flows 3, 5; `GetActiveClientsAsync` filters on status but the table keeps growing.
 - Mitigation (s): since 3.0, the coordinator expires rows older than `ClientOptions.ClientRecordRetention` (default
   10 × the keep-alive expiry), and a clean stop deletes the node's own row (ADR-0014). Cleanup is best effort: if it
-  fails (e.g. missing `DELETE`), a warning is logged and coordination continues.
+  fails (e.g. missing `DELETE`), a warning is logged and coordination continues. Since 5.0 (ADR-0032) a client of a
+  missing group adds a record no coordinator expires (revision 4).
 - Risk: **Low** (revision 1: Low to Medium).
 - Threat D2: lock contention or a held serializable transaction blocks lease renewal, so coordinators flap.
 - Mitigation (s): short transactions; lease expiry well above the worst expected blocking.
@@ -166,8 +178,9 @@ resource groups, and unbounded growth of the client table.
 
 ## Dependencies and follow-ups
 
-- Required ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
-  `docs/adrs/0014-expire-stale-client-records.md` (Accepted).
+- Required ADRs: `docs/adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md` (superseding ADR-0002),
+  `docs/adrs/0014-expire-stale-client-records.md`, `docs/adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md`
+  (Accepted).
 - Required SDPs: N/A (library).
 - Change records to implement mitigations: `docs/change-records/CR-0003-release-3-0-0.md`.
 - Runbooks / monitors: `db/sqlserver/RebalancerLeastPrivilege.sql` (role `rebalancer_node`); the client-table cleanup
@@ -183,12 +196,17 @@ resource groups, and unbounded growth of the client table.
 | Security / architecture (revision 2) | dradoaica | 2026-10-19 |
 | Service owner (revision 3)           | dradoaica | 2026-10-19 |
 | Security / architecture (revision 3) | dradoaica | 2026-10-19 |
+| Service owner (revision 4)           |           |            |
+| Security / architecture (revision 4) |           |            |
 
 ## Sources
 
 - ADRs: `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`,
-  `docs/adrs/0014-expire-stale-client-records.md`
-- Change records: `docs/change-records/CR-0003-release-3-0-0.md`
+  `docs/adrs/0014-expire-stale-client-records.md`, `docs/adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md`
+  (revision 4), `docs/adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md` (revision 4)
+- Change records: `docs/change-records/CR-0003-release-3-0-0.md`, `docs/change-records/CR-0013-release-5-0-0.md`
+  (revision 4)
 - Related user stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`
-- Code: `src/Rebalancer.SqlServer/`, `db/sqlserver/RebalancerSchema.sql`, `db/sqlserver/RebalancerTables.sql`
+- Code: `src/Rebalancer.SqlServer/`, `src/Rebalancer.LeaseCoordination/`, `db/sqlserver/RebalancerSchema.sql`,
+  `db/sqlserver/RebalancerTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

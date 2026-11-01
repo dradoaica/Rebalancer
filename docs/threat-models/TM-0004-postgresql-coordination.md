@@ -5,7 +5,7 @@ date: 2026-11-01
 scope: "Rebalancer.PostgreSql provider and the rbr schema it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0030", "ADR-0026", "ADR-0014", "ADR-0022", "US-0026", "TM-0002" ]
+depends-on: [ "ADR-0030", "ADR-0026", "ADR-0014", "ADR-0022", "US-0026", "TM-0002", "ADR-0029", "ADR-0032" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -21,6 +21,27 @@ PostgreSQL role in the connection string. This model takes over TM-0002's threat
 and adds four that are specific to PostgreSQL: a stalled node holding the group's row lock, object shadowing through
 `search_path`, lease writes lost on failover to an asynchronous standby, and connection exhaustion. Written before the
 implementation (US-0026); controls marked "to verify" are confirmed by its tests.
+
+**Revision 2 (5.0.0, CR-0013; proposed 2026-11-01, not yet accepted):** the controls as built and tested.
+
+- **D2:** the backend sets `lock_timeout` and `idle_in_transaction_session_timeout` itself, to half the group's lease
+  expiry, in every lease transaction and in the coordinator's multi-row grant (`StartActivityAsync`); the role script
+  sets nothing (role settings would not reach member logins). No command timeout is set; these two bound the waits.
+  `PostgreSqlLockStallTests` shows the bound (the stalled node's session is ended, the others continue). Risk: **Low**.
+- **T3:** `REVOKE CREATE ON SCHEMA public FROM rebalancer_node` is not a control: before PostgreSQL 15 the privilege
+  comes from `PUBLIC`, and from 15 on `PUBLIC` no longer has it. The controls are schema-qualified names (every statement
+  names `rbr`) and built-ins resolving from `pg_catalog` first; `PostgreSqlShadowingTests` puts decoy tables in both
+  schemas of the default `search_path` (`"$user"` and `public`). Closing `public` for every role stays an operator
+  choice (`REVOKE CREATE ON SCHEMA public FROM PUBLIC`, before 15). The no-op statement is removed from the script.
+- **D1 (ADR-0032):** without the client foreign key, a client of a missing group leaves a record no coordinator expires,
+  one per start with a new client id, until a clean stop or until the group exists; a role with `INSERT` on
+  `rbr.clients` can likewise add rows for groups that do not exist. Risk: **Low** (bounded by restarts and the dedicated
+  role).
+- **Transient errors:** data flow 1 also retries `55P03` (the waiting nodes' lock timeout) and `25P03` (the stalled
+  node's own session, ended by the server).
+- **Verified since revision 1:** connection strings are not logged by the library's own code (no log call includes
+  one); the client ids are one array parameter (T2). Still to confirm in a deployment: the Npgsql keywords for TLS and
+  pool size, and row-level security (not designed for).
 
 ## System context and boundaries
 
@@ -54,7 +75,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Data flows
 
-1. Node → PostgreSQL – opens or reuses a pooled connection per operation (Npgsql pooling), retrying transient errors (ADR-0030: SQLSTATE class `08`, `40001`, `40P01`, `57P01`).
+1. Node → PostgreSQL – opens or reuses a pooled connection per operation (Npgsql pooling), retrying transient errors (ADR-0030: SQLSTATE class `08`, `40001`, `40P01`, `57P01`; and `55P03`, `25P03`, revision 2).
 2. Node → `SELECT … FOR UPDATE` on `resource_groups`, then `UPDATE`, in one `READ COMMITTED` transaction, time read
    with `clock_timestamp()` after the lock – acquire, renew or relinquish the lease.
 3. Node → `INSERT` / `UPDATE` on `clients` – register, keep-alive (store clock), status changes; `DELETE` of its own
@@ -89,8 +110,8 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
   `search_path` that includes a schema another role can create objects in (historically `public`), that role can
   shadow a table or function the backend calls.
 - Mitigation (s): every statement names `rbr.` explicitly and calls no unqualified function besides built-ins in
-  `pg_catalog`; the role script revokes `CREATE` on `public` from the node role (to verify in the scripts and a test
-  that runs with a hostile object in `public`).
+  `pg_catalog`, which PostgreSQL searches first; `PostgreSqlShadowingTests` puts decoy tables in `"$user"` and `public`
+  (revision 2). Revoking `CREATE` on `public` from the node role is no control (revision 2).
 - Risk: **Low** with qualified names; **Medium** otherwise.
 - Threat T4 (PostgreSQL-specific): lease writes lost on failover. With asynchronous streaming replication, a standby
   that is promoted may not have the last committed lease renewal or grant. The old coordinator believes it renewed;
@@ -125,15 +146,15 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 ### Denial of Service
 
 - Threat D1: unbounded growth of `clients`. Mitigation: the coordinator expires stale rows and a clean stop deletes the
-  node's own row (ADR-0014), as on SQL Server. Risk: **Low**.
+  node's own row (ADR-0014), as on SQL Server. Since ADR-0032 a client of a missing group adds a record no coordinator
+  expires (revision 2). Risk: **Low**.
 - Threat D2 (PostgreSQL-specific): a node stalls (process pause, network partition) while its lease transaction holds
   the group's row lock from `SELECT … FOR UPDATE`. Every other node's lease operation on that group waits for the lock,
   so no node can renew or take the lease, and the group stops rebalancing until the stalled transaction ends.
-- Mitigation (s): a command timeout below the lease expiry (ADR-0030, US-0026 criterion 8), and for the node role a
-  server-side `idle_in_transaction_session_timeout` and `lock_timeout` below the lease expiry, so the server ends a
-  stalled transaction and releases the lock (settings to verify; set in the role script). Waiting nodes treat a lock
-  timeout as transient and retry.
-- Risk: **Medium** until the stall test (US-0026 criterion 8) passes; **Low** after.
+- Mitigation (s): the backend sets `idle_in_transaction_session_timeout` and `lock_timeout` to half the lease expiry in
+  each such transaction, so the server ends a stalled transaction and releases the lock (revision 2; no role setting
+  and no command timeout). Waiting nodes treat a lock timeout as transient and retry.
+- Risk: **Low** (the stall test, US-0026 criterion 8, passes).
 - Threat D3: a role with `DELETE` on `rbr.clients` deletes live client rows; each affected node stops and registers
   again (ADR-0014), so repeated deletes keep the group rebalancing. Safety holds. Risk: **Low** with a dedicated role.
 - Threat D4 (PostgreSQL-specific): connection exhaustion. Each node holds a connection pool; many nodes, or many
@@ -153,16 +174,16 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Controls mapping
 
-| Threat / Risk                    | Control (design or runtime)                                                                    | Evidence / Reference                                     |
-|----------------------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Spoofing / tampering T1, D3      | Dedicated role with only the statements the backend runs; no DDL                               | `db/postgresql/` role script; least-privilege test       |
-| SQL injection T2                 | Parameters only; client-id lists as one array parameter                                        | `ClientService`, `LeaseService`, `ResourceService`       |
-| Object shadowing T3              | Schema-qualified names; `CREATE` on `public` revoked from the node role                        | Scripts; test with a hostile object in `public`          |
-| Lost lease writes on failover T4 | Synchronous replication or lease expiry above failover time; ADR-0026 guard bounds the overlap | Deployment responsibility; README guidance               |
-| Disclosure I1, I2                | Secret store; TLS with full verification; no connection strings in logs                        | US-0026 Security & compliance; deployment responsibility |
-| Row-lock stall D2                | Command timeout, `lock_timeout`, `idle_in_transaction_session_timeout` below the lease expiry  | US-0026 criterion 8 (stall test); role script            |
-| Connection exhaustion D4         | Bounded pool; role `CONNECTION LIMIT` or pooler                                                | README guidance                                          |
-| Cross-group tampering            | Separate database or role per trust domain                                                     | Deployment responsibility                                |
+| Threat / Risk                    | Control (design or runtime)                                                                    | Evidence / Reference                                          |
+|----------------------------------|------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| Spoofing / tampering T1, D3      | Dedicated role with only the statements the backend runs; no DDL                               | `db/postgresql/` role script; least-privilege test            |
+| SQL injection T2                 | Parameters only; client-id lists as one array parameter                                        | `ClientService`, `LeaseService`, `ResourceService`            |
+| Object shadowing T3              | Schema-qualified names; built-ins resolve from `pg_catalog` first                              | `PostgreSqlShadowingTests` (decoys in `"$user"` and `public`) |
+| Lost lease writes on failover T4 | Synchronous replication or lease expiry above failover time; ADR-0026 guard bounds the overlap | Deployment responsibility; README guidance                    |
+| Disclosure I1, I2                | Secret store; TLS with full verification; no connection strings in logs                        | US-0026 Security & compliance; deployment responsibility      |
+| Row-lock stall D2                | `lock_timeout`, `idle_in_transaction_session_timeout` per transaction, half the lease expiry   | `PostgreSqlLockStallTests`; `StallBound` in the backend       |
+| Connection exhaustion D4         | Bounded pool; role `CONNECTION LIMIT` or pooler                                                | README guidance                                               |
+| Cross-group tampering            | Separate database or role per trust domain                                                     | Deployment responsibility                                     |
 
 ## Residual risk and acceptance
 
@@ -185,10 +206,12 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Approvals
 
-| Role                    | Name      | Date       |
-|-------------------------|-----------|------------|
-| Service owner           | dradoaica | 2026-11-01 |
-| Security / architecture | dradoaica | 2026-11-01 |
+| Role                                 | Name      | Date       |
+|--------------------------------------|-----------|------------|
+| Service owner                        | dradoaica | 2026-11-01 |
+| Security / architecture              | dradoaica | 2026-11-01 |
+| Service owner (revision 2)           |           |            |
+| Security / architecture (revision 2) |           |            |
 
 ## Sources
 
