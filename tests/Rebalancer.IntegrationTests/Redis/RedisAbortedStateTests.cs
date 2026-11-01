@@ -1,7 +1,7 @@
 using Rebalancer.Core;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.Redis;
-using Rebalancer.Redis.Clients;
-using Rebalancer.Redis.Leases;
 using Testcontainers.Redis;
 using Xunit;
 

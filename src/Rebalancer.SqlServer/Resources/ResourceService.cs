@@ -1,4 +1,5 @@
-﻿using Rebalancer.SqlServer.Connections;
+﻿using Rebalancer.LeaseCoordination.Resources;
+using Rebalancer.SqlServer.Connections;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;

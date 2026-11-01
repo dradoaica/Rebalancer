@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Rebalancer.Core.Logging;
+using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.SqlServer.Connections;
 using System;
 using System.Data;

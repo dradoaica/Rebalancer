@@ -27,6 +27,11 @@ flowchart TB
   IP --> SS
   IP --> RD
   IP --> ZK
+  subgraph lease [Rebalancer.LeaseCoordination]
+    LC[Lease election, Coordinator, Follower, store]
+  end
+  SS --> LC
+  RD --> LC
   subgraph stores [Coordination stores]
     SQL[(SQL Server)]
     RDIS[(Redis)]
@@ -50,8 +55,10 @@ Release history: [`docs/release-notes/`](../release-notes/).
 ## Coordination state per backend
 
 SQL Server and Redis share one coordinator / follower protocol: a lease with a fencing token elects the coordinator,
-which writes each client's assignment into the store; followers read theirs on every heartbeat
-([ADR-0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)). ZooKeeper uses leader
+which writes each client's assignment into the store; followers read theirs on every heartbeat. One copy of it lives
+in `src/Rebalancer.LeaseCoordination`; each backend adds only its lease, client and resource services
+([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md), superseding
+[ADR-0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)). ZooKeeper uses leader
 election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md)).
 
 | Backend    | Group settings and lease                                                                               | Resources                                                                   | Client records                                    |

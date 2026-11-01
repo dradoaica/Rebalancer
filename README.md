@@ -75,6 +75,8 @@ metadata store.
 This repository is the .NET implementation: `Rebalancer.Core` plus one package per backend (`Rebalancer.ZooKeeper`,
 `Rebalancer.Redis`, `Rebalancer.SqlServer`) and optional packages for dependency injection
 (`Rebalancer.Extensions.DependencyInjection`) and health checks (`Rebalancer.Extensions.Diagnostics.HealthChecks`).
+`Rebalancer.Redis` and `Rebalancer.SqlServer` share their coordination code through `Rebalancer.LeaseCoordination`,
+which NuGet installs with them (ADR-0029).
 Other languages would need their own implementation of the protocol.
 
 ## Documentation

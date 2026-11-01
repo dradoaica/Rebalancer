@@ -138,6 +138,7 @@ fixed in the same change (the column is selected; the pre-check stays for custom
 - `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`, `US-0006-coordinate-via-redis-backend.md`,
   `US-0021-report-aborted-state-on-sql-server-and-redis.md`
 - `docs/tlaplus/README.md` (LeaderGlobalBarrier, finding 1), `docs/tlaplus/LeaderGlobalBarrier/MCRecoveredFollower.cfg`
-- `src/Rebalancer.SqlServer/SqlServerProvider.cs`, `src/Rebalancer.SqlServer/Roles/Coordinator.cs`,
-  `src/Rebalancer.SqlServer/Roles/Follower.cs`, `src/Rebalancer.SqlServer/Clients/ClientService.cs`, and the Redis
-  counterparts; `src/Rebalancer.Core/RebalancerClient.cs` (`OnAborted` remarks)
+- `src/Rebalancer.SqlServer/SqlServerProvider.cs`, `src/Rebalancer.SqlServer/Clients/ClientService.cs`, and the Redis
+  counterparts; `src/Rebalancer.LeaseCoordination/LeaseCoordinatedProvider.cs`,
+  `src/Rebalancer.LeaseCoordination/Roles/Coordinator.cs`, `src/Rebalancer.LeaseCoordination/Roles/Follower.cs` (the
+  provider loop and roles of both backends, moved there in 5.0); `src/Rebalancer.Core/RebalancerClient.cs` (`OnAborted` remarks)

@@ -174,6 +174,6 @@ failover, or delay its own start logic inside its `OnAssignment` handler.
 - `docs/user-stories/US-0004-configure-recovery-and-assignment-delay.md`,
   `US-0005-coordinate-via-sql-server-backend.md`, `US-0006-coordinate-via-redis-backend.md`
 - `docs/tlaplus/README.md` (Abstractions)
-- `src/Rebalancer.Core/ClientOptions.cs`, `src/Rebalancer.SqlServer/SqlServerProvider.cs`,
-  `src/Rebalancer.SqlServer/Roles/Follower.cs`, `src/Rebalancer.SqlServer/Roles/Coordinator.cs`, the Redis
-  counterparts, `src/Rebalancer.ZooKeeper/ResourceBarrier/Follower.cs`
+- `src/Rebalancer.Core/ClientOptions.cs`, `src/Rebalancer.LeaseCoordination/LeaseCoordinatedProvider.cs`,
+  `src/Rebalancer.LeaseCoordination/Roles/Follower.cs`, `src/Rebalancer.LeaseCoordination/Roles/Coordinator.cs` (the
+  SQL Server and Redis copies, merged into one in 5.0), `src/Rebalancer.ZooKeeper/ResourceBarrier/Follower.cs`

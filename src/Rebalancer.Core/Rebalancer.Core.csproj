@@ -17,6 +17,7 @@
         <!-- the backends record the instruments of RebalancerTelemetry (ADR-0022) -->
         <InternalsVisibleTo Include="Rebalancer.SqlServer"/>
         <InternalsVisibleTo Include="Rebalancer.Redis"/>
+        <InternalsVisibleTo Include="Rebalancer.LeaseCoordination"/>
         <InternalsVisibleTo Include="Rebalancer.ZooKeeper"/>
     </ItemGroup>
 

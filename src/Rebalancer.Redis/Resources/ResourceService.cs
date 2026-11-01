@@ -1,3 +1,4 @@
+using Rebalancer.LeaseCoordination.Resources;
 using Rebalancer.Redis.Utils;
 using StackExchange.Redis;
 using System.Collections.Generic;

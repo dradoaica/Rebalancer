@@ -1,9 +1,9 @@
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Resources;
-using Rebalancer.SqlServer.Roles;
-using Rebalancer.SqlServer.Store;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Resources;
+using Rebalancer.LeaseCoordination.Roles;
+using Rebalancer.LeaseCoordination.Store;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
@@ -41,8 +41,13 @@ public sealed class ClientRecordExpiryTests
         var self = Guid.NewGuid();
         await clients.CreateClientAsync(Group, self);
 
-        await new Coordinator(new NullRebalancerLogger(), new SqlServerNoResources(), clients, new ResourceGroupStore())
-            .ExecuteCoordinatorRoleAsync(self, SqlServerEvent(7), new OnChangeActions(), CancellationToken.None);
+        await new Coordinator(
+            "sqlserver",
+            new NullRebalancerLogger(),
+            new SqlServerNoResources(),
+            clients,
+            new ResourceGroupStore()
+        ).ExecuteCoordinatorRoleAsync(self, SqlServerEvent(7), new OnChangeActions(), CancellationToken.None);
 
         Assert.Equal((Group, self, 7, TimeSpan.FromMinutes(10)), Assert.Single(clients.ExpiryRequests));
     }
@@ -54,11 +59,12 @@ public sealed class ClientRecordExpiryTests
         var self = Guid.NewGuid();
         await clients.CreateClientAsync(Group, self);
 
-        await new Redis.Roles.Coordinator(
+        await new Coordinator(
+            "redis",
             new NullRebalancerLogger(),
             new RedisNoResources(),
             clients,
-            new Redis.Store.ResourceGroupStore()
+            new ResourceGroupStore()
         ).ExecuteCoordinatorRoleAsync(self, RedisEvent(7), new OnChangeActions(), CancellationToken.None);
 
         Assert.Equal((Group, self, 7, TimeSpan.FromMinutes(10)), Assert.Single(clients.ExpiryRequests));
@@ -75,7 +81,7 @@ public sealed class ClientRecordExpiryTests
         await clients.CreateClientAsync(Group, self);
         var store = new ResourceGroupStore();
 
-        await new Coordinator(new NullRebalancerLogger(), new SqlServerNoResources(), clients, store)
+        await new Coordinator("sqlserver", new NullRebalancerLogger(), new SqlServerNoResources(), clients, store)
             .ExecuteCoordinatorRoleAsync(self, SqlServerEvent(7), new OnChangeActions(), CancellationToken.None);
 
         Assert.Single(clients.ExpiryRequests);
@@ -117,18 +123,18 @@ public sealed class ClientRecordExpiryTests
     public async Task Redis_FollowerWithExpiredRecord_StopsBeforeReRegistering()
     {
         var clients = new RedisClients();
-        var store = new Redis.Store.ResourceGroupStore();
+        var store = new ResourceGroupStore();
         store.SetResources(
-            new Redis.Store.SetResourcesRequest
+            new SetResourcesRequest
             {
-                AssignmentStatus = Redis.Store.AssignmentStatus.ResourcesAssigned,
+                AssignmentStatus = AssignmentStatus.ResourcesAssigned,
                 Resources = ["r1",],
             }
         );
         var (actions, events) = RecordingActions(clients.Log);
         var self = Guid.NewGuid();
 
-        await new Redis.Roles.Follower(new NullRebalancerLogger(), clients, store).ExecuteFollowerRoleAsync(
+        await new Follower(new NullRebalancerLogger(), clients, store).ExecuteFollowerRoleAsync(
             self,
             RedisEvent(1),
             actions,
@@ -136,8 +142,8 @@ public sealed class ClientRecordExpiryTests
         );
 
         Assert.Equal(["stop", $"create:{self}",], clients.Log.Take(2));
-        Assert.Equal(Redis.Store.AssignmentStatus.AssignmentInProgress, store.GetResources().AssignmentStatus);
-        Assert.Equal(Redis.Clients.ClientStatus.Waiting, clients.Get(self).ClientStatus);
+        Assert.Equal(AssignmentStatus.AssignmentInProgress, store.GetResources().AssignmentStatus);
+        Assert.Equal(ClientStatus.Waiting, clients.Get(self).ClientStatus);
         Assert.DoesNotContain(events, x => x.StartsWith("start"));
     }
 
@@ -188,14 +194,14 @@ public sealed class ClientRecordExpiryTests
             CoordinatorToken = new CoordinatorToken(),
         };
 
-    private static Redis.Roles.ClientEvent RedisEvent(int fencingToken) =>
+    private static ClientEvent RedisEvent(int fencingToken) =>
         new()
         {
             ResourceGroup = Group,
             FencingToken = fencingToken,
             KeepAliveExpiryPeriod = Expiry,
             ClientRecordRetention = ClientOptions.GetClientRecordRetention(new ClientOptions(), Expiry),
-            CoordinatorToken = new Redis.Roles.CoordinatorToken(),
+            CoordinatorToken = new CoordinatorToken(),
         };
 
     private sealed class SqlServerNoResources : IResourceService
@@ -203,7 +209,7 @@ public sealed class ClientRecordExpiryTests
         public Task<List<string>> GetResourcesAsync(string resourceGroup) => Task.FromResult(new List<string>());
     }
 
-    private sealed class RedisNoResources : Redis.Resources.IResourceService
+    private sealed class RedisNoResources : IResourceService
     {
         public Task<List<string>> GetResourcesAsync(string resourceGroup) => Task.FromResult(new List<string>());
     }
@@ -264,51 +270,51 @@ public sealed class ClientRecordExpiryTests
         public Client Get(Guid id) => clients[id];
     }
 
-    private sealed class RedisClients : Redis.Clients.IClientService
+    private sealed class RedisClients : IClientService
     {
-        private readonly Dictionary<Guid, Redis.Clients.Client> clients = new();
+        private readonly Dictionary<Guid, Client> clients = new();
         public List<string> Log { get; } = [];
         public List<(string, Guid, int, TimeSpan)> ExpiryRequests { get; } = [];
 
         public Task CreateClientAsync(string resourceGroup, Guid clientId)
         {
             Log.Add($"create:{clientId}");
-            clients[clientId] = new Redis.Clients.Client
+            clients[clientId] = new Client
             {
                 ClientId = clientId,
                 ResourceGroup = resourceGroup,
                 LastKeepAlive = DateTime.UtcNow,
-                ClientStatus = Redis.Clients.ClientStatus.Waiting,
-                CoordinatorStatus = Redis.Clients.CoordinatorStatus.StopActivity,
+                ClientStatus = ClientStatus.Waiting,
+                CoordinatorStatus = CoordinatorStatus.StopActivity,
                 FencingToken = 1,
             };
             return Task.CompletedTask;
         }
 
-        public Task<Redis.Clients.Client> KeepAliveAsync(Guid clientId) =>
+        public Task<Client> KeepAliveAsync(Guid clientId) =>
             clients.TryGetValue(clientId, out var c) ? Task.FromResult(c)
-                : throw new Redis.Clients.ClientNotFoundException(clientId);
+                : throw new ClientNotFoundException(clientId);
 
-        public Task<List<Redis.Clients.Client>> GetActiveClientsAsync(string resourceGroup) =>
-            Task.FromResult(new List<Redis.Clients.Client>());
+        public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) =>
+            Task.FromResult(new List<Client>());
 
-        public Task SetClientStatusAsync(Guid clientId, Redis.Clients.ClientStatus clientStatus)
+        public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus)
         {
             clients[clientId].ClientStatus = clientStatus;
             return Task.CompletedTask;
         }
 
-        public Task<Redis.Clients.ModifyClientResult> StopActivityAsync(
+        public Task<ModifyClientResult> StopActivityAsync(
             int fencingToken,
-            List<Redis.Clients.Client> c
+            List<Client> c
         ) =>
-            Task.FromResult(Redis.Clients.ModifyClientResult.Ok);
+            Task.FromResult(ModifyClientResult.Ok);
 
-        public Task<Redis.Clients.ModifyClientResult> StartActivityAsync(
+        public Task<ModifyClientResult> StartActivityAsync(
             int fencingToken,
-            List<Redis.Clients.ClientStartRequest> r
+            List<ClientStartRequest> r
         ) =>
-            Task.FromResult(Redis.Clients.ModifyClientResult.Ok);
+            Task.FromResult(ModifyClientResult.Ok);
 
         public Task<int> DeleteExpiredClientsAsync(
             string resourceGroup,
@@ -321,6 +327,6 @@ public sealed class ClientRecordExpiryTests
             return Task.FromResult(0);
         }
 
-        public Redis.Clients.Client Get(Guid id) => clients[id];
+        public Client Get(Guid id) => clients[id];
     }
 }

@@ -1,4 +1,5 @@
 using Rebalancer.Core;
+using Rebalancer.LeaseCoordination.Clients;
 using Rebalancer.Redis;
 using Rebalancer.Redis.Clients;
 using Rebalancer.Redis.Utils;

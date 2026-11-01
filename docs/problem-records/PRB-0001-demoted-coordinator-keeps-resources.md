@@ -88,4 +88,4 @@ Before the fix: set `LeaseExpirySeconds` well above the worst expected pause of 
 - `docs/adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md`
 - `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`, `US-0006-coordinate-via-redis-backend.md`,
   `US-0013-cross-backend-assignment-safety-tests.md`
-- `src/Rebalancer.Redis/Roles/Coordinator.cs`, `src/Rebalancer.SqlServer/Roles/Coordinator.cs`
+- `src/Rebalancer.LeaseCoordination/Roles/Coordinator.cs` (the Redis and SQL Server copies, merged into one in 5.0)
