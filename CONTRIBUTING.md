@@ -41,7 +41,7 @@ Repository layout:
 |-------------|----------------------------------------------------------------------------------------------------|
 | `src/`      | The published packages: `Rebalancer.Core`, one package per backend, DI and health-check extensions |
 | `tests/`    | Unit tests (no external services) and integration tests (real backends)                            |
-| `db/`       | SQL Server schema, tables and least-privilege role                                                 |
+| `db/`       | Schema, tables and least-privilege role per database: `sqlserver/`, `postgresql/`                  |
 | `examples/` | RabbitMQ samples (quorum queues, super streams) and a queue-setup CLI; not published               |
 | `docs/`     | Decision records, user stories, threat models, change/problem records, release notes, guides       |
 

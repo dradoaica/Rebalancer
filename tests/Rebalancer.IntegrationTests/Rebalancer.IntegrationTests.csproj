@@ -15,6 +15,7 @@
         <PackageReference Include="StackExchange.Redis" Version="3.4.5"/>
         <PackageReference Include="StackExchange.Redis.DataTypes" Version="2.0.0"/>
         <PackageReference Include="Testcontainers.MsSql" Version="4.16.0"/>
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.16.0"/>
         <PackageReference Include="Testcontainers.Redis" Version="4.16.0"/>
         <PackageReference Include="Xunit.SkippableFact" Version="1.5.85"/>
         <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4"/>
@@ -28,6 +29,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Rebalancer.Core\Rebalancer.Core.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.Extensions.Diagnostics.HealthChecks\Rebalancer.Extensions.Diagnostics.HealthChecks.csproj"/>
+        <ProjectReference Include="..\..\src\Rebalancer.PostgreSql\Rebalancer.PostgreSql.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.Redis\Rebalancer.Redis.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.SqlServer\Rebalancer.SqlServer.csproj"/>
         <ProjectReference Include="..\..\src\Rebalancer.ZooKeeper\Rebalancer.ZooKeeper.csproj"/>
@@ -43,13 +45,17 @@
         <Content Include="Sql\rbr-schema.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="..\..\db\RebalanserSchema.sql" Link="Sql\RebalanserSchema.sql">
+        <Content Include="..\..\db\sqlserver\RebalanserSchema.sql" Link="Sql\RebalanserSchema.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="..\..\db\RebalanserTables.sql" Link="Sql\RebalanserTables.sql">
+        <Content Include="..\..\db\sqlserver\RebalanserTables.sql" Link="Sql\RebalanserTables.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="..\..\db\RebalanserLeastPrivilege.sql" Link="Sql\RebalanserLeastPrivilege.sql">
+        <Content Include="..\..\db\sqlserver\RebalanserLeastPrivilege.sql" Link="Sql\RebalanserLeastPrivilege.sql">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <!-- the shipped PostgreSQL scripts, so the tests run what operators run (US-0026, criterion 3) -->
+        <Content Include="..\..\db\postgresql\*.sql" LinkBase="PostgreSql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

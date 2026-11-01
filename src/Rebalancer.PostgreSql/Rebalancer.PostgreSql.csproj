@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Version>5.0.0</Version>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- ADR-0030; 8.0.x is the last Npgsql line with a netstandard2.1 build (9.x and 10.x target net6.0+ only) -->
+        <PackageReference Include="Npgsql" Version="8.0.9"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
+        <ProjectReference Include="..\Rebalancer.LeaseCoordination\Rebalancer.LeaseCoordination.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Rebalancer.UnitTests"/>
+        <InternalsVisibleTo Include="Rebalancer.IntegrationTests"/>
+    </ItemGroup>
+
+</Project>

@@ -91,16 +91,13 @@ internal sealed class ProcessingMonitor
                 return;
             }
 
+            // a window on every resource the node resumes with, also when no other node processes it yet: the node it was
+            // reassigned to may start it only after the resume, before this node's first tick (ADR-0019, ADR-0021)
             var deadline = now() + window;
             foreach (var resource in held)
             {
-                var by = ProcessorsOf(resource);
-                if (by.Any())
-                {
-                    windows.Add(new ResumeWindow(node, resource, deadline, window));
-                }
-
-                by.Add(node);
+                windows.Add(new ResumeWindow(node, resource, deadline, window));
+                ProcessorsOf(resource).Add(node);
             }
         }
     }

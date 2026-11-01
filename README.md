@@ -65,18 +65,21 @@ With an RDBMS we use the global barrier algorithm where:
 Other backends are suited to either.
 
 Leader election determines who the Coordinator is. If the Coordinator dies, then a Follower takes its place. Leader
-election and metadata storage are performed via a backing metadata store; this library implements ZooKeeper, Redis, and
-SQL Server (serializable transactions). Other consensus services (etcd, Consul) or RDBMSs (Oracle, PostgreSQL) would
-fit the same pattern but are not implemented. All communication between nodes is also performed via this backing
-metadata store.
+election and metadata storage are performed via a backing metadata store; this library implements ZooKeeper, Redis (also
+on Valkey), SQL Server (serializable transactions) and PostgreSQL (row locks). Other consensus services (etcd, Consul)
+or RDBMSs (Oracle, MySQL) would fit the same pattern but are not implemented. All communication between nodes is also
+performed via this backing metadata store.
 
 ## Languages and Backends
 
 This repository is the .NET implementation: `Rebalancer.Core` plus one package per backend (`Rebalancer.ZooKeeper`,
-`Rebalancer.Redis`, `Rebalancer.SqlServer`) and optional packages for dependency injection
+`Rebalancer.Redis`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`) and optional packages for dependency injection
 (`Rebalancer.Extensions.DependencyInjection`) and health checks (`Rebalancer.Extensions.Diagnostics.HealthChecks`).
-`Rebalancer.Redis` and `Rebalancer.SqlServer` share their coordination code through `Rebalancer.LeaseCoordination`,
-which NuGet installs with them (ADR-0029).
+`Rebalancer.Redis`, `Rebalancer.SqlServer` and `Rebalancer.PostgreSql` share their coordination code through
+`Rebalancer.LeaseCoordination`, which NuGet installs with them (ADR-0029).
+
+Supported servers: Redis (tested on 7.0) and Valkey (tested on 8.1.11; ADR-0031), SQL Server (tested on 2022),
+PostgreSQL (tested on 17.8; ADR-0030), and ZooKeeper (tested on 3.8). Other versions are not claimed.
 Other languages would need their own implementation of the protocol.
 
 ## Documentation
@@ -136,8 +139,9 @@ await using var provider = services.BuildServiceProvider();
 var client = provider.GetRequiredService<RebalancerClient>();
 ```
 
-Alternatively use `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or `AddRebalancerProvider(_ => new MyProvider(...))`.
-Without DI, pass the provider explicitly: `new RebalancerClient(new SqlServerProvider(connectionString))`.
+Alternatively use `AddRebalancerPostgreSql`, `AddRebalancerRedis`, `AddRebalancerZooKeeper`, or
+`AddRebalancerProvider(_ => new MyProvider(...))`. Without DI, pass the provider explicitly:
+`new RebalancerClient(new SqlServerProvider(connectionString))`.
 
 Since 3.0 there is no static `Providers.Register` registry and no parameterless `RebalancerClient()`
 ([ADR 0013](docs/adrs/0013-explicit-providers-only-remove-static-registry.md)). Upgrading from 2.x:
@@ -176,12 +180,24 @@ this for you.
 
 ### Operating the backends
 
-- **SQL Server:** create the schema from [`db/`](db/) and give the nodes' login only the role `rebalancer_node`
-  ([`db/RebalanserLeastPrivilege.sql`](db/RebalanserLeastPrivilege.sql)).
+- **SQL Server:** create the schema from [`db/sqlserver/`](db/sqlserver/) and give the nodes' login only the role
+  `rebalancer_node` ([`db/sqlserver/RebalanserLeastPrivilege.sql`](db/sqlserver/RebalanserLeastPrivilege.sql)).
+- **PostgreSQL:** create the schema from [`db/postgresql/`](db/postgresql/) (the same three scripts as for SQL Server)
+  and make the nodes' logins members of the role `rebalancer_node`
+  ([`db/postgresql/RebalanserLeastPrivilege.sql`](db/postgresql/RebalanserLeastPrivilege.sql)); groups and resources
+  are rows you insert into `rbr.resource_groups` and `rbr.resources`. From the threat model
+  ([TM-0004](docs/threat-models/TM-0004-postgresql-coordination.md)):
+  - use TLS with full certificate and host-name verification in the connection string;
+  - with standbys, use synchronous replication for this database, or a lease expiry longer than your failover time:
+    an asynchronous standby can lose the last lease renewal when it is promoted (T4);
+  - bound the connection pool (`Maximum Pool Size`) so that nodes times pool size stays below `max_connections` (D4);
+  - a node that stalls inside a lease transaction is cut off by the server after half the lease expiry, so the others
+    continue; the backend sets these timeouts itself (D2).
 - **Redis (4.0):** a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the first
   4.0
   node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
-  [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once.
+  [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). Upgrade all nodes of a group at once. Valkey 8.1 works
+  the same way, including the per-group ACL user (ADR-0031).
 - **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
   [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md). A client stops its handlers as soon as
   it loses its connection and restarts them if its session survives, so stop handlers must finish within about a third
@@ -199,22 +215,22 @@ this for you.
   coordinator demotion and lease guard, unresponsive followers, ZooKeeper barrier ownership and suspension on
   disconnect, the state after a stop and the assignment delay, the `StopAsync` overloads and `Dispose`, and the
   ZooKeeper DI defaults (no Docker).
-- **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server tests use **Testcontainers** (**Docker**; tests **skip** if
-  unavailable): assignment safety, paused follower, a coordinator stalled anywhere, at its barrier or right after
-  granting, a follower recovering from a store error and
-  a clean stop raising `OnUnassignment` and reporting `Stopped` (`*PausedNodeTests`), nodes coming and going over a
-  slow, lossy link (`*NetworkFaultTests`), an assignment delay longer than the keep-alive expiry
-  (`*AssignmentDelayTests`), client-record expiry and the coordinator's lease guard,
-  the SQL Server least-privilege role, the Redis per-group key move and ACL user, telemetry, the health check with
-  real clients, the aborted state, the RabbitMQ example's order guard (`Examples/`), and randomised runs
-  (`*RandomisedTests`, 3 minutes each, checking both what nodes process and what they report; replay a run with
-  `REBALANCER_RANDOMISED_SEED`, cap it with `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`). ZooKeeper barrier tests live
-  under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
+- **`tests/Rebalancer.IntegrationTests`** — Redis/SQL Server/PostgreSQL tests use **Testcontainers** (**Docker**; tests
+  **skip** if unavailable; every Redis test runs on both Redis and Valkey): assignment safety, paused follower, a
+  coordinator stalled anywhere, at its barrier or right after granting, a follower recovering from a store error and a
+  clean stop raising `OnUnassignment` and reporting `Stopped` (`*PausedNodeTests`), nodes coming and going over a slow,
+  lossy link (`*NetworkFaultTests`), an assignment delay longer than the keep-alive expiry (`*AssignmentDelayTests`),
+  client-record expiry and the coordinator's lease guard, the SQL Server and PostgreSQL least-privilege roles, a
+  PostgreSQL node stalled holding a row lock and objects shadowing the `rbr` schema, the Redis per-group key move and
+  ACL user, telemetry, the health check with real clients, the aborted state, the RabbitMQ example's order guard
+  (`Examples/`), and randomised runs (`*RandomisedTests`, 3 minutes each, checking both what nodes process and what they
+  report; replay a run with `REBALANCER_RANDOMISED_SEED`, cap it with `REBALANCER_RANDOMISED_TEST_MAX_MINUTES`).
+  ZooKeeper barrier tests live under `ZooKeeper/` and require a running **ZooKeeper** cluster (see [
   `tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs`](tests/Rebalancer.IntegrationTests/ZooKeeper/Helpers/ZkHelper.cs)).
-  `ZooKeeper/DisconnectionTests` and `ZooKeeper/NetworkFaultTests` (a partitioned or crashed node, slow lossy links,
-  and the loss of a follower, the leader or the quorum) pause that cluster's containers or cut one node off through a
-  local TCP proxy; they run alone, and are skipped when the containers below are not running. The network-fault tests
-  check what nodes actually process: no resource is ever processed by two nodes at once.
+  `ZooKeeper/DisconnectionTests` and `ZooKeeper/NetworkFaultTests` (a partitioned or crashed node, slow lossy links, and
+  the loss of a follower, the leader or the quorum) pause that cluster's containers or cut one node off through a local
+  TCP proxy; they run alone, and are skipped when the containers below are not running. The network-fault tests check
+  what nodes actually process: no resource is ever processed by two nodes at once.
 
 A local 3-node ZooKeeper cluster on `localhost:2181-2183`, as the ZooKeeper tests expect (remove it with
 `docker rm -f rbr-it-zk1 rbr-it-zk2 rbr-it-zk3 && docker network rm rbr-it-zk`):

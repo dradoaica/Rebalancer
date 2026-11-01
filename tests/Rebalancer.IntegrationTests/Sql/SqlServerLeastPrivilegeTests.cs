@@ -6,9 +6,10 @@ using Xunit;
 namespace Rebalancer.IntegrationTests.Sql;
 
 /// <summary>
-///     Requires Docker. A database installed from the shipped <c>db/</c> scripts works, and
-///     <c>db/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two nodes whose login
-///     holds only that role coordinate, survive a paused follower, and delete their records on a clean stop (ADR-0014).
+///     Requires Docker. A database installed from the shipped <c>db/sqlserver/</c> scripts works, and
+///     <c>db/sqlserver/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two nodes
+///     whose login holds only that role coordinate, survive a paused follower, and delete their records on a clean stop
+///     (ADR-0014).
 /// </summary>
 public sealed class SqlServerLeastPrivilegeTests
 {

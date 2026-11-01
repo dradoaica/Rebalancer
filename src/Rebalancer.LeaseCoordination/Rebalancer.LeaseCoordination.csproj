@@ -14,6 +14,7 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Rebalancer.SqlServer"/>
         <InternalsVisibleTo Include="Rebalancer.Redis"/>
+        <InternalsVisibleTo Include="Rebalancer.PostgreSql"/>
         <InternalsVisibleTo Include="Rebalancer.UnitTests"/>
         <InternalsVisibleTo Include="Rebalancer.IntegrationTests"/>
     </ItemGroup>

@@ -12,11 +12,12 @@ namespace Rebalancer.IntegrationTests.Redis;
 /// </summary>
 public sealed class RedisNetworkFaultTests(ITestOutputHelper output)
 {
-    [SkippableFact]
-    public async Task NodesComingAndGoingOverASlowLossyNetwork_NeverProcessAResourceTwiceAtOnce()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task NodesComingAndGoingOverASlowLossyNetwork_NeverProcessAResourceTwiceAtOnce(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var group = "it-redis-network-" + Guid.NewGuid().ToString("N");
         string[] resources = ["r1", "r2", "r3", "r4", "r5", "r6",];

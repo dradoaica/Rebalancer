@@ -1,11 +1,11 @@
 ---
 id: US-0025
-status: Ready
+status: In progress
 date: 2026-11-01
-owner: ""
+owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
-ssdlc-phase: Planning
+ssdlc-phase: Coding
 depends-on: [ "ADR-0031", "ADR-0017", "ADR-0020", "TM-0003", "US-0006" ]
 ---
 
@@ -51,6 +51,15 @@ it.
 5. `README.md` (Languages and Backends) and the release notes of the release that ships this name the supported
    Valkey version(s); the traceability matrix row of ADR-0031 points to the tests.
 6. The SQL Server, ZooKeeper and unit tests are unchanged and still pass.
+
+## Implementation notes for the reviewer (2026-11-01)
+
+1. Pinned image: `valkey/valkey:8.1.11` (the newest 8.1 patch on Docker Hub that day). Testcontainers' `RedisBuilder`
+   starts it unchanged.
+2. Result: all 25 Redis tests passed on Valkey. One run of the doubled suite failed one Redis 7.0 test on liveness
+   (`RedisNetworkFaultTests`, seed `104995485`, "the nodes never converged over the degraded network"); the same seed
+   passed on both servers when run alone. Running both servers doubles the containers started at once, which makes
+   the timing-sensitive tests more likely to miss their bounds on a loaded machine.
 
 ## Non-goals
 

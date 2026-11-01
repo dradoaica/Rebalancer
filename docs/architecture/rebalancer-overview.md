@@ -21,23 +21,28 @@ flowchart TB
   IP --> LOG
   subgraph backends [Backends]
     SS[SqlServerProvider]
+    PG[PostgreSqlProvider]
     RD[RedisProvider]
     ZK[ZooKeeperProvider]
   end
   IP --> SS
+  IP --> PG
   IP --> RD
   IP --> ZK
   subgraph lease [Rebalancer.LeaseCoordination]
     LC[Lease election, Coordinator, Follower, store]
   end
   SS --> LC
+  PG --> LC
   RD --> LC
   subgraph stores [Coordination stores]
     SQL[(SQL Server)]
-    RDIS[(Redis)]
+    PGS[(PostgreSQL)]
+    RDIS[(Redis or Valkey)]
     ZKN[ZooKeeper ensemble]
   end
   SS --> SQL
+  PG --> PGS
   RD --> RDIS
   ZK --> ZKN
 ```
@@ -54,16 +59,18 @@ Release history: [`docs/release-notes/`](../release-notes/).
 
 ## Coordination state per backend
 
-SQL Server and Redis share one coordinator / follower protocol: a lease with a fencing token elects the coordinator,
-which writes each client's assignment into the store; followers read theirs on every heartbeat. One copy of it lives
-in `src/Rebalancer.LeaseCoordination`; each backend adds only its lease, client and resource services
+SQL Server, PostgreSQL and Redis share one coordinator / follower protocol: a lease with a fencing token elects the
+coordinator, which writes each client's assignment into the store; followers read theirs on every heartbeat. One copy of
+it lives in `src/Rebalancer.LeaseCoordination`; each backend adds only its lease, client and resource services
 ([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md), superseding
 [ADR-0002](../adrs/0002-coordinator-follower-lease-and-store-for-sqlserver-and-redis.md)). ZooKeeper uses leader
-election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md)).
+election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-election-and-rebalancing-modes.md)). PostgreSQL
+([ADR-0030](../adrs/0030-postgresql-backend.md)) was added in 5.0 on the shared code.
 
 | Backend    | Group settings and lease                                                                               | Resources                                                                   | Client records                                    |
 |------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
 | SQL Server | `RBR.ResourceGroups` (row per group)                                                                   | `RBR.Resources`                                                             | `RBR.Clients`                                     |
+| PostgreSQL | `rbr.resource_groups` (row per group)                                                                  | `rbr.resources`                                                             | `rbr.clients`                                     |
 | Redis 4.0  | `RBR:Lease:{group}` (hash, one field)                                                                  | `RBR:Resources:{group}` (list)                                              | `RBR:Clients:{group}` (hash)                      |
 | ZooKeeper  | leader: lowest `{root}/{group}/clients/c_*`; `epoch` (znode version) increments per coordinator tenure | children of `{root}/{group}/resources`; its data holds the assignment table | ephemeral sequential `{root}/{group}/clients/c_*` |
 
@@ -73,11 +80,16 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
   of a group moves it out of the 3.x shared keys `Dictionary:RBR:ResourceGroups` and `List:RBR:Resources`
   ([migration guide](../release-notes/migrating-to-4.0.md)). Leases use the Redis server clock and compare-and-set
   updates ([ADR-0017](../adrs/0017-redis-lease-timing-and-atomic-updates.md)).
-- **SQL Server:** schema in [`db/`](../../db/); the role `rebalancer_node` in `db/RebalanserLeastPrivilege.sql` grants
-  exactly what a node needs.
+- **SQL Server:** schema in [`db/sqlserver/`](../../db/sqlserver/); the role `rebalancer_node` in
+  `db/sqlserver/RebalanserLeastPrivilege.sql` grants exactly what a node needs.
+- **PostgreSQL:** schema and role in [`db/postgresql/`](../../db/postgresql/). A lease operation locks the group row
+  (`SELECT … FOR UPDATE`) and reads the time with `clock_timestamp()` after the lock; it ends a stalled transaction
+  after half the lease expiry ([TM-0004](../threat-models/TM-0004-postgresql-coordination.md), D2).
+- **Valkey:** the Redis backend, unchanged; every Redis integration test also runs on Valkey 8.1.11
+  ([ADR-0031](../adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md)).
 - **ZooKeeper:** global-barrier mode also uses `{root}/{group}/status` and `{root}/{group}/stopped`.
 
-## Safety mechanisms (SQL Server, Redis)
+## Safety mechanisms (SQL Server, PostgreSQL, Redis)
 
 | Mechanism                                                                                                                                                                                                   | Decision / record   |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|

@@ -48,6 +48,57 @@ public sealed class ProcessingMonitorTests
         Assert.Single(monitor.Overlaps);
     }
 
+    // seed 1306714545 (2026-11-01): the coordinator's grant reached the other node only after the paused node resumed
+    [Fact]
+    public async Task ANodeStartingAfterTheResume_OnAnOverlapEndedInsideTheWindow_IsAccepted()
+    {
+        var (monitor, n1, n2) = await TwoNodesAsync();
+        n1.Assign("r1");
+        monitor.Pause("n1");
+
+        monitor.Resume("n1", Window);
+        time += TimeSpan.FromMilliseconds(600);
+        n2.Assign("r1"); // reassigned during the pause, granted after the resume
+        time += TimeSpan.FromMilliseconds(400);
+        n1.Unassign(); // its first tick after the resume
+        time += TimeSpan.FromSeconds(5);
+        monitor.CheckWindows();
+
+        Assert.Empty(monitor.Overlaps);
+        Assert.Equal(["r1",], monitor.ProcessedBy("n2"));
+    }
+
+    [Fact]
+    public async Task ANodeStartingAfterTheResume_OnAnOverlapThatOutlastsTheWindow_IsRecorded()
+    {
+        var (monitor, n1, n2) = await TwoNodesAsync();
+        n1.Assign("r1");
+        monitor.Pause("n1");
+
+        monitor.Resume("n1", Window);
+        time += TimeSpan.FromMilliseconds(600);
+        n2.Assign("r1");
+        time += TimeSpan.FromSeconds(3);
+        monitor.CheckWindows();
+
+        Assert.Single(monitor.Overlaps);
+    }
+
+    [Fact]
+    public async Task ANodeStartingAfterTheWindowEnded_WhileTheResumedNodeStillProcesses_IsRecordedAtOnce()
+    {
+        var (monitor, n1, n2) = await TwoNodesAsync();
+        n1.Assign("r1");
+        monitor.Pause("n1");
+        monitor.Resume("n1", Window);
+        time += TimeSpan.FromSeconds(4);
+        monitor.CheckWindows(); // no overlap while the window was open
+
+        n2.Assign("r1");
+
+        Assert.Single(monitor.Overlaps);
+    }
+
     [Fact]
     public async Task AResumedNodeStartingAResourceItDidNotHoldBeforeThePause_IsRecordedAtOnce()
     {

@@ -15,6 +15,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Rebalancer.Core\Rebalancer.Core.csproj"/>
+        <ProjectReference Include="..\Rebalancer.PostgreSql\Rebalancer.PostgreSql.csproj"/>
         <ProjectReference Include="..\Rebalancer.Redis\Rebalancer.Redis.csproj"/>
         <ProjectReference Include="..\Rebalancer.SqlServer\Rebalancer.SqlServer.csproj"/>
         <ProjectReference Include="..\Rebalancer.ZooKeeper\Rebalancer.ZooKeeper.csproj"/>

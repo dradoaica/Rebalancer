@@ -18,11 +18,12 @@ public sealed class RedisClientRecordTests
 {
     private static readonly TimeSpan Retention = TimeSpan.FromMinutes(10);
 
-    [SkippableFact]
-    public async Task ExpiredRecordsAreDeleted_OnlyWhileTheCoordinatorHoldsTheLease()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task ExpiredRecordsAreDeleted_OnlyWhileTheCoordinatorHoldsTheLease(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var db = mux.GetDatabase();
@@ -54,11 +55,12 @@ public sealed class RedisClientRecordTests
         );
     }
 
-    [SkippableFact]
-    public async Task LegacyEntriesOfTheGroupMoveToItsOwnHash_AndOtherGroupsAreUntouched()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task LegacyEntriesOfTheGroupMoveToItsOwnHash_AndOtherGroupsAreUntouched(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var db = mux.GetDatabase();
@@ -108,11 +110,12 @@ public sealed class RedisClientRecordTests
         Assert.Empty(await new ClientService(db).GetActiveClientsAsync("invoices")); // groups do not see each other
     }
 
-    [SkippableFact]
-    public async Task ExpiryWorks_ForARedisAclUserLimitedToItsGroup()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task ExpiryWorks_ForARedisAclUserLimitedToItsGroup(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var adminDb = admin.GetDatabase();
@@ -144,11 +147,12 @@ public sealed class RedisClientRecordTests
         );
     }
 
-    [SkippableFact]
-    public async Task ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var adminDb = admin.GetDatabase();
@@ -238,11 +242,12 @@ public sealed class RedisClientRecordTests
 
     // ADR-0026 against a real Redis: coordinator writes change nothing unless the lease names that coordinator with that
     // token; PRB-0005: a reset record looks like a new registration and keeps its token
-    [SkippableFact]
-    public async Task CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task CoordinatorWritesNeedTheLease_AndAResetKeepsTheFencingToken(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
         var db = mux.GetDatabase();

@@ -8,24 +8,27 @@ risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 5.0.0, after approval"
-depends-on: [ "ADR-0029", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "CR-0012" ]
+depends-on: [ "ADR-0029", "ADR-0030", "ADR-0031", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "TM-0004", "US-0025", "US-0026", "CR-0012" ]
 ---
 
-# Change record: Rebalancer 5.0.0 – shared lease coordination for SQL Server and Redis
+# Change record: Rebalancer 5.0.0 – shared lease coordination, PostgreSQL backend, Valkey support
 
 ## Summary
 
 Releases 5.0.0 of all packages and the new package `Rebalancer.LeaseCoordination`, which holds the coordination code
 the SQL Server and Redis backends had as two copies (ADR-0029). The code moves unchanged; the public service types move
 to `Rebalancer.LeaseCoordination.*` namespaces, a source and binary break for code that names them, hence a major
-version. No behavior, configuration or data format change. Release notes: `docs/release-notes/5.0.0.md`; migration
-guide: `docs/release-notes/migrating-to-5.0.md`.
+version. No behavior, configuration or data format change for SQL Server and Redis. The release also adds the
+PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valkey support for the Redis backend
+(ADR-0031, US-0025); the maintainer decided both ship in 5.0.0 (2026-11-01). Release notes:
+`docs/release-notes/5.0.0.md`; migration guide: `docs/release-notes/migrating-to-5.0.md`.
 
 ## Motivation / drivers
 
 - Every coordination fix had to be made twice (ADR-0026 changed both `Coordinator.cs` files); drift was guarded only by
   discipline and tests (ADR-0002, superseded by ADR-0029).
 - A third lease-based backend (PostgreSQL, ADR-0030) supplies only its services against the shared code.
+- PostgreSQL users get Rebalancer without running another store; Valkey users get a tested support statement.
 
 ## Scope
 
@@ -40,11 +43,16 @@ guide: `docs/release-notes/migrating-to-5.0.md`.
 - Tests: namespaces, qualifiers and the `Coordinator` backend argument only; no assertion changed.
 - Docs: release notes, migration guide, README, architecture overview, product baseline, traceability matrix, Sources
   paths in PRB-0001 / PRB-0005 / PRB-0007.
-- Versions 5.0.0 in the seven `.csproj` files.
+- Versions 5.0.0 in the eight `.csproj` files.
+- New `src/Rebalancer.PostgreSql/` (Npgsql 8.0.9) and `db/postgresql/` (schema, least-privilege role);
+  `AddRebalancerPostgreSql`; `InternalsVisibleTo` for it in `Rebalancer.Core` and `Rebalancer.LeaseCoordination`.
+- Tests: `tests/Rebalancer.IntegrationTests/PostgreSql/` (the SQL Server suites' counterparts, plus the row-lock stall
+  and shadowing tests); `PostgreSqlTransientErrorTests` and DI cases (unit); every Redis integration test as a theory
+  over Redis 7.0 and Valkey 8.1.11 (`DockerSupport.RedisServers`).
+- Docs: README (backends, supported servers, PostgreSQL operating guidance), architecture overview, release notes,
+  traceability matrix; US-0025, US-0026.
 
 **Out of scope:**
-
-- The PostgreSQL backend (ADR-0030, US-0026) and Valkey support (ADR-0031, US-0025); later 5.x releases.
 - The external NuGet version bumps found in the working tree on 2026-11-01 (stashed; their own change).
 - A CI test job (not planned).
 
@@ -54,13 +62,13 @@ not affected. But custom service implementations and test doubles are, and a min
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                   |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. |
-| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.           |
-| Data / schema         | None. SQL Server schema and Redis keys unchanged.                                                                                        |
-| Security              | None to the threat models' assets or trust boundaries (TM-0002, TM-0003 unchanged); no new dependency on a third-party package.          |
-| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once.                                        |
+| Area                  | Impact                                                                                                                                                                                       |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. New: a PostgreSQL backend; Valkey 8.1.11 supported. |
+| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                               |
+| Data / schema         | None for SQL Server and Redis (schema and keys unchanged). New for PostgreSQL: the `rbr` schema from `db/postgresql/`.                                                                       |
+| Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 8.0.9.                  |
+| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                   |
 
 ## Preconditions
 
@@ -70,8 +78,11 @@ not affected. But custom service implementations and test doubles are, and a min
 - [x] SQL Server + Redis integration tests: 54/54 (commit `f4ad1c4`; the rebase onto `main` changed only
   `docs/traceability-matrix.md`). Baseline on `main` the same day: 51/54, the three failures SQL Server containers out
   of memory (`FAIL_PAGE_ALLOCATION`), not test failures.
-- [ ] ZooKeeper integration tests on the README ensemble: not run. ZooKeeper code is unchanged; `Rebalancer.Core`'s
-  project file gained one `InternalsVisibleTo`.
+- [x] ZooKeeper integration tests on the README ensemble: **N/A**, accepted by dradoaica (in session 2026-11-01).
+  Rationale: no ZooKeeper code changed (`src/Rebalancer.ZooKeeper` differs from `main` only in its version number);
+  the `Rebalancer.Core` changes are two `InternalsVisibleTo` entries and a `RebalancerTelemetry.BackendOf` case for
+  PostgreSQL, ahead of and not changing the ZooKeeper case; the unit tests cover ZooKeeper's DI registration and
+  barrier logic. This deviates from CR-0012, which ran the suite.
 - [x] Dependency vulnerability scan (`dotnet list Rebalancer.slnx package --vulnerable --include-transitive`), as since
   CR-0009: no vulnerable package in any of the 12 projects (2026-11-01, nuget.org). No third-party dependency changed.
 - [x] Packages: the packed `Rebalancer.SqlServer` and `Rebalancer.Redis` nuspecs list `Rebalancer.LeaseCoordination`.
@@ -87,8 +98,8 @@ not affected. But custom service implementations and test doubles are, and a min
 
 ## Validation plan
 
-- The "Release Packages" run succeeds, including "Push to GitHub Packages", and publishes seven packages, among them
-  `Rebalancer.LeaseCoordination` 5.0.0.
+- The "Release Packages" run succeeds, including "Push to GitHub Packages", and publishes eight packages, among them
+  `Rebalancer.LeaseCoordination` and `Rebalancer.PostgreSql` 5.0.0.
 - A host built against the published 5.0.0 `Rebalancer.SqlServer` restores `Rebalancer.LeaseCoordination` without a
   direct reference.
 
@@ -118,6 +129,11 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
 - ADRs: `docs/adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md` (Decision Outcome, Consequences),
   `docs/adrs/0022-rebalancing-telemetry-contract.md` (backend tag),
   `docs/adrs/0026-coordinator-acts-only-under-a-valid-lease.md`
+- ADRs (new backends): `docs/adrs/0030-postgresql-backend.md`,
+  `docs/adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md`
+- User stories: `docs/user-stories/US-0025-redis-backend-on-valkey.md`,
+  `docs/user-stories/US-0026-coordinate-via-postgresql-backend.md`
 - Threat models: `docs/threat-models/TM-0002-sql-server-coordination.md`,
-  `docs/threat-models/TM-0003-redis-coordination.md` (unchanged)
+  `docs/threat-models/TM-0003-redis-coordination.md` (unchanged),
+  `docs/threat-models/TM-0004-postgresql-coordination.md`
 - Previous release: `docs/change-records/CR-0012-release-4-3-2.md`

@@ -1,11 +1,11 @@
 ---
 id: US-0026
-status: Ready
+status: In progress
 date: 2026-11-01
-owner: ""
+owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # readiness approval; set by a human only (dradoaica, in session 2026-11-01)
 priority: ""
-ssdlc-phase: Planning
+ssdlc-phase: Coding
 depends-on: [ "ADR-0030", "ADR-0029", "ADR-0026", "ADR-0014", "ADR-0005", "US-0005", "TM-0004" ]
 ---
 
@@ -41,9 +41,9 @@ corrects the tier.
    public members as `SqlServerProvider`, delegating to `LeaseCoordinatedProvider` with backend tag `"postgresql"`.
 3. **Schema scripts:** `db/postgresql/` holds the schema and tables (`rbr.resource_groups`, `rbr.resources`,
    `rbr.clients`, column for column the `RBR` tables) and a least-privilege role script granting exactly what the
-   backend executes, as `db/RebalanserLeastPrivilege.sql` does for SQL Server. The role script also revokes `CREATE` on
-   `public` from the node role and sets its `lock_timeout` and `idle_in_transaction_session_timeout` below the lease
-   expiry (TM-0004, T3 and D2).
+   backend executes, as `db/sqlserver/RebalanserLeastPrivilege.sql` does for SQL Server. The role script also revokes
+   `CREATE` on `public` from the node role and sets its `lock_timeout` and `idle_in_transaction_session_timeout` below
+   the lease expiry (TM-0004, T3 and D2).
 4. **Lease (ADR-0030):** acquire, renew and relinquish take the group row with `SELECT … FOR UPDATE` in one
    `READ COMMITTED` transaction and read the time with `clock_timestamp()` after the lock; `now()` is not used for any
    lease or keep-alive time.
@@ -69,6 +69,30 @@ corrects the tier.
     replication or a lease expiry above the failover time, and pool sizing; TM-0004 I2, T4, D4), architecture overview
     (backend table and diagram), release notes, and the traceability matrix (ADR-0030 row, this story).
 12. The SQL Server, Redis, ZooKeeper and unit tests still pass unchanged.
+
+## Implementation notes for the reviewer (2026-11-01)
+
+Where the implementation differs from the criteria above or from ADR-0030's wording, for confirmation:
+
+1. **Timeouts (criteria 3 and 8):** the lease service sets `lock_timeout` and `idle_in_transaction_session_timeout`
+   to half the group's lease expiry in every lease transaction (`set_config(..., true)`), instead of the role script.
+   PostgreSQL does not pass `ALTER ROLE ... SET` settings of a group role to its member logins, so the role script
+   could not have done it; the stall test shows the bound works.
+2. **No foreign key from `rbr.clients` to `rbr.resource_groups`:** with it, a client of a missing group fails inside
+   `StartAsync` (SQLSTATE `23503`) instead of reporting `Aborted` (US-0021), and the key check waits for any lease
+   transaction holding the group row. `rbr.resources` keeps its key. The shipped SQL Server schema
+   (`db/sqlserver/RebalanserTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
+   pass only because they use their own schema without it. Not fixed here: a candidate problem record.
+3. **Transient errors (criterion 6):** besides the codes ADR-0030 names, `55P03` (the waiting nodes' lock timeout) and
+   `25P03` (the stalled node's own session ended by the server) are retried, as TM-0004 D2 requires.
+4. **Telemetry:** `RebalancerTelemetry.BackendOf` in `Rebalancer.Core` maps `PostgreSqlProvider` to `postgresql`, so
+   assignment metrics carry the same backend tag as the coordinator's. ADR-0022 lists the values as `sqlserver`,
+   `redis` and `zookeeper`; that list is now incomplete.
+5. **Npgsql 8.0.9 (criterion 1):** the last Npgsql line with a `netstandard2.1` build; 9.x and 10.x target net6.0
+   and later only. The 8.x line follows .NET 8's support. Moving to a later Npgsql means targeting net8.0 or later
+   for this package, unlike the other backends.
+6. **Recommendation, not done:** `SELECT … FOR NO KEY UPDATE` would serialize lease operations as `FOR UPDATE` does
+   without conflicting with key-share locks. Kept `FOR UPDATE`, as ADR-0030 and criterion 4 state.
 
 ## Non-goals
 
@@ -117,4 +141,4 @@ credentials and TLS in the connection string, the least-privilege role (criterio
 - `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (registration)
 - `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`
 - `docs/threat-models/TM-0004-postgresql-coordination.md` (threats and controls)
-- `db/RebalanserTables.sql`, `db/RebalanserLeastPrivilege.sql` (the SQL Server schema to mirror)
+- `db/sqlserver/RebalanserTables.sql`, `db/sqlserver/RebalanserLeastPrivilege.sql` (the SQL Server schema to mirror)

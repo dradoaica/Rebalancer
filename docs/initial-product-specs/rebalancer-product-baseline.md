@@ -73,8 +73,8 @@ repository).
   least-privilege identities.
 - ZooKeeper paths may hold assignment metadata — use **ACLs** and private networks. Credentials or an explicit ACL are
   required since 3.0 (ADR-0011); operator-created znodes: runbook in `src/Rebalancer.ZooKeeper/README.md`.
-- SQL Server: role `rebalancer_node` in `db/RebalanserLeastPrivilege.sql`. Redis 4.0: one ACL user per group, no shared
-  keys.
+- SQL Server: role `rebalancer_node` in `db/sqlserver/RebalanserLeastPrivilege.sql`. Redis 4.0: one ACL user per group,
+  no shared keys.
 - Threat models: [`docs/threat-models/`](../threat-models/) (TM-0001 ZooKeeper, TM-0002 SQL Server, TM-0003 Redis).
 
 ## Roadmap themes (v2)
