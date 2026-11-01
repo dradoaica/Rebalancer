@@ -1,6 +1,6 @@
 ---
 id: CR-0013
-status: Approved
+status: Implemented
 date: 2026-11-01
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-01)
@@ -158,8 +158,30 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
 
 ## Post-implementation
 
-- **Actual outcome:** {after change}
-- **Follow-ups:** {tickets, problem records if needed}
+- **Actual outcome (2026-11-01 UTC):** dradoaica merged `agent/lease-coordination-5.0` into `main` (`86de520`, merge
+  of `1c887f9`; no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 19:09:14–19:09:53
+  UTC, including "Pack NuGet Packages" and "Push to GitHub Packages"
+  (https://github.com/dradoaica/Rebalancer/actions/runs/41340266638). Its log shows all eight 5.0.0 packages pushed:
+  `Rebalancer.Core`, `Rebalancer.LeaseCoordination`, `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`,
+  `Rebalancer.Redis`, `Rebalancer.ZooKeeper`, `Rebalancer.Extensions.DependencyInjection`,
+  `Rebalancer.Extensions.Diagnostics.HealthChecks`. The second validation check (a host restoring
+  `Rebalancer.LeaseCoordination` without a direct reference) was shown on the packed nuspecs before the release, not
+  against the published feed.
+- **Deviations:**
+  - One Accepted ADR was edited after acceptance, as an exception made by dradoaica (GOV-10): ADR-0030, the DI method
+    name (`AddRebalancerPostgreSql`) and the release line (5.0.0), in commit `731be8b`.
+  - The ZooKeeper integration suite was not run (N/A, accepted by dradoaica; see Preconditions).
+  - The integration runs used `xUnit.MaxParallelThreads=3`: Docker on the test machine is limited to 7.3 GiB.
+  - The ADR merges into `main` before the release (`agent/adr-0032-…`, `agent/adr-0033-…`) had no CI-skip marker and
+    started "Release Packages" too; `main` was at 4.3.2 then, so every push was a conflict skipped by
+    `--skip-duplicate`, and nothing published changed.
+- **Follow-ups:**
+  - Run the Redis network-fault tests on their own (they fail on liveness under load; US-0025 notes).
+  - Cap the integration tests' parallelism in the project, or document the Docker memory they need.
+  - ADR-0022 lists `rebalancer.backend` values without `postgresql`.
+  - `QueuesPK` on `RBR.Resources` can exceed SQL Server's 900-byte key limit (found in the rollback rehearsal).
+  - Hosts on .NET 8 or 9 stay on 4.3.x (ADR-0033): decide whether 4.3.x gets patch releases.
+  - The ADR-0025 Pkcs pin stays until `Microsoft.Data.SqlClient` brings a patched version on `net10.0`.
 
 ## Sources
 

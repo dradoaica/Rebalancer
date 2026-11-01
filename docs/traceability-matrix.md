@@ -98,9 +98,9 @@ test project is added.
 
 ### 5.0.0 records
 
-| Record                                             | Status                                                                                                                                | Covers                                    |
-|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
-| [CR-0013](change-records/CR-0013-release-5-0-0.md) | **Approved** (5.0.0, not yet released); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029..0033, US-0025, US-0026, TM-0004 |
+| Record                                             | Status                                                                                                                            | Covers                                    |
+|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| [CR-0013](change-records/CR-0013-release-5-0-0.md) | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029..0033, US-0025, US-0026, TM-0004 |
 
 ### 4.3.2 problem records and stories
 
