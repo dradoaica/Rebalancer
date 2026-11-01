@@ -54,8 +54,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Data flows
 
-1. Node → PostgreSQL – opens or reuses a pooled connection per operation (Npgsql pooling), retrying transient errors
-   (ADR-0030: SQLSTATE class `08`, `40001`, `40P01`, `57P01`).
+1. Node → PostgreSQL – opens or reuses a pooled connection per operation (Npgsql pooling), retrying transient errors (ADR-0030: SQLSTATE class `08`, `40001`, `40P01`, `57P01`).
 2. Node → `SELECT … FOR UPDATE` on `resource_groups`, then `UPDATE`, in one `READ COMMITTED` transaction, time read
    with `clock_timestamp()` after the lock – acquire, renew or relinquish the lease.
 3. Node → `INSERT` / `UPDATE` on `clients` – register, keep-alive (store clock), status changes; `DELETE` of its own
@@ -84,9 +83,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
   role with write access to `rbr`. Fencing tokens protect against stale coordinators, not against a malicious writer.
 - Risk: **Medium**.
 - Threat T2: SQL injection through group names, resource names or client data.
-- Mitigation (s): all values are Npgsql parameters; a list of client ids is passed as one array parameter
-  (`= ANY(@ids)`), so no statement text is built from data, unlike the generated placeholder list on SQL Server
-  (to verify in review of `ClientService`).
+- Mitigation (s): all values are Npgsql parameters; a list of client ids is passed as one array parameter (`= ANY(@ids)`), so no statement text is built from data, unlike the generated placeholder list on SQL Server (to verify in review of `ClientService`).
 - Risk: **Low**.
 - Threat T3 (PostgreSQL-specific): object shadowing. If the node's role resolves unqualified names through a
   `search_path` that includes a schema another role can create objects in (historically `public`), that role can
@@ -156,16 +153,16 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
 
 ## Controls mapping
 
-| Threat / Risk                    | Control (design or runtime)                                                                                  | Evidence / Reference                                     |
-|----------------------------------|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Spoofing / tampering T1, D3      | Dedicated role with only the statements the backend runs; no DDL                                             | `db/postgresql/` role script; least-privilege test       |
-| SQL injection T2                 | Parameters only; client-id lists as one array parameter                                                      | `ClientService`, `LeaseService`, `ResourceService`       |
-| Object shadowing T3              | Schema-qualified names; `CREATE` on `public` revoked from the node role                                      | Scripts; test with a hostile object in `public`          |
-| Lost lease writes on failover T4 | Synchronous replication or lease expiry above failover time; ADR-0026 guard bounds the overlap              | Deployment responsibility; README guidance               |
-| Disclosure I1, I2                | Secret store; TLS with full verification; no connection strings in logs                                      | US-0026 Security & compliance; deployment responsibility |
-| Row-lock stall D2                | Command timeout, `lock_timeout`, `idle_in_transaction_session_timeout` below the lease expiry               | US-0026 criterion 8 (stall test); role script            |
-| Connection exhaustion D4         | Bounded pool; role `CONNECTION LIMIT` or pooler                                                              | README guidance                                          |
-| Cross-group tampering            | Separate database or role per trust domain                                                                   | Deployment responsibility                                |
+| Threat / Risk                    | Control (design or runtime)                                                                    | Evidence / Reference                                     |
+|----------------------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| Spoofing / tampering T1, D3      | Dedicated role with only the statements the backend runs; no DDL                               | `db/postgresql/` role script; least-privilege test       |
+| SQL injection T2                 | Parameters only; client-id lists as one array parameter                                        | `ClientService`, `LeaseService`, `ResourceService`       |
+| Object shadowing T3              | Schema-qualified names; `CREATE` on `public` revoked from the node role                        | Scripts; test with a hostile object in `public`          |
+| Lost lease writes on failover T4 | Synchronous replication or lease expiry above failover time; ADR-0026 guard bounds the overlap | Deployment responsibility; README guidance               |
+| Disclosure I1, I2                | Secret store; TLS with full verification; no connection strings in logs                        | US-0026 Security & compliance; deployment responsibility |
+| Row-lock stall D2                | Command timeout, `lock_timeout`, `idle_in_transaction_session_timeout` below the lease expiry  | US-0026 criterion 8 (stall test); role script            |
+| Connection exhaustion D4         | Bounded pool; role `CONNECTION LIMIT` or pooler                                                | README guidance                                          |
+| Cross-group tampering            | Separate database or role per trust domain                                                     | Deployment responsibility                                |
 
 ## Residual risk and acceptance
 
@@ -199,6 +196,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
   `docs/adrs/0014-expire-stale-client-records.md`, `docs/adrs/0022-rebalancing-telemetry-contract.md`
 - Related user stories: `docs/user-stories/US-0026-coordinate-via-postgresql-backend.md`
 - Related threat model: `docs/threat-models/TM-0002-sql-server-coordination.md` (the threats this model takes over)
-- Code: `db/RebalanserTables.sql`, `db/RebalanserLeastPrivilege.sql` (the SQL Server schema and role to mirror)
+- Code: `db/sqlserver/RebalancerTables.sql`, `db/sqlserver/RebalancerLeastPrivilege.sql` (the SQL Server schema and role
+  to mirror)
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control), chapter level as for
   TM-0002

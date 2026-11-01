@@ -17,11 +17,12 @@ public sealed class RedisPerGroupKeysTests
     private const string Group = "orders";
     private const string OtherGroup = "invoices";
 
-    [SkippableFact]
-    public async Task A3xGroup_MovesToItsOwnKeys_OnFirstStart_AndOtherGroupsStayShared()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task A3xGroup_MovesToItsOwnKeys_OnFirstStart_AndOtherGroupsStayShared(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
         await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2",]);
@@ -47,11 +48,12 @@ public sealed class RedisPerGroupKeysTests
         Assert.Equal(["i1",], await ResourceNamesAsync(db, "List:RBR:Resources"));
     }
 
-    [SkippableFact]
-    public async Task NodesStartingTogether_MoveTheGroupOnlyOnce()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task NodesStartingTogether_MoveTheGroupOnlyOnce(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
         await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1", "r2", "r3",]);
@@ -80,11 +82,12 @@ public sealed class RedisPerGroupKeysTests
 
     // found in the 4.0 -> 3.2 rollback rehearsal (CR-0006 follow-up, 2026-10-19): a per-group list left from an earlier
     // 4.x run must not duplicate the resources when the group moves again
-    [SkippableFact]
-    public async Task MovingAgainAfterARollback_ReplacesALeftoverResourceList()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task MovingAgainAfterARollback_ReplacesALeftoverResourceList(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
         await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1",]);
@@ -117,11 +120,12 @@ public sealed class RedisPerGroupKeysTests
     }
 
     // seen in the rollback rehearsal (2026-10-19): one malformed entry in a resource list crashed StartAsync
-    [SkippableFact]
-    public async Task MalformedResourceEntries_AreSkipped_WhenMovingAndWhenReading()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task MalformedResourceEntries_AreSkipped_WhenMovingAndWhenReading(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
         await RedisSeed.SeedResourceGroupAsync(connectionString, Group, ["r1",]);
@@ -147,11 +151,12 @@ public sealed class RedisPerGroupKeysTests
         Assert.Equal(["", "not json",], (await db.ListRangeAsync("List:RBR:Resources")).Select(x => x.ToString()));
     }
 
-    [SkippableFact]
-    public async Task AUserWithoutSharedKeyAccess_OnAGroupNotMovedYet_GetsAnErrorPointingToTheGuide()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task AUserWithoutSharedKeyAccess_OnAGroupNotMovedYet_GetsAnErrorPointingToTheGuide(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         await RedisSeed.SeedResourceGroupAsync(redis.GetConnectionString(), Group, ["r1",]);
         using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());

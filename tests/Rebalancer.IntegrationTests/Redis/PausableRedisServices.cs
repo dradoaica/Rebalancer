@@ -1,3 +1,6 @@
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
+using Rebalancer.LeaseCoordination.Resources;
 using Rebalancer.Redis;
 using Rebalancer.Redis.Clients;
 using Rebalancer.Redis.Leases;

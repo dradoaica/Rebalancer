@@ -79,7 +79,7 @@ In short:
 
 - **Treat the connection string or ZooKeeper credentials as a secret.** They grant control over assignment.
 - **SQL Server:** run nodes with the least-privilege role from [
-  `db/RebalanserLeastPrivilege.sql`](db/RebalanserLeastPrivilege.sql)
+  `db/sqlserver/RebalancerLeastPrivilege.sql`](db/sqlserver/RebalancerLeastPrivilege.sql)
   rather than a schema owner. All groups in one database share the `RBR` schema, so isolate groups that must not
   influence each other in separate databases.
 - **Redis:** Rebalancer has no access control of its own. Use a dedicated ACL user limited to the Rebalancer keys and

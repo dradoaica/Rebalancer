@@ -1,7 +1,7 @@
 using Rebalancer.Core;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Roles;
-using Rebalancer.SqlServer.Store;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Roles;
+using Rebalancer.LeaseCoordination.Store;
 using System.Diagnostics;
 using Xunit;
 

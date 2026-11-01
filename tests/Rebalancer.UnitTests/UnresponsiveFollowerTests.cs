@@ -1,9 +1,9 @@
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Resources;
-using Rebalancer.SqlServer.Roles;
-using Rebalancer.SqlServer.Store;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Resources;
+using Rebalancer.LeaseCoordination.Roles;
+using Rebalancer.LeaseCoordination.Store;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
@@ -27,8 +27,13 @@ public sealed class UnresponsiveFollowerTests
         table.Add(coordinator, true, [], DateTime.UtcNow);
         table.Add(follower, true, ["r1",], DateTime.UtcNow.AddMinutes(-5)); // paused: keep-alive older than the expiry
 
-        await new Coordinator(new NullRebalancerLogger(), new SqlServerR1(), table, new ResourceGroupStore())
-            .ExecuteCoordinatorRoleAsync(coordinator, SqlServerEvent(2), new OnChangeActions(), CancellationToken.None);
+        await new Coordinator(
+            "sqlserver",
+            new NullRebalancerLogger(),
+            new SqlServerR1(),
+            table,
+            new ResourceGroupStore()
+        ).ExecuteCoordinatorRoleAsync(coordinator, SqlServerEvent(2), new OnChangeActions(), CancellationToken.None);
 
         Assert.Contains("r1", table.Rows[coordinator].AssignedResources);
         Assert.Equal(CoordinatorStatus.StopActivity, table.Rows[follower].CoordinatorStatus);
@@ -63,26 +68,22 @@ public sealed class UnresponsiveFollowerTests
         table.Add(coordinator, true, [], DateTime.UtcNow);
         table.Add(follower, true, ["r1",], DateTime.UtcNow.AddMinutes(-5));
 
-        await new Redis.Roles.Coordinator(
-            new NullRebalancerLogger(),
-            new RedisR1(),
-            table,
-            new Redis.Store.ResourceGroupStore()
-        ).ExecuteCoordinatorRoleAsync(coordinator, RedisEvent(2), new OnChangeActions(), CancellationToken.None);
+        await new Coordinator("redis", new NullRebalancerLogger(), new RedisR1(), table, new ResourceGroupStore())
+            .ExecuteCoordinatorRoleAsync(coordinator, RedisEvent(2), new OnChangeActions(), CancellationToken.None);
 
         Assert.Contains("r1", table.Rows[coordinator].AssignedResources);
-        Assert.Equal(Redis.Clients.CoordinatorStatus.StopActivity, table.Rows[follower].CoordinatorStatus);
+        Assert.Equal(CoordinatorStatus.StopActivity, table.Rows[follower].CoordinatorStatus);
 
         var (actions, events) = Recording();
-        var store = new Redis.Store.ResourceGroupStore();
+        var store = new ResourceGroupStore();
         store.SetResources(
-            new Redis.Store.SetResourcesRequest
+            new SetResourcesRequest
             {
-                AssignmentStatus = Redis.Store.AssignmentStatus.ResourcesAssigned,
+                AssignmentStatus = AssignmentStatus.ResourcesAssigned,
                 Resources = ["r1",],
             }
         );
-        await new Redis.Roles.Follower(new NullRebalancerLogger(), table, store).ExecuteFollowerRoleAsync(
+        await new Follower(new NullRebalancerLogger(), table, store).ExecuteFollowerRoleAsync(
             follower,
             RedisEvent(2),
             actions,
@@ -101,8 +102,13 @@ public sealed class UnresponsiveFollowerTests
         table.Add(coordinator, true, [], DateTime.UtcNow);
         table.Add(idle, false, [], DateTime.UtcNow.AddMinutes(-5)); // StopActivity already, nothing to take back
 
-        await new Coordinator(new NullRebalancerLogger(), new SqlServerR1(), table, new ResourceGroupStore())
-            .ExecuteCoordinatorRoleAsync(coordinator, SqlServerEvent(2), new OnChangeActions(), CancellationToken.None);
+        await new Coordinator(
+            "sqlserver",
+            new NullRebalancerLogger(),
+            new SqlServerR1(),
+            table,
+            new ResourceGroupStore()
+        ).ExecuteCoordinatorRoleAsync(coordinator, SqlServerEvent(2), new OnChangeActions(), CancellationToken.None);
 
         Assert.DoesNotContain(table.StopRequests, ids => ids.Contains(idle));
     }
@@ -121,8 +127,13 @@ public sealed class UnresponsiveFollowerTests
         table.Add(follower, true, ["r1",], DateTime.UtcNow.AddMinutes(-5));
         var evt = SqlServerEvent(2);
 
-        await new Coordinator(new NullRebalancerLogger(), new SqlServerR1(), table, new ResourceGroupStore())
-            .ExecuteCoordinatorRoleAsync(coordinator, evt, new OnChangeActions(), CancellationToken.None);
+        await new Coordinator(
+            "sqlserver",
+            new NullRebalancerLogger(),
+            new SqlServerR1(),
+            table,
+            new ResourceGroupStore()
+        ).ExecuteCoordinatorRoleAsync(coordinator, evt, new OnChangeActions(), CancellationToken.None);
 
         Assert.False(evt.CoordinatorToken.FencingTokenViolation);
         Assert.Contains("r1", table.Rows[coordinator].AssignedResources); // the rebalance completed
@@ -147,14 +158,14 @@ public sealed class UnresponsiveFollowerTests
             CoordinatorToken = new CoordinatorToken(),
         };
 
-    private static Redis.Roles.ClientEvent RedisEvent(int token) =>
+    private static ClientEvent RedisEvent(int token) =>
         new()
         {
             ResourceGroup = Group,
             FencingToken = token,
             KeepAliveExpiryPeriod = Expiry,
             ClientRecordRetention = TimeSpan.FromHours(1),
-            CoordinatorToken = new Redis.Roles.CoordinatorToken(),
+            CoordinatorToken = new CoordinatorToken(),
         };
 
     private sealed class SqlServerR1 : IResourceService
@@ -167,7 +178,7 @@ public sealed class UnresponsiveFollowerTests
         );
     }
 
-    private sealed class RedisR1 : Redis.Resources.IResourceService
+    private sealed class RedisR1 : IResourceService
     {
         public Task<List<string>> GetResourcesAsync(string resourceGroup) => Task.FromResult(
             new List<string>
@@ -258,77 +269,67 @@ public sealed class UnresponsiveFollowerTests
             };
     }
 
-    private sealed class RedisTable : Redis.Clients.IClientService
+    private sealed class RedisTable : IClientService
     {
-        public Dictionary<Guid, Redis.Clients.Client> Rows { get; } = new();
+        public Dictionary<Guid, Client> Rows { get; } = new();
 
         public Task CreateClientAsync(string resourceGroup, Guid clientId) => Task.CompletedTask;
 
-        public Task<List<Redis.Clients.Client>> GetActiveClientsAsync(string resourceGroup) =>
+        public Task<List<Client>> GetActiveClientsAsync(string resourceGroup) =>
             Task.FromResult(
-                Rows.Values.Where(x =>
-                        x.ClientStatus is Redis.Clients.ClientStatus.Waiting or Redis.Clients.ClientStatus.Active
-                    )
+                Rows.Values.Where(x => x.ClientStatus is ClientStatus.Waiting or ClientStatus.Active)
                     .Select(x => Copy(x))
                     .ToList()
             );
 
-        public Task<Redis.Clients.Client> KeepAliveAsync(Guid clientId)
+        public Task<Client> KeepAliveAsync(Guid clientId)
         {
             Rows[clientId].LastKeepAlive = DateTime.UtcNow;
             return Task.FromResult(Copy(Rows[clientId]));
         }
 
-        public Task SetClientStatusAsync(Guid clientId, Redis.Clients.ClientStatus clientStatus)
+        public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus)
         {
             Rows[clientId].ClientStatus = clientStatus;
             return Task.CompletedTask;
         }
 
-        public Task<Redis.Clients.ModifyClientResult> StopActivityAsync(
-            int fencingToken,
-            List<Redis.Clients.Client> clients
-        )
+        public Task<ModifyClientResult> StopActivityAsync(int fencingToken, List<Client> clients)
         {
             foreach (var c in clients.Select(x => Rows[x.ClientId]))
             {
-                c.CoordinatorStatus = Redis.Clients.CoordinatorStatus.StopActivity;
+                c.CoordinatorStatus = CoordinatorStatus.StopActivity;
                 c.AssignedResources = [];
                 c.FencingToken = fencingToken;
             }
 
-            return Task.FromResult(Redis.Clients.ModifyClientResult.Ok);
+            return Task.FromResult(ModifyClientResult.Ok);
         }
 
-        public Task<Redis.Clients.ModifyClientResult> StartActivityAsync(
-            int fencingToken,
-            List<Redis.Clients.ClientStartRequest> requests
-        )
+        public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests)
         {
             foreach (var r in requests)
             {
-                Rows[r.ClientId].CoordinatorStatus = Redis.Clients.CoordinatorStatus.ResourcesGranted;
+                Rows[r.ClientId].CoordinatorStatus = CoordinatorStatus.ResourcesGranted;
                 Rows[r.ClientId].AssignedResources = r.AssignedResources.ToList();
             }
 
-            return Task.FromResult(Redis.Clients.ModifyClientResult.Ok);
+            return Task.FromResult(ModifyClientResult.Ok);
         }
 
         public void Add(Guid id, bool granted, List<string> resources, DateTime lastKeepAlive) =>
-            Rows[id] = new Redis.Clients.Client
+            Rows[id] = new Client
             {
                 ClientId = id,
                 ResourceGroup = Group,
-                ClientStatus = Redis.Clients.ClientStatus.Active,
-                CoordinatorStatus =
-                    granted ? Redis.Clients.CoordinatorStatus.ResourcesGranted
-                        : Redis.Clients.CoordinatorStatus.StopActivity,
+                ClientStatus = ClientStatus.Active,
+                CoordinatorStatus = granted ? CoordinatorStatus.ResourcesGranted : CoordinatorStatus.StopActivity,
                 AssignedResources = resources,
                 LastKeepAlive = lastKeepAlive,
                 FencingToken = 1,
             };
 
-        private static Redis.Clients.Client Copy(Redis.Clients.Client x) =>
+        private static Client Copy(Client x) =>
             new()
             {
                 ClientId = x.ClientId,

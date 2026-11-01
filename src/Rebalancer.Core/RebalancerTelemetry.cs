@@ -90,6 +90,7 @@ public static class RebalancerTelemetry
         provider.GetType().FullName switch
         {
             "Rebalancer.SqlServer.SqlServerProvider" => "sqlserver",
+            "Rebalancer.PostgreSql.PostgreSqlProvider" => "postgresql", // ADR-0030, US-0026
             "Rebalancer.Redis.RedisProvider" => "redis",
             "Rebalancer.ZooKeeper.ZooKeeperProvider" => "zookeeper",
             _ => "custom",

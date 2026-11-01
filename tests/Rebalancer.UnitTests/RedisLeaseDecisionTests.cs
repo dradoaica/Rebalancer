@@ -1,3 +1,4 @@
+using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.Redis;
 using Rebalancer.Redis.Leases;
 using Xunit;

@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
+using Rebalancer.LeaseCoordination.Resources;
 using Rebalancer.SqlServer;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Leases;
-using Rebalancer.SqlServer.Resources;
 using System;
 
 namespace Rebalancer.Extensions.DependencyInjection;

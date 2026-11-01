@@ -289,6 +289,6 @@ resharper_csharp_wrap_multiple_type_parameter_constraints_style = chop_always
 resharper_csharp_trailing_comma_in_singleline_lists = true
 resharper_csharp_trailing_comma_in_multiline_lists = true
 
-# SQL scripts: UTF-8, so editors do not keep the UTF-16 encoding RebalanserTables.sql once had
+# SQL scripts: UTF-8, so editors do not keep the UTF-16 encoding RebalancerTables.sql once had
 [*.sql]
 charset = utf-8

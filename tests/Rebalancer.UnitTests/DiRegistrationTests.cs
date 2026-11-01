@@ -16,6 +16,7 @@ public sealed class DiRegistrationTests
     public static TheoryData<string> Registrations => new()
     {
         "SqlServer",
+        "PostgreSql",
         "Redis",
         "ZooKeeper",
         "Factory",
@@ -26,6 +27,17 @@ public sealed class DiRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddRebalancerSqlServer("Server=tcp:127.0.0.1,1;Connect Timeout=1;Trust Server Certificate=true;");
+        using var provider = services.BuildServiceProvider();
+        var client = provider.GetRequiredService<RebalancerClient>();
+        Assert.NotNull(client);
+    }
+
+    // US-0026 criterion 10
+    [Fact]
+    public void AddRebalancerPostgreSql_Resolves_RebalancerClient_Without_Static_Providers()
+    {
+        var services = new ServiceCollection();
+        services.AddRebalancerPostgreSql("Host=127.0.0.1;Port=1;Timeout=1");
         using var provider = services.BuildServiceProvider();
         var client = provider.GetRequiredService<RebalancerClient>();
         Assert.NotNull(client);
@@ -61,6 +73,7 @@ public sealed class DiRegistrationTests
             "SqlServer" => services.AddRebalancerSqlServer(
                 "Server=tcp:127.0.0.1,1;Connect Timeout=1;Trust Server Certificate=true;"
             ),
+            "PostgreSql" => services.AddRebalancerPostgreSql("Host=127.0.0.1;Port=1;Timeout=1"),
             "Redis" => services.AddRebalancerRedis("localhost:1,abortConnect=false,connectTimeout=100"),
             "ZooKeeper" => services.AddRebalancerZooKeeper(
                 "localhost:1",

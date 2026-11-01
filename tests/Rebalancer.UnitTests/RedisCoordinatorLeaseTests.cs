@@ -1,9 +1,9 @@
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
-using Rebalancer.Redis.Clients;
-using Rebalancer.Redis.Resources;
-using Rebalancer.Redis.Roles;
-using Rebalancer.Redis.Store;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Resources;
+using Rebalancer.LeaseCoordination.Roles;
+using Rebalancer.LeaseCoordination.Store;
 using Xunit;
 
 namespace Rebalancer.UnitTests;
@@ -99,7 +99,7 @@ public sealed class RedisCoordinatorLeaseTests
         var self = Guid.NewGuid();
         await clients.CreateClientAsync(Group, self);
         clients.Lease = (self, 1);
-        var coordinator = new Coordinator(new NullRebalancerLogger(), new FixedResources(), clients, store);
+        var coordinator = new Coordinator("redis", new NullRebalancerLogger(), new FixedResources(), clients, store);
         return (clients, store, coordinator, actions, events, self);
     }
 

@@ -1,7 +1,7 @@
 using Rebalancer.Core;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.Redis;
-using Rebalancer.Redis.Clients;
-using Rebalancer.Redis.Leases;
 using Testcontainers.Redis;
 using Xunit;
 
@@ -13,11 +13,12 @@ namespace Rebalancer.IntegrationTests.Redis;
 /// </summary>
 public sealed class RedisAbortedStateTests
 {
-    [SkippableFact]
-    public async Task WithoutAutoRecovery_AFailedClientReportsAborted()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task WithoutAutoRecovery_AFailedClientReportsAborted(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var leases = new FailingLeases();
         using var client = new RebalancerClient(
@@ -42,11 +43,12 @@ public sealed class RedisAbortedStateTests
         Assert.Equal(1, leases.Calls);
     }
 
-    [SkippableFact]
-    public async Task WithAutoRecovery_AFailingClientIsNotAborted()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task WithAutoRecovery_AFailingClientIsNotAborted(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var leases = new FailingLeases();
         using var client = new RebalancerClient(

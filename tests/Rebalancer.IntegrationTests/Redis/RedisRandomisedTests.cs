@@ -8,11 +8,12 @@ namespace Rebalancer.IntegrationTests.Redis;
 /// <summary>Requires Docker. US-0019 randomised assignment safety and liveness on Redis.</summary>
 public sealed class RedisRandomisedTests(ITestOutputHelper output)
 {
-    [SkippableFact]
-    public async Task RandomStartsStopsPausesAndKills_KeepAssignmentsSafeAndLive()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task RandomStartsStopsPausesAndKills_KeepAssignmentsSafeAndLive(string image)
     {
         Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
         var connectionString = redis.GetConnectionString();
         var group = "it-redis-random-" + Guid.NewGuid().ToString("N");

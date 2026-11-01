@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Rebalancer.Core;
 using Rebalancer.Core.Logging;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
+using Rebalancer.LeaseCoordination.Resources;
 using Rebalancer.Redis;
-using Rebalancer.Redis.Clients;
-using Rebalancer.Redis.Leases;
-using Rebalancer.Redis.Resources;
 using System;
 
 namespace Rebalancer.Extensions.DependencyInjection;

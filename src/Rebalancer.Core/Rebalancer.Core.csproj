@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <Version>4.3.2</Version>
+        <TargetFramework>net10.0</TargetFramework>
+        <Version>5.0.0</Version>
         <LangVersion>default</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13"/>
-        <!-- Meter and ActivitySource (ADR-0022); already resolved transitively at this version through the logging package -->
-        <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="10.0.13"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,6 +15,8 @@
         <!-- the backends record the instruments of RebalancerTelemetry (ADR-0022) -->
         <InternalsVisibleTo Include="Rebalancer.SqlServer"/>
         <InternalsVisibleTo Include="Rebalancer.Redis"/>
+        <InternalsVisibleTo Include="Rebalancer.LeaseCoordination"/>
+        <InternalsVisibleTo Include="Rebalancer.PostgreSql"/>
         <InternalsVisibleTo Include="Rebalancer.ZooKeeper"/>
     </ItemGroup>
 

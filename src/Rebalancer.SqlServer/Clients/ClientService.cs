@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Rebalancer.LeaseCoordination.Clients;
 using Rebalancer.SqlServer.Connections;
 using System;
 using System.Collections.Generic;

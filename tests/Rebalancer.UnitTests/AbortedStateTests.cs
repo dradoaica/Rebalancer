@@ -1,7 +1,7 @@
 using Rebalancer.Core;
+using Rebalancer.LeaseCoordination.Clients;
+using Rebalancer.LeaseCoordination.Leases;
 using Rebalancer.SqlServer;
-using Rebalancer.SqlServer.Clients;
-using Rebalancer.SqlServer.Leases;
 using Xunit;
 
 namespace Rebalancer.UnitTests;

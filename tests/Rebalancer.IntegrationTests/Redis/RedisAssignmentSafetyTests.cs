@@ -11,15 +11,16 @@ namespace Rebalancer.IntegrationTests.Redis;
 /// </summary>
 public sealed class RedisAssignmentSafetyTests
 {
-    [SkippableFact]
-    public async Task TwoClients_OneResource_AreNeverBothAssignedTheSameResource()
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task TwoClients_OneResource_AreNeverBothAssignedTheSameResource(string image)
     {
         Skip.IfNot(
             DockerSupport.IsDockerAvailable(),
             "Docker is not available; start Docker to run integration tests."
         );
 
-        await using var redis = new RedisBuilder(DockerSupport.RedisImage).Build();
+        await using var redis = new RedisBuilder(image).Build();
         await redis.StartAsync();
 
         var connectionString = redis.GetConnectionString();
