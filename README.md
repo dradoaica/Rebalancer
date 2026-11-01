@@ -79,7 +79,9 @@ This repository is the .NET implementation: `Rebalancer.Core` plus one package p
 `Rebalancer.LeaseCoordination`, which NuGet installs with them (ADR-0029).
 
 Supported servers: Redis (tested on 7.0) and Valkey (tested on 8.1.11; ADR-0031), SQL Server (tested on 2022),
-PostgreSQL (tested on 17.8; ADR-0030), and ZooKeeper (tested on 3.8). Other versions are not claimed.
+PostgreSQL (tested on 17.8; ADR-0030), and ZooKeeper (tested on 3.8). Other versions are not claimed. The packages
+target .NET 10 (`net10.0`, since 5.0; [ADR-0033](docs/adrs/0033-target-net-10-only.md)); 4.x targets
+`netstandard2.1`.
 Other languages would need their own implementation of the protocol.
 
 ## Documentation

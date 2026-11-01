@@ -21,10 +21,10 @@ For security issues, follow [SECURITY.md](SECURITY.md) instead of opening an iss
 
 You need:
 
-- the .NET SDK pinned in [`global.json`](global.json) (10.0, rolls forward). Library packages target `netstandard2.1`;
-  keep them free of APIs not available there;
-- Docker, for the SQL Server and Redis integration tests (Testcontainers starts the servers; the tests are skipped when
-  Docker is not available);
+- the .NET SDK pinned in [`global.json`](global.json) (10.0, rolls forward). Library packages target `net10.0`
+  ([ADR-0033](docs/adrs/0033-target-net-10-only.md));
+- Docker, for the SQL Server, PostgreSQL and Redis integration tests (Testcontainers starts the servers; the tests are
+  skipped when Docker is not available);
 - for the ZooKeeper integration tests, a three-node ZooKeeper ensemble on `localhost:2181`, `2182` and `2183`. These
   tests are **not** skipped automatically – they fail without the ensemble. `DisconnectionTests` pauses the ensemble's
   containers and needs them under the names the [README](README.md) uses (`rbr-it-zk1`..`3`); it is skipped otherwise.

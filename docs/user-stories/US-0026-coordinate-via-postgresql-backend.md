@@ -90,7 +90,8 @@ Where the implementation differs from the criteria above or from ADR-0030's word
    `redis` and `zookeeper`; that list is now incomplete.
 5. **Npgsql 8.0.9 (criterion 1):** the last Npgsql line with a `netstandard2.1` build; 9.x and 10.x target net6.0
    and later only. The 8.x line follows .NET 8's support. Moving to a later Npgsql means targeting net8.0 or later
-   for this package, unlike the other backends.
+   for this package, unlike the other backends. **Resolved by ADR-0033:** all packages target `net10.0`, which
+   replaces criterion 1's `netstandard2.1`, and the backend uses Npgsql 10.0.3.
 6. **Recommendation, not done:** `SELECT … FOR NO KEY UPDATE` would serialize lease operations as `FOR UPDATE` does
    without conflicting with key-share locks. Kept `FOR UPDATE`, as ADR-0030 and criterion 4 state.
 

@@ -4,6 +4,12 @@ Only code that uses the SQL Server or Redis service types is affected. ZooKeeper
 
 Decision: [ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md).
 
+## Requires .NET 10
+
+[ADR-0033](../adrs/0033-target-net-10-only.md). Every 5.0 package targets `net10.0` (4.x: `netstandard2.1`), so a
+host must run on .NET 10 or later. .NET 8 and .NET 9 reach end of support on November 10, 2026; a host that stays on
+them stays on 4.3.x.
+
 ## What changes
 
 The coordination code that SQL Server and Redis had as two copies (leader election under a lease, the coordinator and

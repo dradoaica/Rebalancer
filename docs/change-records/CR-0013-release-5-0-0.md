@@ -8,7 +8,7 @@ risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
 planned-window: "Library release 5.0.0, after approval"
-depends-on: [ "ADR-0029", "ADR-0030", "ADR-0031", "ADR-0032", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "TM-0004", "US-0025", "US-0026", "CR-0012" ]
+depends-on: [ "ADR-0029", "ADR-0030", "ADR-0031", "ADR-0032", "ADR-0033", "ADR-0022", "ADR-0026", "TM-0002", "TM-0003", "TM-0004", "US-0025", "US-0026", "CR-0012" ]
 ---
 
 # Change record: Rebalancer 5.0.0 – shared lease coordination, PostgreSQL backend, Valkey support
@@ -44,7 +44,7 @@ PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valk
 - Docs: release notes, migration guide, README, architecture overview, product baseline, traceability matrix, Sources
   paths in PRB-0001 / PRB-0005 / PRB-0007.
 - Versions 5.0.0 in the eight `.csproj` files.
-- New `src/Rebalancer.PostgreSql/` (Npgsql 8.0.9) and `db/postgresql/` (schema, least-privilege role);
+- New `src/Rebalancer.PostgreSql/` (Npgsql 10.0.3) and `db/postgresql/` (schema, least-privilege role);
   `AddRebalancerPostgreSql`; `InternalsVisibleTo` for it in `Rebalancer.Core` and `Rebalancer.LeaseCoordination`.
 - Tests: `tests/Rebalancer.IntegrationTests/PostgreSql/` (the SQL Server suites' counterparts, plus the row-lock stall
   and shadowing tests); `PostgreSqlTransientErrorTests` and DI cases (unit); every Redis integration test as a theory
@@ -56,24 +56,33 @@ PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valk
   first: on the shipped scripts with the key, both `SqlServerAbortedStateTests` failed with a foreign-key violation.
 - `ProcessingMonitor` (US-0024): resume windows on every resource a node resumes with (see Preconditions).
 - `db/`: SQL Server scripts moved to `db/sqlserver/`; `db/postgresql/` has the same three scripts.
+- ADR-0033: every `src/` project targets `net10.0` instead of `netstandard2.1`; Npgsql 10.0.3; the
+  `System.Diagnostics.DiagnosticSource` reference removed from `Rebalancer.Core` (in the .NET 10 framework, SDK warning
+  NU1510). The ADR's premise is confirmed: .NET 8 and .NET 9 reach end of support on November 10, 2026 (Microsoft's
+  support policy and .NET blog, checked 2026-11-01). The ADR-0025 Pkcs pin stays: for a `net10.0` host,
+  `Microsoft.Data.SqlClient` 7.1.1 resolves its `net9.0` dependency group, which requests Pkcs 9.0.18.
+- Patch updates by dradoaica (2026-11-01): the `Microsoft.Extensions.*` packages 10.0.13 → 10.0.14,
+  `System.Security.Cryptography.Pkcs` (the ADR-0025 pin) 10.0.13 → 10.0.14, `StackExchange.Redis` 3.4.5 → 3.4.29. No
+  package added, removed or major-upgraded. Vulnerability scan after them: none in 13 projects.
 
 **Out of scope:**
 - The external NuGet version bumps found in the working tree on 2026-11-01 (stashed; their own change).
 - A CI test job (not planned).
 
-**Versioning.** A major release: public types change namespace (`.agents/protocols/maintainability.md`,
-Regression-awareness rules). The strongest argument for a minor release: hosts that only pass a connection string are
-not affected. But custom service implementations and test doubles are, and a minor version must not break them.
+**Versioning.** A major release: the packages need .NET 10 (ADR-0033), and public types change namespace
+(`.agents/protocols/maintainability.md`, Regression-awareness rules). The strongest argument for a minor release: hosts
+that only pass a connection string are not affected. But custom service implementations and test doubles are, and a
+minor version must not break them.
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                                                                                  |
-|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. New: a PostgreSQL backend; Valkey 8.1.11 supported.                            |
-| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                                                          |
-| Data / schema         | Redis: none. SQL Server: the shipped script drops `FK_Clients_ResourceGroups` (ADR-0032); existing databases keep it until an operator drops it (optional). New for PostgreSQL: the `rbr` schema from `db/postgresql/`. |
-| Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 8.0.9.                                             |
-| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                                              |
+| Area                  | Impact                                                                                                                                                                                                                                                     |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Users / customers     | Recompile. Code naming the service types changes its `using` directives (migration guide). A new package dependency, installed by NuGet. New: a PostgreSQL backend; Valkey 8.1.11 supported. Requires .NET 10 (ADR-0033); hosts on .NET 8/9 stay on 4.3.x. |
+| Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                                                                                             |
+| Data / schema         | Redis: none. SQL Server: the shipped script drops `FK_Clients_ResourceGroups` (ADR-0032); existing databases keep it until an operator drops it (optional). New for PostgreSQL: the `rbr` schema from `db/postgresql/`.                                    |
+| Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 10.0.3.                                                                               |
+| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                                                                                 |
 
 ## Preconditions
 
@@ -143,6 +152,7 @@ Release notes `docs/release-notes/5.0.0.md` and the migration guide `docs/releas
 - ADRs (new backends): `docs/adrs/0030-postgresql-backend.md`,
   `docs/adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md`
 - ADR (schema fix): `docs/adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md`
+- ADR (platform): `docs/adrs/0033-target-net-10-only.md`
 - User stories: `docs/user-stories/US-0025-redis-backend-on-valkey.md`,
   `docs/user-stories/US-0026-coordinate-via-postgresql-backend.md`
 - Threat models: `docs/threat-models/TM-0002-sql-server-coordination.md`,
