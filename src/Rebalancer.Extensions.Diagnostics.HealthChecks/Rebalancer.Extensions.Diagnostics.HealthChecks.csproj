@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <Version>5.0.0</Version>
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
         <RootNamespace>Rebalancer.Extensions.Diagnostics.HealthChecks</RootNamespace>
