@@ -199,7 +199,7 @@ implementation (US-0026); controls marked "to verify" are confirmed by its tests
   `docs/adrs/0014-expire-stale-client-records.md`, `docs/adrs/0022-rebalancing-telemetry-contract.md`
 - Related user stories: `docs/user-stories/US-0026-coordinate-via-postgresql-backend.md`
 - Related threat model: `docs/threat-models/TM-0002-sql-server-coordination.md` (the threats this model takes over)
-- Code: `db/sqlserver/RebalanserTables.sql`, `db/sqlserver/RebalanserLeastPrivilege.sql` (the SQL Server schema and role
+- Code: `db/sqlserver/RebalancerTables.sql`, `db/sqlserver/RebalancerLeastPrivilege.sql` (the SQL Server schema and role
   to mirror)
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control), chapter level as for
   TM-0002

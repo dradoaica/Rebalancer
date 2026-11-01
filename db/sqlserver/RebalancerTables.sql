@@ -1,4 +1,4 @@
--- Rebalancer tables (SQL Server backend). Run in the Rebalancer database after RebalanserSchema.sql.
+-- Rebalancer tables (SQL Server backend). Run in the Rebalancer database after RebalancerSchema.sql.
 -- Identifiers are not bracketed: none needs quoting, and formatters that do not know T-SQL split bracketed names.
 
 CREATE TABLE RBR.Clients

@@ -3,7 +3,7 @@
 -- deletes client rows in rbr.clients. Creating groups and resources (INSERT into rbr.resource_groups /
 -- rbr.resources) stays with an operator role.
 --
--- Run in the Rebalancer database after RebalanserSchema.sql and RebalanserTables.sql, then make each node's login
+-- Run in the Rebalancer database after RebalancerSchema.sql and RebalancerTables.sql, then make each node's login
 -- a member, e.g.:
 --   CREATE ROLE rebalancer_orders LOGIN PASSWORD '...' IN ROLE rebalancer_node;
 -- Use logins only Rebalancer nodes use, and give no other role write access to the rbr schema.

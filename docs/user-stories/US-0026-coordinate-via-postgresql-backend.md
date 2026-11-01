@@ -41,7 +41,7 @@ corrects the tier.
    public members as `SqlServerProvider`, delegating to `LeaseCoordinatedProvider` with backend tag `"postgresql"`.
 3. **Schema scripts:** `db/postgresql/` holds the schema and tables (`rbr.resource_groups`, `rbr.resources`,
    `rbr.clients`, column for column the `RBR` tables) and a least-privilege role script granting exactly what the
-   backend executes, as `db/sqlserver/RebalanserLeastPrivilege.sql` does for SQL Server. The role script also revokes
+   backend executes, as `db/sqlserver/RebalancerLeastPrivilege.sql` does for SQL Server. The role script also revokes
    `CREATE` on `public` from the node role and sets its `lock_timeout` and `idle_in_transaction_session_timeout` below
    the lease expiry (TM-0004, T3 and D2).
 4. **Lease (ADR-0030):** acquire, renew and relinquish take the group row with `SELECT … FOR UPDATE` in one
@@ -81,7 +81,7 @@ Where the implementation differs from the criteria above or from ADR-0030's word
 2. **No foreign key from `rbr.clients` to `rbr.resource_groups`:** with it, a client of a missing group fails inside
    `StartAsync` (SQLSTATE `23503`) instead of reporting `Aborted` (US-0021), and the key check waits for any lease
    transaction holding the group row. `rbr.resources` keeps its key. The shipped SQL Server schema
-   (`db/sqlserver/RebalanserTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
+   (`db/sqlserver/RebalancerTables.sql`) has the same key, so a real SQL Server install fails the same way; its tests
    pass only because they use their own schema without it. Fixed for both by ADR-0032 (5.0.0).
 3. **Transient errors (criterion 6):** besides the codes ADR-0030 names, `55P03` (the waiting nodes' lock timeout) and
    `25P03` (the stalled node's own session ended by the server) are retried, as TM-0004 D2 requires.
@@ -142,4 +142,4 @@ credentials and TLS in the connection string, the least-privilege role (criterio
 - `docs/adrs/0005-dependency-injection-for-provider-registration-v2.md` (registration)
 - `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`
 - `docs/threat-models/TM-0004-postgresql-coordination.md` (threats and controls)
-- `db/sqlserver/RebalanserTables.sql`, `db/sqlserver/RebalanserLeastPrivilege.sql` (the SQL Server schema to mirror)
+- `db/sqlserver/RebalancerTables.sql`, `db/sqlserver/RebalancerLeastPrivilege.sql` (the SQL Server schema to mirror)

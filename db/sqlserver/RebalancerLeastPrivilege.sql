@@ -3,7 +3,7 @@
 -- registers, updates and deletes client records in RBR.Clients (deletes since 3.0, ADR-0014).
 -- Creating groups and resources (INSERT into RBR.ResourceGroups / RBR.Resources) stays with an operator principal.
 --
--- Run in the Rebalancer database after RebalanserSchema.sql and RebalanserTables.sql, then add each node's database
+-- Run in the Rebalancer database after RebalancerSchema.sql and RebalancerTables.sql, then add each node's database
 -- user to the role, e.g.:
 --   CREATE USER [rebalancer_orders] FOR LOGIN [rebalancer_orders];
 --   ALTER ROLE [rebalancer_node] ADD MEMBER [rebalancer_orders];

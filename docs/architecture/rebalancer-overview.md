@@ -81,7 +81,7 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
   ([migration guide](../release-notes/migrating-to-4.0.md)). Leases use the Redis server clock and compare-and-set
   updates ([ADR-0017](../adrs/0017-redis-lease-timing-and-atomic-updates.md)).
 - **SQL Server:** schema in [`db/sqlserver/`](../../db/sqlserver/); the role `rebalancer_node` in
-  `db/sqlserver/RebalanserLeastPrivilege.sql` grants exactly what a node needs.
+  `db/sqlserver/RebalancerLeastPrivilege.sql` grants exactly what a node needs.
 - **PostgreSQL:** schema and role in [`db/postgresql/`](../../db/postgresql/). A lease operation locks the group row
   (`SELECT … FOR UPDATE`) and reads the time with `clock_timestamp()` after the lock; it ends a stalled transaction
   after half the lease expiry ([TM-0004](../threat-models/TM-0004-postgresql-coordination.md), D2).

@@ -31,7 +31,7 @@ docker exec rabbit rabbitmq-plugins enable rabbitmq_consistent_hash_exchange
 docker run -d --name sql -e ACCEPT_EULA=Y -e 'MSSQL_SA_PASSWORD=<strong password>' -p 1433:1433 \
   mcr.microsoft.com/mssql/server:2022-latest
 # create a database (e.g. RabbitMqScaling) and run, in it,
-# db/sqlserver/RebalanserSchema.sql and db/sqlserver/RebalanserTables.sql
+# db/sqlserver/RebalancerSchema.sql and db/sqlserver/RebalancerTables.sql
 
 export EXAMPLE_SQL='Server=localhost;Database=RabbitMqScaling;User Id=sa;Password=<strong password>;TrustServerCertificate=true'
 T="dotnet run --project examples/Rebalancer.RabbitMq.Tools --"

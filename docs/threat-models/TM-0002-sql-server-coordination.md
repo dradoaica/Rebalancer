@@ -40,8 +40,8 @@ resource groups, and unbounded growth of the client table.
 ## System context and boundaries
 
 - **In scope:** `SqlServerProvider`, `LeaseService`, `ClientService`, `ResourceService`, `ConnectionHelper`; tables
-  `RBR.ResourceGroups`, `RBR.Clients`, `RBR.Resources` (`db/sqlserver/RebalanserSchema.sql`,
-  `db/sqlserver/RebalanserTables.sql`).
+  `RBR.ResourceGroups`, `RBR.Clients`, `RBR.Resources` (`db/sqlserver/RebalancerSchema.sql`,
+  `db/sqlserver/RebalancerTables.sql`).
 - **Out of scope:** SQL Server hardening (patching, TDE, auditing configuration, backups); provisioning tools such as
   `examples/Rebalancer.RabbitMq.Tools` (they write the same tables, with their own credentials).
 - **Assumptions:**
@@ -158,7 +158,7 @@ resource groups, and unbounded growth of the client table.
   - **Client-row deletes by the login holder** cause rebalancing churn (D3), not double assignment.
   - **No audit trail** unless the database provides one.
 - Follow-ups of revision 1: expiry of client rows is decided and implemented (ADR-0014, 3.0.0). The
-  least-privilege role script is `db/sqlserver/RebalanserLeastPrivilege.sql` (2026-10-19, verified by
+  least-privilege role script is `db/sqlserver/RebalancerLeastPrivilege.sql` (2026-10-19, verified by
   `SqlServerLeastPrivilegeTests`).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
   2026-10-18. Revision 2 accepted by dradoaica (in session 2026-10-19; also recorded in
@@ -170,7 +170,7 @@ resource groups, and unbounded growth of the client table.
   `docs/adrs/0014-expire-stale-client-records.md` (Accepted).
 - Required SDPs: N/A (library).
 - Change records to implement mitigations: `docs/change-records/CR-0003-release-3-0-0.md`.
-- Runbooks / monitors: `db/sqlserver/RebalanserLeastPrivilege.sql` (role `rebalancer_node`); the client-table cleanup
+- Runbooks / monitors: `db/sqlserver/RebalancerLeastPrivilege.sql` (role `rebalancer_node`); the client-table cleanup
   procedure is no longer needed.
 
 ## Approvals
@@ -190,5 +190,5 @@ resource groups, and unbounded growth of the client table.
   `docs/adrs/0014-expire-stale-client-records.md`
 - Change records: `docs/change-records/CR-0003-release-3-0-0.md`
 - Related user stories: `docs/user-stories/US-0005-coordinate-via-sql-server-backend.md`
-- Code: `src/Rebalancer.SqlServer/`, `db/sqlserver/RebalanserSchema.sql`, `db/sqlserver/RebalanserTables.sql`
+- Code: `src/Rebalancer.SqlServer/`, `db/sqlserver/RebalancerSchema.sql`, `db/sqlserver/RebalancerTables.sql`
 - External standards: STRIDE; OWASP ASVS V5 (validation, injection) and V4 (access control) – control IDs not mapped (not required: decided by dradoaica 2026-10-19; chapter-level references suffice for a library)

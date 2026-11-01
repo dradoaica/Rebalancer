@@ -7,7 +7,7 @@ namespace Rebalancer.IntegrationTests.SqlServer;
 
 /// <summary>
 ///     Requires Docker. A database installed from the shipped <c>db/sqlserver/</c> scripts works, and
-///     <c>db/sqlserver/RebalanserLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two nodes
+///     <c>db/sqlserver/RebalancerLeastPrivilege.sql</c> grants everything a node needs (TM-0002 follow-up): two nodes
 ///     whose login holds only that role coordinate, survive a paused follower, and delete their records on a clean stop
 ///     (ADR-0014).
 /// </summary>
@@ -21,7 +21,7 @@ public sealed class SqlServerLeastPrivilegeTests
         await sql.StartAsync();
         var adminConnectionString = sql.GetConnectionString();
         await SchemaSetup.ApplyRbrSchemaAsync(adminConnectionString);
-        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalanserLeastPrivilege.sql");
+        await SchemaSetup.ApplyScriptAsync(adminConnectionString, "RebalancerLeastPrivilege.sql");
         var group = "it-sql-role-" + Guid.NewGuid().ToString("N");
         await SchemaSetup.SeedResourceGroupAsync(adminConnectionString, group, PausedNodeScenarios.Resources, 5, 1);
 

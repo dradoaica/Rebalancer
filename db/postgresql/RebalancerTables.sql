@@ -1,5 +1,5 @@
--- Rebalancer tables (PostgreSQL backend, ADR-0030). Run in the Rebalancer database after RebalanserSchema.sql.
--- Column for column the RBR tables of the SQL Server backend (db/sqlserver/RebalanserTables.sql); times are
+-- Rebalancer tables (PostgreSQL backend, ADR-0030). Run in the Rebalancer database after RebalancerSchema.sql.
+-- Column for column the RBR tables of the SQL Server backend (db/sqlserver/RebalancerTables.sql); times are
 -- timestamptz, read and written only by the database clock (clock_timestamp()).
 
 CREATE TABLE rbr.resource_groups

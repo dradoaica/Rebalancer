@@ -12,8 +12,8 @@ internal static class SchemaSetup
         CancellationToken cancellationToken = default
     )
     {
-        await ApplyScriptAsync(connectionString, "RebalanserSchema.sql", cancellationToken);
-        await ApplyScriptAsync(connectionString, "RebalanserTables.sql", cancellationToken);
+        await ApplyScriptAsync(connectionString, "RebalancerSchema.sql", cancellationToken);
+        await ApplyScriptAsync(connectionString, "RebalancerTables.sql", cancellationToken);
     }
 
     /// <summary>Runs a script copied to the output's <c>SqlServer</c> folder, batch by batch (split on <c>GO</c>).</summary>

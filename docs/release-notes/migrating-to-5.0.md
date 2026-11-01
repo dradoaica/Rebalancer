@@ -44,14 +44,14 @@ against 5.0.
 
 ## Upgrading nodes
 
-The coordination protocol and the stored data are unchanged, so 5.0 needs no data migration. Whether a group can run
-4.3 and 5.0 nodes together during a rolling upgrade is confirmed by the rollback rehearsal of the 5.0.0 change record;
-until then, upgrade all nodes of a group at once, as for 4.0.
+The coordination protocol and the stored data are unchanged, so 5.0 needs no data migration, and nodes can be upgraded
+one at a time: the rollback rehearsal of the 5.0.0 change record ran a 4.3.2 and a 5.0.0 node in one group, on SQL
+Server and on Redis, with no overlap. Rolling back to 4.3.2 needs no step either.
 
 ## SQL Server: optional schema step
 
 [ADR-0032](../adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md). The shipped
-`db/sqlserver/RebalanserTables.sql` no longer creates the foreign key `FK_Clients_ResourceGroups`. With it, a client
+`db/sqlserver/RebalancerTables.sql` no longer creates the foreign key `FK_Clients_ResourceGroups`. With it, a client
 whose resource group does not exist fails inside `StartAsync`; without it, the client runs and reports
 `ClientState.Aborted` (without auto-recovery), as documented since 4.2.0. A database created from the 4.x scripts keeps
 the key until you drop it; 5.0 works with or without it:

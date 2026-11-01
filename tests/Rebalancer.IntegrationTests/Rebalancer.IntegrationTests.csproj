@@ -42,13 +42,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\db\sqlserver\RebalanserSchema.sql" Link="SqlServer\RebalanserSchema.sql">
+        <Content Include="..\..\db\sqlserver\RebalancerSchema.sql" Link="SqlServer\RebalancerSchema.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="..\..\db\sqlserver\RebalanserTables.sql" Link="SqlServer\RebalanserTables.sql">
+        <Content Include="..\..\db\sqlserver\RebalancerTables.sql" Link="SqlServer\RebalancerTables.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="..\..\db\sqlserver\RebalanserLeastPrivilege.sql" Link="SqlServer\RebalanserLeastPrivilege.sql">
+        <Content Include="..\..\db\sqlserver\RebalancerLeastPrivilege.sql" Link="SqlServer\RebalancerLeastPrivilege.sql">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <!-- the shipped PostgreSQL scripts, so the tests run what operators run (US-0026, criterion 3) -->

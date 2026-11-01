@@ -183,10 +183,10 @@ this for you.
 ### Operating the backends
 
 - **SQL Server:** create the schema from [`db/sqlserver/`](db/sqlserver/) and give the nodes' login only the role
-  `rebalancer_node` ([`db/sqlserver/RebalanserLeastPrivilege.sql`](db/sqlserver/RebalanserLeastPrivilege.sql)).
+  `rebalancer_node` ([`db/sqlserver/RebalancerLeastPrivilege.sql`](db/sqlserver/RebalancerLeastPrivilege.sql)).
 - **PostgreSQL:** create the schema from [`db/postgresql/`](db/postgresql/) (the same three scripts as for SQL Server)
   and make the nodes' logins members of the role `rebalancer_node`
-  ([`db/postgresql/RebalanserLeastPrivilege.sql`](db/postgresql/RebalanserLeastPrivilege.sql)); groups and resources
+  ([`db/postgresql/RebalancerLeastPrivilege.sql`](db/postgresql/RebalancerLeastPrivilege.sql)); groups and resources
   are rows you insert into `rbr.resource_groups` and `rbr.resources`. From the threat model
   ([TM-0004](docs/threat-models/TM-0004-postgresql-coordination.md)):
   - use TLS with full certificate and host-name verification in the connection string;

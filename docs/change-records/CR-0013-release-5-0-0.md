@@ -51,7 +51,7 @@ PostgreSQL backend `Rebalancer.PostgreSql` (ADR-0030, US-0026, TM-0004) and Valk
   over Redis 7.0 and Valkey 8.1.11 (`DockerSupport.RedisServers`).
 - Docs: README (backends, supported servers, PostgreSQL operating guidance), architecture overview, release notes,
   traceability matrix; US-0025, US-0026.
-- ADR-0032: `db/sqlserver/RebalanserTables.sql` without `FK_Clients_ResourceGroups`; the SQL Server tests run on the
+- ADR-0032: `db/sqlserver/RebalancerTables.sql` without `FK_Clients_ResourceGroups`; the SQL Server tests run on the
   shipped scripts (`SchemaSetup.ApplyRbrSchemaAsync`), and the test-only `rbr-schema.sql` is deleted. Reproduced
   first: on the shipped scripts with the key, both `SqlServerAbortedStateTests` failed with a foreign-key violation.
 - `ProcessingMonitor` (US-0024): resume windows on every resource a node resumes with (see Preconditions).
@@ -82,7 +82,7 @@ minor version must not break them.
 | Services / components | SQL Server and Redis clients run the same code from one assembly; the store calls, their order and their timing are unchanged.                                                                                                                             |
 | Data / schema         | Redis: none. SQL Server: the shipped script drops `FK_Clients_ResourceGroups` (ADR-0032); existing databases keep it until an operator drops it (optional). New for PostgreSQL: the `rbr` schema from `db/postgresql/`.                                    |
 | Security              | SQL Server and Redis: none (TM-0002, TM-0003 unchanged; Valkey behaves as Redis in the ACL test). New backend: TM-0004 (Accepted); new third-party dependency Npgsql 10.0.3.                                                                               |
-| Operations            | Until the rollback rehearsal below confirms mixed versions, upgrade all nodes of a group at once. PostgreSQL: TLS, replication and pool guidance (README).                                                                                                 |
+| Operations            | Nodes can be upgraded one at a time: 4.3.2 and 5.0.0 nodes share a group (rollback rehearsal below). PostgreSQL: TLS, replication and pool guidance (README).                                                                                              |
 
 ## Preconditions
 
@@ -108,8 +108,27 @@ minor version must not break them.
 - [x] Dependency vulnerability scan (`dotnet list Rebalancer.slnx package --vulnerable --include-transitive`), as since
   CR-0009: no vulnerable package in any of the 12 projects (2026-11-01, nuget.org). No third-party dependency changed.
 - [x] Packages: the packed `Rebalancer.SqlServer` and `Rebalancer.Redis` nuspecs list `Rebalancer.LeaseCoordination`.
-- [ ] Rollback procedure validated: 5.0.0 → 4.3.2, and whether one group can run 4.3.2 and 5.0.0 nodes together (the
-  protocol and data are unchanged, so it is expected; not yet shown). To run before approval, as for CR-0012.
+- [x] Rollback procedure validated: 5.0.0 → 4.3.2 (2026-11-01, before the release). 5.0.0 (`b253454`) and 4.3.2 (the
+  release commit `41f3c04`, not `main`, whose `src/` changed after the release) built side by side and run as single
+  clients against dedicated containers (SQL Server 2022-CU14 with the 5.0 `db/sqlserver/` scripts, `redis:7.0`); one
+  resource `r1`, lease expiry 5 s, heartbeat 1 s. Each scenario ran 5.0.0 → 4.3.2 → 5.0.0 on one group; times are from
+  each node's start to its assignment of `r1`. No errors or aborts were logged. The harness was a throwaway console app
+  outside the repository.
+  - **SQL Server:** clean stop: 6.27 s, 4.3.2 6.29 s, 5.0.0 again 6.28 s. Killed (`SIGKILL`) while holding `r1`: 6.27 s,
+    4.3.2 10.34 s (after the lease expired), 5.0.0 again 10.31 s.
+  - **Redis:** clean stop: 6.13 s, 4.3.2 6.13 s, 5.0.0 again 6.12 s. Killed: 6.12 s, 4.3.2 10.14 s, 5.0.0 again
+    10.14 s.
+  - **Mixed group** (one 4.3.2 and one 5.0.0 node together, `r1` and `r2`, 45 s): on both backends each node took one
+    resource (SQL Server 6.28 s / 7.28 s, Redis 6.13 s / 6.11 s), kept it with no overlap, and stopped cleanly reporting
+    `Stopped`.
+
+  After the runs, only the two killed nodes' records were left (group `kill`), for its next coordinator to expire
+  (ADR-0014); every clean stop deleted its record and every lease was released. Result: the rollback plan works as
+  written, no data needs to move back, and a group can run 4.3.2 and 5.0.0 nodes together, so nodes can be upgraded
+  one at a time. PostgreSQL and Valkey: N/A (not in 4.3.2). ZooKeeper: not rehearsed (code unchanged apart from the
+  target framework; see its N/A above). Found alongside: SQL Server warns that `QueuesPK` on `RBR.Resources` can exceed
+  the 900-byte key limit (`ResourceName VARCHAR(1000)`); pre-existing, hidden by the deleted test-only schema
+  (`VARCHAR(255)`); a follow-up.
 
 ## Implementation plan
 

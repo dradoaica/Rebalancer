@@ -6,7 +6,7 @@ namespace Rebalancer.IntegrationTests.PostgreSql;
 
 /// <summary>
 ///     Requires Docker. A database installed from the shipped <c>db/postgresql/</c> scripts works, and
-///     <c>RebalanserLeastPrivilege.sql</c> grants everything a node needs (US-0026 criterion 3, TM-0004): two nodes
+///     <c>RebalancerLeastPrivilege.sql</c> grants everything a node needs (US-0026 criterion 3, TM-0004): two nodes
 ///     whose login is only a member of that role coordinate, survive a paused follower, and delete their records on a
 ///     clean stop (ADR-0014).
 /// </summary>
@@ -17,7 +17,7 @@ public sealed class PostgreSqlLeastPrivilegeTests
     {
         await using var pg = await PostgreSqlSchema.StartAsync();
         var adminConnectionString = pg.GetConnectionString();
-        await PostgreSqlSchema.ApplyScriptAsync(adminConnectionString, "RebalanserLeastPrivilege.sql");
+        await PostgreSqlSchema.ApplyScriptAsync(adminConnectionString, "RebalancerLeastPrivilege.sql");
         var group = "it-pg-role-" + Guid.NewGuid().ToString("N");
         await PostgreSqlSchema.SeedResourceGroupAsync(
             adminConnectionString,
