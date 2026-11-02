@@ -39,6 +39,16 @@ jobs:
             dotnet restore "$csproj"
           done < <(find src -name '*.csproj' -print0)
 
+      # ADR-0035: nothing is published without passing unit tests and a dependency scan
+      - name: Unit Tests
+        run: dotnet test tests/Rebalancer.UnitTests -c Release
+
+      - name: Dependency Scan
+        run: |
+          set -euo pipefail
+          dotnet restore Rebalancer.slnx
+          ./scripts/check-vulnerable-packages.sh Rebalancer.slnx
+
       - name: Pack NuGet Packages
         run: |
           set -euo pipefail

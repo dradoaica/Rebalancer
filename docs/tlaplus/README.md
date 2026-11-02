@@ -71,17 +71,22 @@ Abstractions:
   `LeaseGuard` (the lease row names the coordinator and its token, no expiry clause) on the tick, the stop and the
   grant; the cached view keyed by the token; a restart resets the record; a client waiting under `StopActivity` is
   assigned again. A custom `IClientService` keeps the earlier behavior and is not modelled.
+- [ADR-0036](../adrs/0036-redis-coordinator-writes-client-records-one-at-a-time.md) (5.2.0): Redis writes a grant's
+  records one at a time, so a grant that fails leaves any subset of the fenced records written (`GrantedRecordsOn`),
+  always including the coordinator's own record, which the code writes first; with the lease lost before the first
+  write, none. A grant can fail with every check passed (attempts exhausted, a lost reply); that counts as one of
+  `MaxFailures`. SQL Server and PostgreSQL write all or none, one of these behaviours.
 
 | Config                            | Checks                                                                        | Result                                                    |
 |-----------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------|
-| `MCSafety.cfg`                    | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                        | holds (12,956,398 distinct states)                        |
+| `MCSafety.cfg`                    | `NoDoubleAccess`, `OneLeaseHolder` without long stalls                        | holds (46,407,201 distinct states)                        |
 | `MCLiveness.cfg`                  | `EventuallyConverged` without store errors                                    | holds (36,322 distinct states)                            |
-| `MCRecoveredFollower.cfg`         | `EventuallyConverged` with one store error                                    | holds (15,727); violated before PRB-0005's fix, finding 1 |
-| `MCLongPauses.cfg`                | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds) | holds (5,437,209); violated before ADR-0026, finding 2    |
-| `MCLongPausesPermanent.cfg`       | `EventuallyNoDoubleAccess` with two long stalls                               | holds (5,437,209); violated before ADR-0026, finding 3    |
-| `MCAssignmentDelay.cfg`           | `NoDoubleAccess`, `OneLeaseHolder` with `AssignmentDelay` (PRB-0007)          | holds (29,599,880 distinct states)                        |
-| `MCAssignmentDelayLongPauses.cfg` | `NoDoubleAccessOutsideResumeWindow`, `AssignmentDelay`, long stalls           | holds (15,278,706 distinct states)                        |
-| `MCAssignmentDelayLiveness.cfg`   | `EventuallyConverged`, `AssignmentDelay`, one store error                     | holds (33,835 distinct states)                            |
+| `MCRecoveredFollower.cfg`         | `EventuallyConverged` with one store error                                    | holds (39,213); violated before PRB-0005's fix, finding 1 |
+| `MCLongPauses.cfg`                | `NoDoubleAccessOutsideResumeWindow` with long stalls (`OneLeaseHolder` holds) | holds (6,911,745); violated before ADR-0026, finding 2    |
+| `MCLongPausesPermanent.cfg`       | `EventuallyNoDoubleAccess` with two long stalls                               | holds (6,911,745); violated before ADR-0026, finding 3    |
+| `MCAssignmentDelay.cfg`           | `NoDoubleAccess`, `OneLeaseHolder` with `AssignmentDelay` (PRB-0007)          | holds (122,602,237 distinct states)                       |
+| `MCAssignmentDelayLongPauses.cfg` | `NoDoubleAccessOutsideResumeWindow`, `AssignmentDelay`, long stalls           | holds (19,241,357 distinct states)                        |
+| `MCAssignmentDelayLiveness.cfg`   | `EventuallyConverged`, `AssignmentDelay`, one store error                     | holds (87,781 distinct states)                            |
 
 The first five configs set `AssignmentDelay = FALSE` (added 2026-10-24 for PRB-0007); `pending` then stays empty.
 All eight were run on 2026-10-24 (same TLC build, 16 workers): the five keep exactly the state counts above, and the
@@ -90,6 +95,16 @@ a due grant without checking that its record still grants it violates `NoDoubleA
 `MCAssignmentDelay.cfg` (a 15-state trace).
 
 A mutation check confirms that `NoDoubleAccess` has teeth: granting without waiting at the barrier violates it.
+
+The counts above are from 2026-11-02, after ADR-0036 (TLC v1.8.0, `tla2tools.jar` SHA-256
+`8f719a6126a0922cf5a243f6c0ce73193b5c2e0a4e4cd29288ecc57a547f629d`, 16 workers); all eight hold. The model as it was
+before ADR-0036 still gives 12,956,398 states under `MCSafety.cfg`, so the larger counts come from the partial grants.
+The order of the writes matters: with a failed grant allowed to leave the coordinator's own record unwritten,
+`NoDoubleAccess` is violated under `MCSafety.cfg` (and `NoDoubleAccessOutsideResumeWindow` under `MCLongPauses.cfg`).
+In the 12-state trace a coordinator that already granted itself everything rebalances, writes a follower's grant but
+not its own, steps down (recording only `Waiting`), and as a follower runs its earlier grant again while the follower
+runs its share. `Coordinator.cs` writes its own request first, and
+`CoordinatorDemotionTests.AGrant_WritesTheCoordinatorsOwnRecordFirst` keeps it so.
 
 ### Findings
 

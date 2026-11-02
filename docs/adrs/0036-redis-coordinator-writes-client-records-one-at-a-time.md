@@ -87,6 +87,18 @@ Implementation outline (to be confirmed in review):
   3 of 6 before), and the full Redis suite on both servers.
 * PRB-0009's corrective actions reference this record.
 
+## Note (2026-11-02, CR-0015)
+
+Property 3 above holds only if the coordinator's own record is written first. Checking the changed model with TLC
+showed why: a coordinator that already granted itself resources rebalances, writes a follower's grant but not its own,
+and steps down. A step-down records only `Waiting`, so its own record keeps the earlier grant; as a follower it runs
+those resources again while the follower runs its new share (`NoDoubleAccess` violated, a 12-state trace). The
+coordinator's request is first in the grant (`Coordinator.cs`), and the Redis service writes in that order, so a
+grant that fails part-way has always rewritten the coordinator's record; with that order modelled, every
+configuration holds (`docs/tlaplus/README.md`). The order is commented as required and pinned by
+`CoordinatorDemotionTests.AGrant_WritesTheCoordinatorsOwnRecordFirst`. Added at dradoaica's request as an exception
+to the record's immutability; the decision above is unchanged.
+
 ## Sources
 
 - `docs/adrs/0017-redis-lease-timing-and-atomic-updates.md` (Decision Outcome: compare-and-set transactions)

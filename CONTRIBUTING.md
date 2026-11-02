@@ -43,6 +43,11 @@ The integration tests run at most 3 at a time (`tests/Rebalancer.IntegrationTest
 its own containers; with more memory for Docker, raise it with `-- xUnit.MaxParallelThreads=N`. The network-fault
 tests run alone after the others: they check that a degraded group converges in time, which a loaded machine can miss.
 
+CI ([ADR-0035](docs/adrs/0035-tests-and-dependency-scan-in-ci.md)): `.github/workflows/tests.yml` runs the build, the
+unit tests, the dependency scan (`scripts/check-vulnerable-packages.sh`, which fails on High or Critical) and the
+integration tests without ZooKeeper on every pull request and push to `main`; the release workflow runs the unit tests
+and the scan before it publishes. The ZooKeeper suites stay manual.
+
 The ZooKeeper suites also run the randomised tests, about 46 hours in total; cap each with
 `REBALANCER_RANDOMISED_TEST_MAX_MINUTES` (see the README, "Building and testing").
 

@@ -301,6 +301,56 @@ public sealed class RedisClientRecordTests
         Assert.Empty(reset.AssignedResources);
     }
 
+    // ADR-0036 (PRB-0009): the coordinator writes the client records one at a time, so a grant that fails on one
+    // record keeps the records written before it; each write is still fenced and guarded by the lease
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task AGrantThatFailsOnOneRecord_KeepsTheRecordsWrittenBeforeIt(string image)
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(image).Build();
+        await redis.StartAsync();
+        using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var db = mux.GetDatabase();
+        const string group = "orders";
+        var coordinator = Guid.NewGuid();
+        SeedLease(db, group, coordinator, 3);
+        var service = new ClientService(db);
+        IFencedClientService fenced = service;
+        Guid first = Guid.NewGuid(), fencedOut = Guid.NewGuid(), last = Guid.NewGuid();
+        foreach (var id in new[] { first, fencedOut, last, })
+        {
+            await service.CreateClientAsync(group, id);
+        }
+
+        // a newer coordinator already wrote this record
+        var key = RedisHash.GroupKey("Clients", group);
+        var newer = RedisHash.Decode<Client>(await db.HashGetAsync(key, RedisHash.Encode(fencedOut)));
+        newer.FencingToken = 4;
+        await db.HashSetAsync(key, RedisHash.Encode(fencedOut), RedisHash.Encode(newer));
+
+        Assert.Equal(
+            ModifyClientResult.FencingTokenViolation,
+            await fenced.StartActivityAsync(
+                group,
+                coordinator,
+                3,
+                [
+                    new ClientStartRequest { ClientId = first, AssignedResources = ["r1",], },
+                    new ClientStartRequest { ClientId = fencedOut, AssignedResources = ["r2",], },
+                    new ClientStartRequest { ClientId = last, AssignedResources = ["r3",], },
+                ]
+            )
+        );
+
+        var written = await service.KeepAliveAsync(first);
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, written.CoordinatorStatus);
+        Assert.Equal(["r1",], written.AssignedResources);
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(fencedOut)).CoordinatorStatus);
+        Assert.Equal(4, (await service.KeepAliveAsync(fencedOut)).FencingToken);
+        Assert.Equal(CoordinatorStatus.StopActivity, (await service.KeepAliveAsync(last)).CoordinatorStatus);
+    }
+
     private static void SeedLease(IDatabase db, string group, Guid coordinator, int fencingToken) =>
         db.HashSet(
             RedisHash.LeaseKey(group),

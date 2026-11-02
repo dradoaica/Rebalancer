@@ -214,7 +214,7 @@ CoordinatorTick(n) ==
   /\ UNCHANGED << lease, resources, myToken, known, paused, envCtr, failCtr >>
 
 (* The stop barrier: once every live client has confirmed (Waiting), grant the resources read
-   at the start to the live clients and the coordinator in one fenced transaction, then mark
+   at the start to the live clients and the coordinator, fenced and guarded, then mark
    itself Active and start its own handlers (with AssignmentDelay: stay Waiting, start later) *)
 CoordinatorGrant(n) ==
   LET clients == LiveClients(n)
@@ -226,19 +226,37 @@ CoordinatorGrant(n) ==
      /\ \A m \in clients : rec[m].status = "waiting"
      /\ rb' = [rb EXCEPT ![n] = "idle"]
      \* ADR-0026: the grant carries the lease guard
-     /\ IF Fenced(C, t) /\ LeaseGuard(n, t)
-          THEN /\ IF AssignmentDelay
-                    THEN /\ rec' = GrantedRecords(alloc, t)
-                         /\ pending' = [pending EXCEPT ![n] = Pending(alloc[n], t)]
-                         /\ UNCHANGED access
-                    ELSE /\ rec' = [GrantedRecords(alloc, t) EXCEPT ![n].status = "active"]
-                         /\ access' = [access EXCEPT ![n] = alloc[n]]
-                         /\ UNCHANGED pending
-               /\ known' = [known EXCEPT ![n] = [clients |-> C, res |-> rbRes[n], token |-> t]]
-               /\ UNCHANGED role
-          ELSE /\ FencingViolation(n)
-               /\ UNCHANGED << rec, access, known, pending >>
-  /\ UNCHANGED << lease, resources, myToken, rbRes, rbToken, stoppedFlag, paused, lagging, envCtr, failCtr >>
+     /\ \/ /\ Fenced(C, t) /\ LeaseGuard(n, t)
+           /\ IF AssignmentDelay
+                THEN /\ rec' = GrantedRecords(alloc, t)
+                     /\ pending' = [pending EXCEPT ![n] = Pending(alloc[n], t)]
+                     /\ UNCHANGED access
+                ELSE /\ rec' = [GrantedRecords(alloc, t) EXCEPT ![n].status = "active"]
+                     /\ access' = [access EXCEPT ![n] = alloc[n]]
+                     /\ UNCHANGED pending
+           /\ known' = [known EXCEPT ![n] = [clients |-> C, res |-> rbRes[n], token |-> t]]
+           /\ UNCHANGED role
+           /\ UNCHANGED failCtr
+        \* the grant fails and the coordinator steps down: fenced out or the lease lost (as before),
+        \* or, with every check passed, a store failure (attempts exhausted, a lost reply), which
+        \* counts as one of MaxFailures. ADR-0036: Redis writes one record at a time, each fenced
+        \* and guarded, so a failed grant leaves any subset of the fenced records written; with the
+        \* lease lost before the first write, none. The coordinator's own record is written first
+        \* (Coordinator.cs adds its own request first), so a non-empty subset contains it: its record
+        \* never keeps an earlier grant once a follower's record has a new one. SQL Server and
+        \* PostgreSQL write all or none, which is one of these behaviours
+        \/ /\ \/ /\ ~(Fenced(C, t) /\ LeaseGuard(n, t))
+                 /\ UNCHANGED failCtr
+              \/ /\ Fenced(C, t) /\ LeaseGuard(n, t)
+                 /\ failCtr < MaxFailures
+                 /\ failCtr' = failCtr + 1
+           /\ FencingViolation(n)
+           /\ \E W \in SUBSET { m \in DOMAIN alloc : rec[m].present /\ rec[m].token <= t } :
+                /\ LeaseGuard(n, t) \/ W = {}
+                /\ W = {} \/ n \in W
+                /\ rec' = GrantedRecordsOn(W, alloc, t)
+           /\ UNCHANGED << access, known, pending >>
+  /\ UNCHANGED << lease, resources, myToken, rbRes, rbToken, stoppedFlag, paused, lagging, envCtr >>
 
 (* Every 12th check of the barrier, StopActivity is recorded again for clients not yet Waiting *)
 CoordinatorResendStop(n) ==

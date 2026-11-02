@@ -86,6 +86,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 5.2.0](docs/release-notes/5.2.0.md) — a Redis group settles more reliably over slow links,
+  types deprecated for 6.0 (warning RBR0034), `ClientNotFoundException` public, tests and a scan before every release
 - [Release notes 5.1.0](docs/release-notes/5.1.0.md) — fixes from the 5.0 review: fencing tokens in SQL Server /
   PostgreSQL keep-alives, the SQL Server lease time after a lock wait, `RecreateClientAsync` on SQL Server / PostgreSQL
 - [Release notes 5.0.0](docs/release-notes/5.0.0.md) and [migration guide](docs/release-notes/migrating-to-5.0.md) —

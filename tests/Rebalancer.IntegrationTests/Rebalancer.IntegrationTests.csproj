@@ -6,6 +6,8 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>default</LangVersion>
+        <!-- the tests use the types deprecated for 6.0 (ADR-0034) through InternalsVisibleTo -->
+        <NoWarn>$(NoWarn);RBR0034</NoWarn>
         <RootNamespace>Rebalancer.IntegrationTests</RootNamespace>
     </PropertyGroup>
 

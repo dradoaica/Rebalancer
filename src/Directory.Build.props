@@ -2,7 +2,9 @@
 
     <!-- One version for every package in src/ (they are released together) -->
     <PropertyGroup>
-        <Version>5.1.0</Version>
+        <Version>5.2.0</Version>
+        <!-- the libraries' own use of the types deprecated for 6.0 (ADR-0034); hosts still see the warning -->
+        <NoWarn>$(NoWarn);RBR0034</NoWarn>
     </PropertyGroup>
 
 </Project>

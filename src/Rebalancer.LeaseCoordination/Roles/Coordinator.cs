@@ -404,6 +404,8 @@ internal class Coordinator
                 coordinatorRequest.AssignedResources.Add(resourcesToAssign.Dequeue());
             }
 
+            // first, and it must stay first: Redis writes the records one at a time and keeps those written before a
+            // failure (ADR-0036), so this node's record must not keep its earlier grant while a follower's has a new one
             clientStartRequests.Add(coordinatorRequest);
             remainingClients--;
 

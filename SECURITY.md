@@ -11,8 +11,8 @@ against an older one.
 
 | Version | Supported                                    |
 |---------|----------------------------------------------|
-| 5.1.x   | Yes                                          |
-| < 5.1   | No – upgrade; see the migration guides below |
+| 5.2.x   | Yes                                          |
+| < 5.2   | No – upgrade; see the migration guides below |
 
 4.3.x gets no further fixes. 5.0 and later need .NET 10 (ADR-0033); hosts on .NET 8 or .NET 9 lose Microsoft's own
 security fixes on 10 November 2026, when both reach end of support, so move them to .NET 10 together with Rebalancer.

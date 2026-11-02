@@ -27,6 +27,10 @@ public interface IClientService
     ///     Stamps the client's keep-alive with the store's clock and returns its record, including its granted resources
     ///     and the fencing token of that grant.
     /// </summary>
+    /// <exception cref="ClientNotFoundException">
+    ///     The record does not exist (e.g. it expired, ADR-0014); the coordinator or follower registers the client again
+    ///     with <see cref="CreateClientAsync" />.
+    /// </exception>
     Task<Client> KeepAliveAsync(Guid clientId);
 
     /// <summary>Sets the client's own status.</summary>

@@ -76,11 +76,21 @@ PostgreSQL take row locks, so a writer waits instead of losing; that is why only
 The test's proxy, the client library and load are not the cause: the failure reproduces alone, on both servers, and
 the trace shows the conflicts directly.
 
+**Wider than the coordinator's write (found with ADR-0036, 2026-11-02).** With one compare-and-set per record, the seed
+still failed 2 times in 26. A trace of the new writes (151 failed attempts over 3 runs, none reaching the 10th) shows
+attempts failing with neither the record nor the lease changed. StackExchange.Redis implements `Condition.HashEqual`
+with `WATCH`, which covers the whole key, so any write to the group's clients hash or lease hash aborts the
+transaction, whichever field it touches. Keep-alives (`KeepAliveAsync`) and lease renewals use the same
+compare-and-set with 10 attempts on the same keys, so every node's keep-alive also competes with every other's; in
+the second traced failure no client write ran out of attempts, so one of those loops is the likely cause (unverified).
+
 ### Contributing factors
 
 - The failure was attributed to load each time it appeared (US-0025, CR-0013), so it was not investigated.
 - The compare-and-set covers whole client records, including `LastKeepAlive`, which the coordinator does not need
   unchanged: only the record's existence, its fencing token and its status matter to the write.
+- All of a group's client records share one hash, and `WATCH` works per key, so the writes of different nodes
+  conflict although they touch different fields.
 
 ## Corrective actions
 
@@ -88,7 +98,9 @@ the trace shows the conflicts directly.
 |------------------------------------------------------------------------------------------------|-----------|--------|
 | Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Done   |
 | Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                     | dradoaica | Done   |
-| Fix the cause, with a regression test that fails before the fix                                |           | Open   |
+| Partial fix: ADR-0036 in 5.2.0 (CR-0015); failures with the seed 3/6 before, 2/26 after        | dradoaica | Done   |
+| Full fix: ADR-0037 (Proposed), writes that do not watch the whole hash; 6.0                    |           | Open   |
+| Regression test: the seed alone 10/10 on both servers (ADR-0036 Confirmation)                  |           | Open   |
 
 ## Preventive measures
 

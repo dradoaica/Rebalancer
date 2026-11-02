@@ -73,6 +73,25 @@ public sealed class CoordinatorDemotionTests
         Assert.Equal(ClientStatus.Waiting, clients.Get(self).ClientStatus);
     }
 
+    // ADR-0036: Redis writes a grant's records one at a time, in the order of the requests, and a grant that fails
+    // part-way keeps the records written before the failure. The coordinator's own request comes first, so its record
+    // never keeps an earlier grant once a follower's record has a new one (docs/tlaplus: NoDoubleAccess is violated
+    // with any other order)
+    [Fact]
+    public async Task AGrant_WritesTheCoordinatorsOwnRecordFirst()
+    {
+        var clients = new RedisClients();
+        var self = Guid.NewGuid();
+        var follower = Guid.NewGuid();
+        await clients.CreateClientAsync(Group, follower);
+        await clients.CreateClientAsync(Group, self);
+
+        await new Coordinator("redis", new NullRebalancerLogger(), new RedisResources(), clients, new ResourceGroupStore())
+            .ExecuteCoordinatorRoleAsync(self, RedisEvent(1), RecordingActions().Actions, CancellationToken.None);
+
+        Assert.Equal([self, follower,], clients.LastGrant.Select(x => x.ClientId));
+    }
+
     private static (OnChangeActions Actions, List<string> Events) RecordingActions()
     {
         var events = new List<string>();
@@ -114,6 +133,8 @@ public sealed class CoordinatorDemotionTests
     private sealed class RedisClients : IClientService
     {
         private readonly Dictionary<Guid, Client> clients = new();
+
+        public List<ClientStartRequest> LastGrant { get; private set; } = [];
 
         public Task CreateClientAsync(string resourceGroup, Guid clientId)
         {
@@ -165,6 +186,7 @@ public sealed class CoordinatorDemotionTests
 
         public Task<ModifyClientResult> StartActivityAsync(int fencingToken, List<ClientStartRequest> requests)
         {
+            LastGrant = requests.ToList();
             foreach (var request in requests)
             {
                 var client = clients[request.ClientId];

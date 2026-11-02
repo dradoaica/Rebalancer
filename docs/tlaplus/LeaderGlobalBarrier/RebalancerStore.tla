@@ -99,10 +99,14 @@ StoppedRecords(C, t) ==
                  THEN [rec[m] EXCEPT !.cmd = "stop", !.res = {}, !.token = t]
                  ELSE rec[m]]
 
-(* StartActivityAsync: all records or none (a transaction); the caller checks Fenced first *)
-GrantedRecords(alloc, t) ==
-  [m \in N |-> IF m \in DOMAIN alloc
+(* StartActivityAsync on the records W: SQL Server and PostgreSQL write all of them in one
+   transaction (W = DOMAIN alloc); Redis writes them one at a time (ADR-0036), so a grant that
+   fails part-way leaves any subset written. The caller checks Fenced and the lease guard first *)
+GrantedRecordsOn(W, alloc, t) ==
+  [m \in N |-> IF m \in W
                  THEN [rec[m] EXCEPT !.cmd = "granted", !.res = alloc[m], !.token = t]
                  ELSE rec[m]]
+
+GrantedRecords(alloc, t) == GrantedRecordsOn(DOMAIN alloc, alloc, t)
 
 =============================================================================

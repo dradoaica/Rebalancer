@@ -233,9 +233,11 @@ internal class ClientService : IClientService, IFencedClientService
         );
 
     /// <summary>
-    ///     Applies <paramref name="modify" /> to all clients atomically: either every client exists and has not seen a
-    ///     newer fencing token (and, given <paramref name="resourceGroup" />, the lease still names
-    ///     <paramref name="coordinatorClientId" /> with that token) and all are written, or nothing is written.
+    ///     Applies <paramref name="modify" /> to the clients one at a time, in the given order (ADR-0036; the coordinator
+    ///     puts its own record first): each record is written only if it
+    ///     exists and has not seen a newer fencing token (and, given <paramref name="resourceGroup" />, the lease still
+    ///     names <paramref name="coordinatorClientId" /> with that token). The first record that fails stops the loop;
+    ///     the records written before it stay written.
     /// </summary>
     private async Task<ModifyClientResult> ModifyClientsAsync(
         string resourceGroup,
@@ -245,22 +247,39 @@ internal class ClientService : IClientService, IFencedClientService
         Action<Client> modify
     )
     {
-        if (!clientIds.Any())
+        foreach (var clientId in clientIds)
         {
-            return ModifyClientResult.Ok;
+            var result = await ModifyClientAsync(resourceGroup, coordinatorClientId, fencingToken, clientId, modify);
+            if (result != ModifyClientResult.Ok)
+            {
+                return result;
+            }
         }
 
-        var fields = clientIds.Select(x => RedisHash.Encode(x)).ToArray();
+        return ModifyClientResult.Ok;
+    }
+
+    // one record, compare-and-set (ADR-0017): conditioned on this record and the lease only, so another node's
+    // keep-alive cannot make the write fail (PRB-0009)
+    private async Task<ModifyClientResult> ModifyClientAsync(
+        string resourceGroup,
+        Guid coordinatorClientId,
+        int fencingToken,
+        Guid clientId,
+        Action<Client> modify
+    )
+    {
+        var field = RedisHash.Encode(clientId);
         for (var attempt = 0; attempt < MaxCompareAndSetAttempts; attempt++)
         {
-            var current = await cache.HashGetAsync(ClientsKey, fields);
-            if (current.Any(x => x.IsNull))
+            var current = await cache.HashGetAsync(ClientsKey, field);
+            if (current.IsNull)
             {
                 return ModifyClientResult.FencingTokenViolation;
             }
 
-            var clients = current.Select(RedisHash.Decode<Client>).ToList();
-            if (clients.Any(x => x.FencingToken > fencingToken))
+            var client = RedisHash.Decode<Client>(current);
+            if (client.FencingToken > fencingToken)
             {
                 return ModifyClientResult.FencingTokenViolation;
             }
@@ -280,14 +299,10 @@ internal class ClientService : IClientService, IFencedClientService
                 );
             }
 
-            for (var i = 0; i < fields.Length; i++)
-            {
-                transaction.AddCondition(Condition.HashEqual(ClientsKey, fields[i], current[i]));
-                modify(clients[i]);
-                clients[i].FencingToken = fencingToken;
-                _ = transaction.HashSetAsync(ClientsKey, fields[i], RedisHash.Encode(clients[i]));
-            }
-
+            transaction.AddCondition(Condition.HashEqual(ClientsKey, field, current));
+            modify(client);
+            client.FencingToken = fencingToken;
+            _ = transaction.HashSetAsync(ClientsKey, field, RedisHash.Encode(client));
             if (await transaction.ExecuteAsync())
             {
                 return ModifyClientResult.Ok;
