@@ -169,6 +169,10 @@ Release notes `docs/release-notes/5.2.0.md`.
     out of memory (ADR-0035).
   - PRB-0009's full fix: ADR-0037 (Accepted), with a TM-0003 revision first, in 6.0.0.
   - 6.0.0 (CR-0016): ADR-0034's 6.0 step (the eight types internal) and a migration guide entry.
+- **Follow-up done (appended 2026-11-02):** the first "Tests" run on the release push succeeded, 18:57:02–19:25:18 UTC
+  (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334): every step, and the integration tests without
+  ZooKeeper 113/113 in 26.4 min with `MaxParallelThreads=3`. The hosted runner's memory suffices for that
+  parallelism (ADR-0035's open point); `tests.yml` stays as it is.
 
 ## Sources
 

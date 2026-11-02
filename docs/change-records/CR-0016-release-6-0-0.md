@@ -1,9 +1,9 @@
 ---
 id: CR-0016
-status: Draft
+status: Approved
 date: 2026-11-02
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -91,10 +91,11 @@ are removed, and Redis hosts with a per-group ACL user must change their ACL bef
 - [ ] Mixed group, 5.2.0 and 6.0.0 Redis nodes, assigns and stops correctly (ADR-0037 Confirmation): (pending).
 - [ ] Integration tests, all but ZooKeeper: (pending).
 - [ ] Dependency scan: (pending).
-- [ ] TLC: proposed **N/A**: the model already treats each record write as atomic and fenced (ADR-0036); scripts keep
+- [x] TLC: **N/A**, accepted by dradoaica (in session 2026-11-02): the model already treats each record write as atomic and fenced (ADR-0036); scripts keep
   that, so the modelled behaviour does not change.
-- [ ] ZooKeeper integration tests: proposed **N/A**: no ZooKeeper code changed.
-- [ ] Rollback rehearsal: covered by the mixed-group rehearsal (6.0 → 5.2 is the same group with a 5.2 node).
+- [x] ZooKeeper integration tests: **N/A**, accepted by dradoaica (in session 2026-11-02): no ZooKeeper code changed.
+- [x] Rollback rehearsal: covered by the mixed-group rehearsal (6.0 → 5.2 is the same group with a 5.2 node);
+  accepted by dradoaica (in session 2026-11-02).
 
 ## Implementation plan
 
@@ -119,8 +120,11 @@ Release notes `docs/release-notes/6.0.0.md` and the migration guide `docs/releas
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-11-02 (approved in session, before the release) |
+| Release / CAB (or org) | dradoaica | 2026-11-02 (approved in session, before the release) |
+
+Approved while the seed replays, the mixed-group rehearsal, the full integration run and the scan were still running;
+the approval covers them passing. A failure among them is reported to dradoaica before the merge, not released.
 
 ## Post-implementation
 

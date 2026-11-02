@@ -67,7 +67,7 @@ test project is added.
 | [CR-0013](change-records/CR-0013-release-5-0-0.md)                              | **Implemented** (5.0.0, `86de520`); [release notes](release-notes/5.0.0.md), [migration guide](release-notes/migrating-to-5.0.md) | ADR-0029..0033, US-0025, US-0026, TM-0004                                                                       |
 | [CR-0014](change-records/CR-0014-release-5-1-0.md)                              | **Implemented** (5.1.0, `35cce2c`); [release notes](release-notes/5.1.0.md)                                                       | Fixes from the 5.0 cross-check; PRB-0008 (documented limit)                                                     |
 | [CR-0015](change-records/CR-0015-release-5-2-0.md)                              | **Implemented** (5.2.0, `ecb4270`); [release notes](release-notes/5.2.0.md)                                                       | ADR-0034 (5.x step), ADR-0035, ADR-0036, PRB-0009                                                               |
-| [CR-0016](change-records/CR-0016-release-6-0-0.md)                              | **Draft** (6.0.0); [release notes](release-notes/6.0.0.md), [migration guide](release-notes/migrating-to-6.0.md)                  | ADR-0034 (6.0 step), ADR-0037, TM-0003 rev 7, PRB-0009                                                          |
+| [CR-0016](change-records/CR-0016-release-6-0-0.md)                              | **Approved** (6.0.0); [release notes](release-notes/6.0.0.md), [migration guide](release-notes/migrating-to-6.0.md)               | ADR-0034 (6.0 step), ADR-0037, TM-0003 rev 7, PRB-0009                                                          |
 
 ### Problem records
 
