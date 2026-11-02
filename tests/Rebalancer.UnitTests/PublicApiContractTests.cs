@@ -7,13 +7,13 @@ using Xunit;
 namespace Rebalancer.UnitTests;
 
 /// <summary>
-///     Contract of 5.2 (ADR-0034): the public types that no public signature uses are deprecated with diagnostic
-///     RBR0034, to become internal in 6.0; <see cref="ClientNotFoundException" /> is public, so a custom
-///     <see cref="IClientService" /> can report a missing record and the client registers again.
+///     Contract of 6.0 (ADR-0034): the types that no public signature used, deprecated in 5.2 (warning RBR0034), are
+///     internal; <see cref="ClientNotFoundException" /> stays public, so a custom <see cref="IClientService" /> can
+///     report a missing record and the client registers again.
 /// </summary>
-public sealed class PublicApiDeprecationTests
+public sealed class PublicApiContractTests
 {
-    private static readonly Type[] Deprecated =
+    private static readonly Type[] RemovedFromPublicApi =
     [
         typeof(IClientService).Assembly.GetType("Rebalancer.LeaseCoordination.Roles.ClientEvent")!,
         typeof(IClientService).Assembly.GetType("Rebalancer.LeaseCoordination.Roles.CoordinatorToken")!,
@@ -25,18 +25,14 @@ public sealed class PublicApiDeprecationTests
         typeof(SqlServerProvider).Assembly.GetType("Rebalancer.SqlServer.Connections.ConnectionHelper")!,
     ];
 
-    public static TheoryData<Type> DeprecatedTypes => new(Deprecated);
+    public static TheoryData<Type> RemovedFromPublicApiTypes => new(RemovedFromPublicApi);
 
     [Theory]
-    [MemberData(nameof(DeprecatedTypes))]
-    public void UnusedPublicTypes_AreDeprecatedFor60(Type type)
+    [MemberData(nameof(RemovedFromPublicApiTypes))]
+    public void TheTypesDeprecatedIn52_AreInternal(Type type)
     {
-        Assert.True(type.IsPublic);
-        var obsolete = type.GetCustomAttribute<ObsoleteAttribute>();
-        Assert.NotNull(obsolete);
-        Assert.Equal("RBR0034", obsolete.DiagnosticId);
-        Assert.False(obsolete.IsError);
-        Assert.Contains("6.0", obsolete.Message);
+        Assert.False(type.IsPublic);
+        Assert.Null(type.GetCustomAttribute<ObsoleteAttribute>());
     }
 
     [Fact]
@@ -48,15 +44,14 @@ public sealed class PublicApiDeprecationTests
     }
 
     [Fact]
-    public void NoOtherPublicTypeOfTheLeaseBasedPackages_IsDeprecated()
+    public void NoPublicTypeOfTheLeaseBasedPackages_IsDeprecated()
     {
-        var deprecated = Deprecated.ToHashSet();
-        var others = new[]
+        var deprecated = new[]
             {
                 typeof(IClientService).Assembly, typeof(RedisProvider).Assembly, typeof(SqlServerProvider).Assembly,
             }
             .SelectMany(x => x.GetExportedTypes())
-            .Where(x => !deprecated.Contains(x) && x.GetCustomAttribute<ObsoleteAttribute>() != null);
-        Assert.Empty(others);
+            .Where(x => x.GetCustomAttribute<ObsoleteAttribute>() != null);
+        Assert.Empty(deprecated);
     }
 }
