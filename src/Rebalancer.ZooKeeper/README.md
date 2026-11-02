@@ -229,9 +229,9 @@ during deployments and leader changes.
 
 Total RPCs. No of clients=C. No of resources=R. Number of stopped polling=P.
 
-- /status znode: 3 SetData () and 3 notifications
+- /status znode: 2 SetData () ("StopActivity", "ResourcesGranted"), each notifying every follower
 - /clients: 1 GetChildren ()
-- /stopped: 2xC SetData (), P GetChildren ()
+- /stopped: C create () and C Delete () (one ephemeral child per client), P GetChildren ()
 - /resources: 1 GetChildren (), 1 SetData (), C GetData ()
 
 Followers place a watch on /chroot/group/status which will allow them to receive rebalancing commands from the
@@ -250,8 +250,8 @@ The steps in a rebalancing are as follows:
    /chroot/group/stopped (excluding itself). GetChildren () /chroot/group/resources and /chroot/group/clients, then
    create key/value pairs in memory with resource-client assignments.
 7. Coordinator: SetData () with resource assignments map on /chroot/group/resources
-8. Coordinator: SetData () "ResourcesAssigned" on /chroot/group/status
-9. Followers: Notification of /chroot/group/status "ResourcesAssigned"
+8. Coordinator: SetData () "ResourcesGranted" on /chroot/group/status
+9. Followers: Notification of /chroot/group/status "ResourcesGranted"
 10. Followers: GetData () on /chroot/group/resources to get resource assignment map.
 11. Invoke OnStart event handler with resources matching its ClientId. This will execute user code to start consuming
     from/writing to these resources.
