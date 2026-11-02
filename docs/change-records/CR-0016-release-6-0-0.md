@@ -174,6 +174,9 @@ the approval covers them passing. A failure among them is reported to dradoaica 
   - Record the outcome of the "Tests" run on `a02798e`.
   - PRB-0009 closure review (the fix and its regression test are done; dradoaica).
   - NuGet descriptions for the six packages without one (predates 6.0; next release).
+- **Follow-up done (appended 2026-11-02):** the "Tests" run on `a02798e` succeeded, 21:09:51–21:32:38 UTC
+  (https://github.com/dradoaica/Rebalancer/actions/runs/41525806826): every step, and the integration tests without
+  ZooKeeper 117/117 in 21.0 min, as locally. Both validation checks are met.
 
 ## Sources
 
