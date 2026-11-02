@@ -58,6 +58,10 @@ types). No stored data, key or format change. Release notes: `docs/release-notes
   `[Obsolete]` and the `RBR0034` suppressions removed; `PublicApiContractTests`.
 - **TM-0003 revision 7** (accepted by dradoaica, 2026-11-02): scripting in the ACL user, D2 corrected, D5 (long
   scripts block the instance).
+- Wiki diagrams (Tier 4, merged from `agent/wiki-diagrams` at dradoaica's request): the six images in `wiki/images/`
+  redrawn, with SVG sources, and corrected against the code (client znodes `c_…`, a resource's `barrier` child holding
+  the owner's id, no `StartConfirmed` write); the ZooKeeper README's Global Barrier text (`ResourcesGranted`, two
+  status writes, create / delete on `/stopped`).
 - Versions 6.0.0; docs: release notes, migration guide, README, SECURITY, baseline, overview, `docs/tlaplus/README.md`,
   matrix, PRB-0009, TM-0003 (the verified command set, the data flows, corrections as implemented).
 
@@ -99,7 +103,18 @@ are removed, and Redis hosts with a per-group ACL user must change their ACL bef
     CR-0013's rehearsal, 10.1–10.3 s).
   - `ACL LOG` denials: the handshake commands as before, `script|load` (see Scope), and reads of the 2.x key
     `Dictionary:RBR:Clients` (the optional 2.x migration, skipped when not permitted, ADR-0015).
-- [ ] Integration tests, all but ZooKeeper: (pending).
+- [x] Formatting (Rider, `bec3161`): layout only, no word of a record changed; `govern_check.py --base main` reports it
+  as GOV-10 on ADR-0036, ADR-0037 and CR-0015, a formatting exception made at dradoaica's request (in session
+  2026-11-02). In code, the Lua script text is unchanged (only the C# concatenations are wrapped).
+- [x] Integration tests, all but ZooKeeper: **117/117** (2026-11-02, 21.0 min; 5.2.0: 113, plus the scripts-under-ACL and
+  JSON tests on both servers), all four network-fault tests included.
+- [x] Final tree (after the Rider formatting and warning fixes, `c674aa1`): build with no warning, unit tests 121/121,
+  Redis suite on both servers 59/59 (2026-11-02).
+- [x] Public API against 5.2.0 (every public type and member of the eight assemblies, listed by reflection from builds
+  of `ecb4270` and this branch): only the eight types of ADR-0034 are gone; nothing else added, removed or changed,
+  nothing marked `[Obsolete]`.
+- [x] Packages: `dotnet pack` of every `src/` project gives the eight packages at 6.0.0, depending on each other at 6.0.0;
+  no third-party package reference changed.
 - [x] Dependency scan (`scripts/check-vulnerable-packages.sh`): no vulnerable package (2026-11-02, nuget.org).
 - [x] TLC: **N/A**, accepted by dradoaica (in session 2026-11-02): the model already treats each record write as atomic and fenced (ADR-0036); scripts keep
   that, so the modelled behaviour does not change.
