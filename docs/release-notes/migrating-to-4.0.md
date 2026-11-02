@@ -59,6 +59,7 @@ ACL SETUSER orders-user on >secret resetchannels ~RBR:Lease:orders ~RBR:Resource
 The command set is the one verified for 3.0
 (see [migrating-to-3.0.md](migrating-to-3.0.md#redis-upgrade-all-nodes-of-a-resource-group-at-once-adr-0015)).
 For 3.x, keep `~Dictionary:RBR:ResourceGroups ~List:RBR:Resources` in the user until the group has moved.
+From 6.0 the user also needs `+eval +evalsha` ([migrating-to-6.0.md](migrating-to-6.0.md)).
 
 ## Rollback to 3.x
 

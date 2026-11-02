@@ -58,16 +58,16 @@ this repository).
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
 - Current release: **6.0.0** (Redis writes as server-side scripts, ADR-0037, PRB-0009; the types deprecated in 5.2
   internal, ADR-0034; CR-0016; [migration guide](../release-notes/migrating-to-6.0.md)).
-  Previous: **5.2.0** (Redis grants one record at a time, PRB-0009 / ADR-0036; tests and a dependency scan
-  gate every release, ADR-0035; types deprecated for 6.0, ADR-0034; CR-0015).
-  Previous: **5.1.0** (fixes from the 5.0 review: fencing token in SQL Server / PostgreSQL keep-alives, the
-  SQL Server lease time after the lock wait, the PostgreSQL stall bound when assigning, `RecreateClientAsync`; CR-0014).
-  Previous: **5.0.0**, all packages target `net10.0` and require .NET 10 or later; it adds PostgreSQL and Valkey
-  support, and SQL Server, PostgreSQL and Redis share `Rebalancer.LeaseCoordination`. SQL Server / Redis service types
-  moved namespaces; the shipped SQL Server schema also removes the client-to-group foreign key, with an optional step
-  for existing databases ([ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
+  Previous: **5.2.0** (Redis grants one record at a time, PRB-0009 / ADR-0036; tests and a dependency scan gate every
+  release, ADR-0035; types deprecated for 6.0, ADR-0034; CR-0015), **5.1.0** (fixes from the 5.0 review: fencing
+  token in SQL Server / PostgreSQL keep-alives, the SQL Server lease time after the lock wait, the PostgreSQL stall
+  bound when assigning, `RecreateClientAsync`; CR-0014), **5.0.0** (all packages target `net10.0` and require .NET 10
+  or later; PostgreSQL and Valkey support; SQL Server, PostgreSQL and Redis share `Rebalancer.LeaseCoordination`;
+  SQL Server / Redis service types moved namespaces; the shipped SQL Server schema removes the client-to-group foreign
+  key, with an optional step for existing databases;
+  [ADR-0029](../adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md),
   [ADR-0032](../adrs/0032-no-foreign-key-from-client-records-to-resource-groups.md), [ADR-0033](../adrs/0033-target-net-10-only.md),
-  [migration guide](../release-notes/migrating-to-5.0.md), CR-0013). Previous: **4.3.2** (`Stopped` state after
+  [migration guide](../release-notes/migrating-to-5.0.md), CR-0013), **4.3.2** (`Stopped` state after
   `StopAsync`, `OnAssignmentDelay` per assignment; PRB-0006, PRB-0007, CR-0012), **4.3.1** (SQL Server / Redis
   `StopAsync` raises `OnUnassignment`), **4.3.0**
   (coordination safety fixes found with TLA+, ADR-0026..0028), **4.2.1** (security patch: CVE-2026-84008 in a SQL
