@@ -1,98 +1,117 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1020" height="656" viewBox="0 0 1020 656">
-<style>
-  text { font-family: Inter, 'DejaVu Sans', Arial, sans-serif; fill: #1f2937; }
-  .label { font-size: 12.5px; fill: #374151; paint-order: stroke; stroke: #ffffff; stroke-width: 5px;
-           stroke-linejoin: round; }
-  .title { font-size: 14px; font-weight: 600; fill: #111827; }
-  .mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12.5px; fill: #1f2937; }
-  .on-dark { fill: #ffffff; font-weight: 600; font-size: 13px; }
-  .state { font-size: 13px; font-weight: 500; fill: #1f2937; }
-  .state-strong { font-size: 14px; font-weight: 700; fill: #0f172a; }
-  .actor { font-size: 12.5px; font-weight: 700; fill: #0f172a; }
-  .box-head { font-size: 13px; font-weight: 700; fill: #0f172a; }
-  .box-text { font-size: 12.5px; fill: #374151; }
-  .box-mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12px; fill: #1e3a5f; }
-  .arrow { fill: none; stroke: #4b5563; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round;
-           marker-end: url(#head); }
-</style>
-<defs>
-  <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-    <path d="M 0 0.8 L 9 5 L 0 9.2 L 2.2 5 z" fill="#4b5563"/>
-  </marker>
-  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-    <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#0f172a" flood-opacity="0.18"/>
-  </filter>
-  <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#6cbf3c"/><stop offset="1" stop-color="#4e9a24"/>
-  </linearGradient>
-  <linearGradient id="slate" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#6b7889"/><stop offset="1" stop-color="#525e6d"/>
-  </linearGradient>
-  <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#2aa7f0"/><stop offset="1" stop-color="#0f86d6"/>
-  </linearGradient>
-  <linearGradient id="orange" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#f26a00"/><stop offset="0.45" stop-color="#ff9a3d"/><stop offset="1" stop-color="#ef6400"/>
-  </linearGradient>
-  <linearGradient id="orange-top" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#ffb26b"/><stop offset="1" stop-color="#ff9433"/>
-  </linearGradient>
-</defs>
-<rect width="1020" height="656" fill="#ffffff"/>
-<g transform="translate(0 30)"><rect x="360" y="200" width="300" height="118" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 360 226 L 360 210 Q 360 200 370 200 L 650 200 Q 660 200 660 210 L 660 226 z" fill="#e8eef6"/>
-<line x1="360" y1="226" x2="660" y2="226" stroke="#cbd5e1"/>
-<text x="372" y="218" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/clients</tspan></text>
-<text x="372" y="245" class="box-text" text-anchor="start">Data: none</text>
-<text x="372" y="261" class="box-text" text-anchor="start">Ephemeral sequential children:</text>
-<text x="382" y="277" class="box-mono" text-anchor="start">c_0000000001</text>
-<text x="382" y="293" class="box-mono" text-anchor="start">c_0000000002</text>
-<text x="382" y="309" class="box-mono" text-anchor="start">c_0000000003</text>
-<rect x="360" y="336" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 360 362 L 360 346 Q 360 336 370 336 L 650 336 Q 660 336 660 346 L 660 362 z" fill="#e8eef6"/>
-<line x1="360" y1="362" x2="660" y2="362" stroke="#cbd5e1"/>
-<text x="372" y="354" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/epoch</tspan></text>
-<text x="372" y="381" class="box-text" text-anchor="start">Data: none (its version is the epoch)</text>
-<rect x="360" y="408" width="300" height="198" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 360 434 L 360 418 Q 360 408 370 408 L 650 408 Q 660 408 660 418 L 660 434 z" fill="#e8eef6"/>
-<line x1="360" y1="434" x2="660" y2="434" stroke="#cbd5e1"/>
-<text x="372" y="426" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/resources</tspan></text>
-<text x="372" y="453" class="box-text" text-anchor="start">Data: resource → client assignments</text>
-<text x="382" y="469" class="box-mono" text-anchor="start">resource1 → c_0000000003</text>
-<text x="382" y="485" class="box-mono" text-anchor="start">resource2 → c_0000000001</text>
-<text x="382" y="501" class="box-mono" text-anchor="start">resource3 → c_0000000002</text>
-<text x="372" y="517" class="box-text" text-anchor="start">Children:</text>
-<text x="382" y="533" class="box-mono" text-anchor="start">resource1, resource2, resource3</text>
-<text x="372" y="549" class="box-text" text-anchor="start">Barriers (ephemeral, data = holder):</text>
-<text x="382" y="565" class="box-mono" text-anchor="start">resource1/barrier: c_0000000003</text>
-<text x="382" y="581" class="box-mono" text-anchor="start">resource2/barrier: c_0000000001</text>
-<text x="382" y="597" class="box-mono" text-anchor="start">resource3/barrier: c_0000000002</text>
-<circle cx="510" cy="84" r="44" fill="#f8fafc" stroke="#64748b" stroke-width="1.8" filter="url(#shadow)"/>
-<text x="510" y="88.5" class="actor" text-anchor="middle">Client</text>
-<circle cx="66" cy="380" r="44" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)"/>
-<text x="66" y="384.5" class="actor" text-anchor="middle">Coordinator</text>
-<circle cx="954" cy="380" r="44" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8" filter="url(#shadow)"/>
-<text x="954" y="384.5" class="actor" text-anchor="middle">Follower</text>
-<path class="arrow" d="M 510 128 L 510 196"/>
-<text x="520" y="166" class="label" text-anchor="start">create(): ephemeral sequential child</text>
-<path class="arrow" d="M 466 84 C 260 84 66 150 66 334"/>
-<text x="250" y="74" class="label" text-anchor="middle">Has the lowest sequence number</text>
-<path class="arrow" d="M 554 84 C 760 84 954 150 954 334"/>
-<text x="780" y="74" class="label" text-anchor="middle">Does not have the lowest sequence number</text>
-<path class="arrow" d="M 36 350 L 36 14 Q 36 4 46 4 L 470 4 Q 480 4 480 14 L 480 50"/>
-<text x="258" y="-4" class="label" text-anchor="middle">Epoch notification, or BadVersion on epoch / resources</text>
-<path class="arrow" d="M 94 346 L 94 240 Q 94 230 104 230 L 356 230"/>
-<text x="220" y="223" class="label" text-anchor="middle">GetChildren(watch)</text>
-<path class="arrow" d="M 110 380 L 150 380 Q 160 380 160 370 L 160 360 Q 160 350 170 350 L 356 350"/>
-<text x="258" y="327.5" class="label" text-anchor="middle">SetData(): increments the version,</text>
-<text x="258" y="343.0" class="label" text-anchor="middle">then watches it</text>
-<path class="arrow" d="M 66 424 L 66 558 Q 66 568 76 568 L 356 568"/>
-<text x="210" y="530.0" class="label" text-anchor="middle">GetChildren(watch)</text>
-<text x="210" y="545.5" class="label" text-anchor="middle">SetData(): the resource assignments</text>
-<path class="arrow" d="M 910 380 L 840 380 Q 830 380 830 370 L 830 250 Q 830 240 820 240 L 664 240"/>
-<text x="745" y="268.0" class="label" text-anchor="middle">Exists(watch) on the</text>
-<text x="745" y="283.5" class="label" text-anchor="middle">next smaller sibling</text>
-<path class="arrow" d="M 954 424 L 954 558 Q 954 568 944 568 L 664 568"/>
-<text x="800" y="530.0" class="label" text-anchor="middle">GetData(watch)</text>
-<text x="800" y="545.5" class="label" text-anchor="middle">Create(): ephemeral barrier</text></g>
+    <style>
+        text { font-family: Inter, 'DejaVu Sans', Arial, sans-serif; fill: #1f2937; }
+        .label { font-size: 12.5px; fill: #374151; paint-order: stroke; stroke: #ffffff; stroke-width: 5px;
+        stroke-linejoin: round; }
+        .title { font-size: 14px; font-weight: 600; fill: #111827; }
+        .mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12.5px; fill: #1f2937; }
+        .on-dark { fill: #ffffff; font-weight: 600; font-size: 13px; }
+        .state { font-size: 13px; font-weight: 500; fill: #1f2937; }
+        .state-strong { font-size: 14px; font-weight: 700; fill: #0f172a; }
+        .actor { font-size: 12.5px; font-weight: 700; fill: #0f172a; }
+        .box-head { font-size: 13px; font-weight: 700; fill: #0f172a; }
+        .box-text { font-size: 12.5px; fill: #374151; }
+        .box-mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12px; fill: #1e3a5f; }
+        .arrow { fill: none; stroke: #4b5563; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round;
+        marker-end: url(#head); }
+    </style>
+    <defs>
+        <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M 0 0.8 L 9 5 L 0 9.2 L 2.2 5 z" fill="#4b5563"/>
+        </marker>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#0f172a" flood-opacity="0.18"/>
+        </filter>
+        <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6cbf3c"/>
+            <stop offset="1" stop-color="#4e9a24"/>
+        </linearGradient>
+        <linearGradient id="slate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6b7889"/>
+            <stop offset="1" stop-color="#525e6d"/>
+        </linearGradient>
+        <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2aa7f0"/>
+            <stop offset="1" stop-color="#0f86d6"/>
+        </linearGradient>
+        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f26a00"/>
+            <stop offset="0.45" stop-color="#ff9a3d"/>
+            <stop offset="1" stop-color="#ef6400"/>
+        </linearGradient>
+        <linearGradient id="orange-top" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffb26b"/>
+            <stop offset="1" stop-color="#ff9433"/>
+        </linearGradient>
+    </defs>
+    <rect width="1020" height="656" fill="#ffffff"/>
+    <g transform="translate(0 30)">
+        <rect x="360" y="200" width="300" height="118" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+              filter="url(#shadow)"/>
+        <path d="M 360 226 L 360 210 Q 360 200 370 200 L 650 200 Q 660 200 660 210 L 660 226 z" fill="#e8eef6"/>
+        <line x1="360" y1="226" x2="660" y2="226" stroke="#cbd5e1"/>
+        <text x="372" y="218" class="box-head">ZNode:
+            <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/clients</tspan>
+        </text>
+        <text x="372" y="245" class="box-text" text-anchor="start">Data: none</text>
+        <text x="372" y="261" class="box-text" text-anchor="start">Ephemeral sequential children:</text>
+        <text x="382" y="277" class="box-mono" text-anchor="start">c_0000000001</text>
+        <text x="382" y="293" class="box-mono" text-anchor="start">c_0000000002</text>
+        <text x="382" y="309" class="box-mono" text-anchor="start">c_0000000003</text>
+        <rect x="360" y="336" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+              filter="url(#shadow)"/>
+        <path d="M 360 362 L 360 346 Q 360 336 370 336 L 650 336 Q 660 336 660 346 L 660 362 z" fill="#e8eef6"/>
+        <line x1="360" y1="362" x2="660" y2="362" stroke="#cbd5e1"/>
+        <text x="372" y="354" class="box-head">ZNode:
+            <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/epoch</tspan>
+        </text>
+        <text x="372" y="381" class="box-text" text-anchor="start">Data: none (its version is the epoch)</text>
+        <rect x="360" y="408" width="300" height="198" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+              filter="url(#shadow)"/>
+        <path d="M 360 434 L 360 418 Q 360 408 370 408 L 650 408 Q 660 408 660 418 L 660 434 z" fill="#e8eef6"/>
+        <line x1="360" y1="434" x2="660" y2="434" stroke="#cbd5e1"/>
+        <text x="372" y="426" class="box-head">ZNode:
+            <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/resources</tspan>
+        </text>
+        <text x="372" y="453" class="box-text" text-anchor="start">Data: resource → client assignments</text>
+        <text x="382" y="469" class="box-mono" text-anchor="start">resource1 → c_0000000003</text>
+        <text x="382" y="485" class="box-mono" text-anchor="start">resource2 → c_0000000001</text>
+        <text x="382" y="501" class="box-mono" text-anchor="start">resource3 → c_0000000002</text>
+        <text x="372" y="517" class="box-text" text-anchor="start">Children:</text>
+        <text x="382" y="533" class="box-mono" text-anchor="start">resource1, resource2, resource3</text>
+        <text x="372" y="549" class="box-text" text-anchor="start">Barriers (ephemeral, data = holder):</text>
+        <text x="382" y="565" class="box-mono" text-anchor="start">resource1/barrier: c_0000000003</text>
+        <text x="382" y="581" class="box-mono" text-anchor="start">resource2/barrier: c_0000000001</text>
+        <text x="382" y="597" class="box-mono" text-anchor="start">resource3/barrier: c_0000000002</text>
+        <circle cx="510" cy="84" r="44" fill="#f8fafc" stroke="#64748b" stroke-width="1.8" filter="url(#shadow)"/>
+        <text x="510" y="88.5" class="actor" text-anchor="middle">Client</text>
+        <circle cx="66" cy="380" r="44" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)"/>
+        <text x="66" y="384.5" class="actor" text-anchor="middle">Coordinator</text>
+        <circle cx="954" cy="380" r="44" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8" filter="url(#shadow)"/>
+        <text x="954" y="384.5" class="actor" text-anchor="middle">Follower</text>
+        <path class="arrow" d="M 510 128 L 510 196"/>
+        <text x="520" y="166" class="label" text-anchor="start">create(): ephemeral sequential child</text>
+        <path class="arrow" d="M 466 84 C 260 84 66 150 66 334"/>
+        <text x="250" y="74" class="label" text-anchor="middle">Has the lowest sequence number</text>
+        <path class="arrow" d="M 554 84 C 760 84 954 150 954 334"/>
+        <text x="780" y="74" class="label" text-anchor="middle">Does not have the lowest sequence number</text>
+        <path class="arrow" d="M 36 350 L 36 14 Q 36 4 46 4 L 470 4 Q 480 4 480 14 L 480 50"/>
+        <text x="258" y="-4" class="label" text-anchor="middle">Epoch notification, or BadVersion on epoch / resources
+        </text>
+        <path class="arrow" d="M 94 346 L 94 240 Q 94 230 104 230 L 356 230"/>
+        <text x="220" y="223" class="label" text-anchor="middle">GetChildren(watch)</text>
+        <path class="arrow" d="M 110 380 L 150 380 Q 160 380 160 370 L 160 360 Q 160 350 170 350 L 356 350"/>
+        <text x="258" y="327.5" class="label" text-anchor="middle">SetData(): increments the version,</text>
+        <text x="258" y="343.0" class="label" text-anchor="middle">then watches it</text>
+        <path class="arrow" d="M 66 424 L 66 558 Q 66 568 76 568 L 356 568"/>
+        <text x="210" y="530.0" class="label" text-anchor="middle">GetChildren(watch)</text>
+        <text x="210" y="545.5" class="label" text-anchor="middle">SetData(): the resource assignments</text>
+        <path class="arrow" d="M 910 380 L 840 380 Q 830 380 830 370 L 830 250 Q 830 240 820 240 L 664 240"/>
+        <text x="745" y="268.0" class="label" text-anchor="middle">Exists(watch) on the</text>
+        <text x="745" y="283.5" class="label" text-anchor="middle">next smaller sibling</text>
+        <path class="arrow" d="M 954 424 L 954 558 Q 954 568 944 568 L 664 568"/>
+        <text x="800" y="530.0" class="label" text-anchor="middle">GetData(watch)</text>
+        <text x="800" y="545.5" class="label" text-anchor="middle">Create(): ephemeral barrier</text>
+    </g>
 </svg>

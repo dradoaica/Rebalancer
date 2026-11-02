@@ -1,107 +1,129 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1180" height="516" viewBox="0 0 1180 516">
-<style>
-  text { font-family: Inter, 'DejaVu Sans', Arial, sans-serif; fill: #1f2937; }
-  .label { font-size: 12.5px; fill: #374151; paint-order: stroke; stroke: #ffffff; stroke-width: 5px;
-           stroke-linejoin: round; }
-  .title { font-size: 14px; font-weight: 600; fill: #111827; }
-  .mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12.5px; fill: #1f2937; }
-  .on-dark { fill: #ffffff; font-weight: 600; font-size: 13px; }
-  .state { font-size: 13px; font-weight: 500; fill: #1f2937; }
-  .state-strong { font-size: 14px; font-weight: 700; fill: #0f172a; }
-  .actor { font-size: 12.5px; font-weight: 700; fill: #0f172a; }
-  .box-head { font-size: 13px; font-weight: 700; fill: #0f172a; }
-  .box-text { font-size: 12.5px; fill: #374151; }
-  .box-mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12px; fill: #1e3a5f; }
-  .arrow { fill: none; stroke: #4b5563; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round;
-           marker-end: url(#head); }
-</style>
-<defs>
-  <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-    <path d="M 0 0.8 L 9 5 L 0 9.2 L 2.2 5 z" fill="#4b5563"/>
-  </marker>
-  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-    <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#0f172a" flood-opacity="0.18"/>
-  </filter>
-  <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#6cbf3c"/><stop offset="1" stop-color="#4e9a24"/>
-  </linearGradient>
-  <linearGradient id="slate" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#6b7889"/><stop offset="1" stop-color="#525e6d"/>
-  </linearGradient>
-  <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#2aa7f0"/><stop offset="1" stop-color="#0f86d6"/>
-  </linearGradient>
-  <linearGradient id="orange" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#f26a00"/><stop offset="0.45" stop-color="#ff9a3d"/><stop offset="1" stop-color="#ef6400"/>
-  </linearGradient>
-  <linearGradient id="orange-top" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#ffb26b"/><stop offset="1" stop-color="#ff9433"/>
-  </linearGradient>
-</defs>
-<rect width="1180" height="516" fill="#ffffff"/>
-<rect x="420" y="14" width="300" height="118" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 420 40 L 420 24 Q 420 14 430 14 L 710 14 Q 720 14 720 24 L 720 40 z" fill="#e8eef6"/>
-<line x1="420" y1="40" x2="720" y2="40" stroke="#cbd5e1"/>
-<text x="432" y="32" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/clients</tspan></text>
-<text x="432" y="59" class="box-text" text-anchor="start">Data: none</text>
-<text x="432" y="75" class="box-text" text-anchor="start">Ephemeral sequential children:</text>
-<text x="442" y="91" class="box-mono" text-anchor="start">c_0000000001</text>
-<text x="442" y="107" class="box-mono" text-anchor="start">c_0000000002</text>
-<text x="442" y="123" class="box-mono" text-anchor="start">c_0000000003</text>
-<rect x="420" y="146" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 420 172 L 420 156 Q 420 146 430 146 L 710 146 Q 720 146 720 156 L 720 172 z" fill="#e8eef6"/>
-<line x1="420" y1="172" x2="720" y2="172" stroke="#cbd5e1"/>
-<text x="432" y="164" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/epoch</tspan></text>
-<text x="432" y="191" class="box-text" text-anchor="start">Data: none</text>
-<rect x="420" y="214" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 420 240 L 420 224 Q 420 214 430 214 L 710 214 Q 720 214 720 224 L 720 240 z" fill="#e8eef6"/>
-<line x1="420" y1="240" x2="720" y2="240" stroke="#cbd5e1"/>
-<text x="432" y="232" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/status</tspan></text>
-<text x="432" y="259" class="box-text" text-anchor="start">Data: the rebalancing status</text>
-<rect x="420" y="282" width="300" height="70" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 420 308 L 420 292 Q 420 282 430 282 L 710 282 Q 720 282 720 292 L 720 308 z" fill="#e8eef6"/>
-<line x1="420" y1="308" x2="720" y2="308" stroke="#cbd5e1"/>
-<text x="432" y="300" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/stopped (barrier)</tspan></text>
-<text x="432" y="327" class="box-text" text-anchor="start">Data: none</text>
-<text x="432" y="343" class="box-text" text-anchor="start">Ephemeral children: c_… of stopped clients</text>
-<rect x="420" y="366" width="300" height="134" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" filter="url(#shadow)"/>
-<path d="M 420 392 L 420 376 Q 420 366 430 366 L 710 366 Q 720 366 720 376 L 720 392 z" fill="#e8eef6"/>
-<line x1="420" y1="392" x2="720" y2="392" stroke="#cbd5e1"/>
-<text x="432" y="384" class="box-head">ZNode: <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/resources</tspan></text>
-<text x="432" y="411" class="box-text" text-anchor="start">Data: resource → client assignments</text>
-<text x="442" y="427" class="box-mono" text-anchor="start">resource1 → c_0000000003</text>
-<text x="442" y="443" class="box-mono" text-anchor="start">resource2 → c_0000000001</text>
-<text x="442" y="459" class="box-mono" text-anchor="start">resource3 → c_0000000002</text>
-<text x="432" y="475" class="box-text" text-anchor="start">Children:</text>
-<text x="442" y="491" class="box-mono" text-anchor="start">resource1, resource2, resource3</text>
-<circle cx="84" cy="241.0" r="44" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)"/>
-<text x="84" y="245.5" class="actor" text-anchor="middle">Coordinator</text>
-<circle cx="990" cy="241.0" r="44" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8" filter="url(#shadow)"/>
-<text x="990" y="245.5" class="actor" text-anchor="middle">Follower</text>
-<path class="arrow" d="M 416 50 L 94 50 Q 84 50 84 60 L 84 193.0"/>
-<text x="250" y="43" class="label" text-anchor="middle">1a. Children notification</text>
-<path class="arrow" d="M 128 241.0 L 416 241.0"/>
-<text x="270" y="201.0" class="label" text-anchor="middle">2. SetData(): StopActivity</text>
-<text x="270" y="216.5" class="label" text-anchor="middle">8. SetData(): ResourcesGranted</text>
-<path class="arrow" d="M 724 241.0 L 942 241.0"/>
-<text x="830" y="201.0" class="label" text-anchor="middle">3. Notification: StopActivity</text>
-<text x="830" y="216.5" class="label" text-anchor="middle">9. Notification: ResourcesGranted</text>
-<path class="arrow" d="M 416 312 L 116 312 Q 106 312 106 302 L 106 282.0"/>
-<text x="262" y="336.0" class="label" text-anchor="middle">6. Notification: every client stopped</text>
-<text x="262" y="351.5" class="label" text-anchor="middle">13. Notification: no children left</text>
-<path class="arrow" d="M 70 283.0 L 70 428 Q 70 438 80 438 L 416 438"/>
-<text x="245" y="431" class="label" text-anchor="middle">7. SetData(): the resource assignments</text>
-<path class="arrow" d="M 416 478 L 26 478 Q 16 478 16 468 L 16 251.0 Q 16 241.0 26 241.0 L 38 241.0"/>
-<text x="250" y="471" class="label" text-anchor="middle">1b. Children notification</text>
-<path class="arrow" d="M 968 279.0 L 968 302 Q 968 312 958 312 L 724 312"/>
-<text x="830" y="336.0" class="label" text-anchor="middle">5. Create(): ephemeral child c_…</text>
-<text x="830" y="351.5" class="label" text-anchor="middle">12. Delete()</text>
-<path class="arrow" d="M 1012 279.0 L 1012 428 Q 1012 438 1002 438 L 724 438"/>
-<text x="840" y="431" class="label" text-anchor="middle">10. GetData()</text>
-<path class="arrow" d="M 974 200.0 C 960 155.0 1020 155.0 1006 200.0"/>
-<text x="990" y="153.0" class="label" text-anchor="middle">4. Stop event fired</text>
-<path class="arrow" d="M 1033 227.0 C 1076 219.0 1076 265.0 1033 257.0"/>
-<text x="1080" y="233.0" class="label" text-anchor="start">11. Start</text>
-<text x="1080" y="248.5" class="label" text-anchor="start">(the resources</text>
-<text x="1080" y="264.0" class="label" text-anchor="start">assigned to it)</text>
+    <style>
+        text { font-family: Inter, 'DejaVu Sans', Arial, sans-serif; fill: #1f2937; }
+        .label { font-size: 12.5px; fill: #374151; paint-order: stroke; stroke: #ffffff; stroke-width: 5px;
+        stroke-linejoin: round; }
+        .title { font-size: 14px; font-weight: 600; fill: #111827; }
+        .mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12.5px; fill: #1f2937; }
+        .on-dark { fill: #ffffff; font-weight: 600; font-size: 13px; }
+        .state { font-size: 13px; font-weight: 500; fill: #1f2937; }
+        .state-strong { font-size: 14px; font-weight: 700; fill: #0f172a; }
+        .actor { font-size: 12.5px; font-weight: 700; fill: #0f172a; }
+        .box-head { font-size: 13px; font-weight: 700; fill: #0f172a; }
+        .box-text { font-size: 12.5px; fill: #374151; }
+        .box-mono { font-family: 'DejaVu Sans Mono', monospace; font-size: 12px; fill: #1e3a5f; }
+        .arrow { fill: none; stroke: #4b5563; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round;
+        marker-end: url(#head); }
+    </style>
+    <defs>
+        <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8"
+                orient="auto-start-reverse">
+            <path d="M 0 0.8 L 9 5 L 0 9.2 L 2.2 5 z" fill="#4b5563"/>
+        </marker>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#0f172a" flood-opacity="0.18"/>
+        </filter>
+        <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6cbf3c"/>
+            <stop offset="1" stop-color="#4e9a24"/>
+        </linearGradient>
+        <linearGradient id="slate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6b7889"/>
+            <stop offset="1" stop-color="#525e6d"/>
+        </linearGradient>
+        <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2aa7f0"/>
+            <stop offset="1" stop-color="#0f86d6"/>
+        </linearGradient>
+        <linearGradient id="orange" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f26a00"/>
+            <stop offset="0.45" stop-color="#ff9a3d"/>
+            <stop offset="1" stop-color="#ef6400"/>
+        </linearGradient>
+        <linearGradient id="orange-top" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffb26b"/>
+            <stop offset="1" stop-color="#ff9433"/>
+        </linearGradient>
+    </defs>
+    <rect width="1180" height="516" fill="#ffffff"/>
+    <rect x="420" y="14" width="300" height="118" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+          filter="url(#shadow)"/>
+    <path d="M 420 40 L 420 24 Q 420 14 430 14 L 710 14 Q 720 14 720 24 L 720 40 z" fill="#e8eef6"/>
+    <line x1="420" y1="40" x2="720" y2="40" stroke="#cbd5e1"/>
+    <text x="432" y="32" class="box-head">ZNode:
+        <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/clients</tspan>
+    </text>
+    <text x="432" y="59" class="box-text" text-anchor="start">Data: none</text>
+    <text x="432" y="75" class="box-text" text-anchor="start">Ephemeral sequential children:</text>
+    <text x="442" y="91" class="box-mono" text-anchor="start">c_0000000001</text>
+    <text x="442" y="107" class="box-mono" text-anchor="start">c_0000000002</text>
+    <text x="442" y="123" class="box-mono" text-anchor="start">c_0000000003</text>
+    <rect x="420" y="146" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+          filter="url(#shadow)"/>
+    <path d="M 420 172 L 420 156 Q 420 146 430 146 L 710 146 Q 720 146 720 156 L 720 172 z" fill="#e8eef6"/>
+    <line x1="420" y1="172" x2="720" y2="172" stroke="#cbd5e1"/>
+    <text x="432" y="164" class="box-head">ZNode:
+        <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/epoch</tspan>
+    </text>
+    <text x="432" y="191" class="box-text" text-anchor="start">Data: none</text>
+    <rect x="420" y="214" width="300" height="54" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+          filter="url(#shadow)"/>
+    <path d="M 420 240 L 420 224 Q 420 214 430 214 L 710 214 Q 720 214 720 224 L 720 240 z" fill="#e8eef6"/>
+    <line x1="420" y1="240" x2="720" y2="240" stroke="#cbd5e1"/>
+    <text x="432" y="232" class="box-head">ZNode:
+        <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/status</tspan>
+    </text>
+    <text x="432" y="259" class="box-text" text-anchor="start">Data: the rebalancing status</text>
+    <rect x="420" y="282" width="300" height="70" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+          filter="url(#shadow)"/>
+    <path d="M 420 308 L 420 292 Q 420 282 430 282 L 710 282 Q 720 282 720 292 L 720 308 z" fill="#e8eef6"/>
+    <line x1="420" y1="308" x2="720" y2="308" stroke="#cbd5e1"/>
+    <text x="432" y="300" class="box-head">ZNode:
+        <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/stopped (barrier)</tspan>
+    </text>
+    <text x="432" y="327" class="box-text" text-anchor="start">Data: none</text>
+    <text x="432" y="343" class="box-text" text-anchor="start">Ephemeral children: c_… of stopped clients</text>
+    <rect x="420" y="366" width="300" height="134" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4"
+          filter="url(#shadow)"/>
+    <path d="M 420 392 L 420 376 Q 420 366 430 366 L 710 366 Q 720 366 720 376 L 720 392 z" fill="#e8eef6"/>
+    <line x1="420" y1="392" x2="720" y2="392" stroke="#cbd5e1"/>
+    <text x="432" y="384" class="box-head">ZNode:
+        <tspan font-family="DejaVu Sans Mono, monospace" font-size="12.5">group/resources</tspan>
+    </text>
+    <text x="432" y="411" class="box-text" text-anchor="start">Data: resource → client assignments</text>
+    <text x="442" y="427" class="box-mono" text-anchor="start">resource1 → c_0000000003</text>
+    <text x="442" y="443" class="box-mono" text-anchor="start">resource2 → c_0000000001</text>
+    <text x="442" y="459" class="box-mono" text-anchor="start">resource3 → c_0000000002</text>
+    <text x="432" y="475" class="box-text" text-anchor="start">Children:</text>
+    <text x="442" y="491" class="box-mono" text-anchor="start">resource1, resource2, resource3</text>
+    <circle cx="84" cy="241.0" r="44" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)"/>
+    <text x="84" y="245.5" class="actor" text-anchor="middle">Coordinator</text>
+    <circle cx="990" cy="241.0" r="44" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8" filter="url(#shadow)"/>
+    <text x="990" y="245.5" class="actor" text-anchor="middle">Follower</text>
+    <path class="arrow" d="M 416 50 L 94 50 Q 84 50 84 60 L 84 193.0"/>
+    <text x="250" y="43" class="label" text-anchor="middle">1a. Children notification</text>
+    <path class="arrow" d="M 128 241.0 L 416 241.0"/>
+    <text x="270" y="201.0" class="label" text-anchor="middle">2. SetData(): StopActivity</text>
+    <text x="270" y="216.5" class="label" text-anchor="middle">8. SetData(): ResourcesGranted</text>
+    <path class="arrow" d="M 724 241.0 L 942 241.0"/>
+    <text x="830" y="201.0" class="label" text-anchor="middle">3. Notification: StopActivity</text>
+    <text x="830" y="216.5" class="label" text-anchor="middle">9. Notification: ResourcesGranted</text>
+    <path class="arrow" d="M 416 312 L 116 312 Q 106 312 106 302 L 106 282.0"/>
+    <text x="262" y="336.0" class="label" text-anchor="middle">6. Notification: every client stopped</text>
+    <text x="262" y="351.5" class="label" text-anchor="middle">13. Notification: no children left</text>
+    <path class="arrow" d="M 70 283.0 L 70 428 Q 70 438 80 438 L 416 438"/>
+    <text x="245" y="431" class="label" text-anchor="middle">7. SetData(): the resource assignments</text>
+    <path class="arrow" d="M 416 478 L 26 478 Q 16 478 16 468 L 16 251.0 Q 16 241.0 26 241.0 L 38 241.0"/>
+    <text x="250" y="471" class="label" text-anchor="middle">1b. Children notification</text>
+    <path class="arrow" d="M 968 279.0 L 968 302 Q 968 312 958 312 L 724 312"/>
+    <text x="830" y="336.0" class="label" text-anchor="middle">5. Create(): ephemeral child c_…</text>
+    <text x="830" y="351.5" class="label" text-anchor="middle">12. Delete()</text>
+    <path class="arrow" d="M 1012 279.0 L 1012 428 Q 1012 438 1002 438 L 724 438"/>
+    <text x="840" y="431" class="label" text-anchor="middle">10. GetData()</text>
+    <path class="arrow" d="M 974 200.0 C 960 155.0 1020 155.0 1006 200.0"/>
+    <text x="990" y="153.0" class="label" text-anchor="middle">4. Stop event fired</text>
+    <path class="arrow" d="M 1033 227.0 C 1076 219.0 1076 265.0 1033 257.0"/>
+    <text x="1080" y="233.0" class="label" text-anchor="start">11. Start</text>
+    <text x="1080" y="248.5" class="label" text-anchor="start">(the resources</text>
+    <text x="1080" y="264.0" class="label" text-anchor="start">assigned to it)</text>
 </svg>
