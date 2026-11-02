@@ -154,8 +154,7 @@ the approval covers them passing. A failure among them is reported to dradoaica 
 ## Post-implementation
 
 - **Actual outcome (2026-11-02 UTC):** dradoaica merged `agent/release-6.0.0` into `main` by fast-forward to `a02798e`
-  (no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 21:09:51–21:11:50 UTC
-  (https://github.com/dradoaica/Rebalancer/actions/runs/41525806703): "Unit Tests" 121/121, "Dependency Scan" "No
+  (no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 21:09:51–21:11:50 UTC (https://github.com/dradoaica/Rebalancer/actions/runs/41525806703): "Unit Tests" 121/121, "Dependency Scan" "No
   vulnerable packages.", then all eight 6.0.0 packages pushed: `Rebalancer.Core`, `Rebalancer.LeaseCoordination`,
   `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`, `Rebalancer.Redis`, `Rebalancer.ZooKeeper`,
   `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`.

@@ -1,10 +1,10 @@
 ---
 id: PRB-0009
-status: Root cause identified
+status: Closed
 date: 2026-11-02
 opened: 2026-11-02
 owner: "dradoaica"
-approved-by: [ ]            # closure review; set by a human only
+approved-by: [ "dradoaica" ]            # closure review; set by a human only (dradoaica, in session 2026-11-02)
 severity: "Medium"
 depends-on: [ "ADR-0017", "ADR-0026", "ADR-0029", "ADR-0031", "US-0025", "CR-0013", "CR-0014" ]
 ---
@@ -105,12 +105,13 @@ the second traced failure no client write ran out of attempts, so one of those l
 
 ## Preventive measures
 
-- **Agent Governance:** to decide at closure: a liveness failure that recurs is recorded as a problem record at the
-  second occurrence, not put down to load.
+- **Agent Governance:** decided at closure (dradoaica, 2026-11-02): new rule
+  `.agents/rules/03-recurring-test-failures.md` (a test failure seen a second time gets a problem record; no cause
+  such as load without evidence), referenced from `.agents/protocols/pre-mr-gate.md` (check 1).
 - **Tests / automation:** the network-fault tests run alone (CR-0014).
 - **Monitoring / alerts:** N/A (library).
-- **Runbooks / docs:** until the fix, the README could advise Redis users to keep the heartbeat well above the store
-  round trip (to decide with the fix).
+- **Runbooks / docs:** done: the 5.2.0 release notes advise keeping a Redis group's heartbeat well above the round trip
+  until 6.0; 6.0 removes the need (decided at closure, dradoaica, 2026-11-02).
 - **Decision records:** needed; see Corrective actions.
 
 ## Known errors / workarounds
@@ -120,9 +121,15 @@ inside a write attempt. Tests: the failure is intermittent; rerun.
 
 ## Closure
 
-- **Closed:** (open)
-- **Resolution summary:** (open)
-- **Preventive action verification:** (open)
+- **Closed:** 2026-11-02, closure reviewed and approved by dradoaica; fixed in 6.0.0 (CR-0016).
+- **Resolution summary:** the Redis backend's conditional writes were optimistic transactions under `WATCH`, which
+  covers whole hashes, so over a slow link the nodes' keep-alives and lease renewals aborted each other's writes until
+  a coordinator gave up. 5.2.0 wrote client records one at a time (ADR-0036; failures with the seed 3/6 → 2/26);
+  6.0.0 makes every guarded write a server-side script that other writes cannot abort (ADR-0037; the seed alone 20/20
+  on Redis 7.0 and Valkey). Safety held throughout: no run found two nodes processing a resource at once.
+- **Preventive action verification:** the network-fault tests run alone (CR-0014, in `xunit.runner.json` and the
+  `NetworkFault` collection); the regression test passed 20/20 (CR-0016); the governance gap (the failure put down to
+  load in US-0025 and CR-0013, and called flaky in CR-0014) is closed by Rule 03, in force from its merge.
 
 ## Sources
 

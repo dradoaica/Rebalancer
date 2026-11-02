@@ -6,7 +6,8 @@ Opening an MR is where Coding and Testing meet. An agent may open an MR only aft
 Use an equivalent control when appropriate; if a check or tool does not apply or is unavailable, record `N/A` with a
 rationale and get human acceptance. This does not waive any other applicable quality or security requirement.
 
-1. **Full test suite** green, when applicable.
+1. **Full test suite** green, when applicable. A failure is recorded, and a repeated one gets a problem record, as
+   `.agents/rules/03-recurring-test-failures.md` requires.
 2. **Regression tests** green (behavior-contract tests, not just the new feature's tests), when applicable.
 3. **Static analysis** clean (e.g., Sonar, SAST, secrets scanning), when applicable.
 4. **Baseline-drift abort** – where a quality baseline exists (e.g., extraction accuracy, performance, coverage), any
