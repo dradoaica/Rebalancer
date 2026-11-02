@@ -23,7 +23,6 @@ internal class Coordinator
 
     // ADR-0026: the fencing token of the last completed rebalance; a new tenure is a change like any other
     private int balancedFencingToken;
-    private int currentFencingToken;
     private List<Guid> knownClientIds;
     private List<string> knownResources;
 
@@ -60,7 +59,6 @@ internal class Coordinator
         CancellationToken token
     )
     {
-        currentFencingToken = clientEvent.FencingToken;
         var (self, reRegistered) = await KeepAliveOrReRegisterAsync(
             coordinatorClientId,
             clientEvent.ResourceGroup,

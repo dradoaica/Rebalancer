@@ -307,7 +307,7 @@ public sealed class RedisClientRecordTests
                 [own,]
             )
         );
-        Assert.Equal("untouched", (string?)await adminDb.HashGetAsync(other, "x"));
+        Assert.Equal("untouched", await adminDb.HashGetAsync(other, "x"));
         Assert.Equal(1, (int)await db.ScriptEvaluateAsync("return redis.call('HSET', KEYS[1], 'x', 'mine')", [own,]));
     }
 

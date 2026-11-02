@@ -39,7 +39,8 @@ public sealed class AbortedStateTests
         Assert.Empty(assigned.Resources);
         // the waiting overload reports it at once too, instead of waiting for an assignment that never comes
         using var wait = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var waited = await Task.Run(() => ((SqlServerProvider)provider).GetAssignedResources(wait.Token))
+        var waitToken = wait.Token; // not the source: the task may outlive it if WaitAsync times out
+        var waited = await Task.Run(() => ((SqlServerProvider)provider).GetAssignedResources(waitToken))
             .WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(ClientState.Aborted, waited.ClientState);
         // BlockAsync returns for an aborted client instead of waiting forever
