@@ -11,8 +11,8 @@ against an older one.
 
 | Version | Supported                                    |
 |---------|----------------------------------------------|
-| 5.2.x   | Yes                                          |
-| < 5.2   | No – upgrade; see the migration guides below |
+| 6.0.x   | Yes                                          |
+| < 6.0   | No – upgrade; see the migration guides below |
 
 4.3.x gets no further fixes. 5.0 and later need .NET 10 (ADR-0033); hosts on .NET 8 or .NET 9 lose Microsoft's own
 security fixes on 10 November 2026, when both reach end of support, so move them to .NET 10 together with Rebalancer.
@@ -24,7 +24,7 @@ of a resource group.
 
 If you cannot upgrade, say why in your report so we understand your situation. Upgrade notes:
 [3.0](docs/release-notes/migrating-to-3.0.md), [4.0](docs/release-notes/migrating-to-4.0.md),
-[5.0](docs/release-notes/migrating-to-5.0.md).
+[5.0](docs/release-notes/migrating-to-5.0.md), [6.0](docs/release-notes/migrating-to-6.0.md).
 
 ### Known advisories
 

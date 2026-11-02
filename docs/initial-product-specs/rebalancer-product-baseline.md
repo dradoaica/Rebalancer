@@ -56,7 +56,9 @@ this repository).
   ([US-0012](../user-stories/US-0012-register-rebalancer-with-dependency-injection.md)). The static `Providers` registry
   was removed in 3.0; without DI, pass the provider to `RebalancerClient`
   ([ADR-0013](../adrs/0013-explicit-providers-only-remove-static-registry.md), [US-0015](../user-stories/US-0015-supply-provider-explicitly-to-rebalancer-client.md)).
-- Current release: **5.2.0** (Redis grants one record at a time, PRB-0009 / ADR-0036; tests and a dependency scan
+- Current release: **6.0.0** (Redis writes as server-side scripts, ADR-0037, PRB-0009; the types deprecated in 5.2
+  internal, ADR-0034; CR-0016; [migration guide](../release-notes/migrating-to-6.0.md)).
+  Previous: **5.2.0** (Redis grants one record at a time, PRB-0009 / ADR-0036; tests and a dependency scan
   gate every release, ADR-0035; types deprecated for 6.0, ADR-0034; CR-0015).
   Previous: **5.1.0** (fixes from the 5.0 review: fencing token in SQL Server / PostgreSQL keep-alives, the
   SQL Server lease time after the lock wait, the PostgreSQL stall bound when assigning, `RecreateClientAsync`; CR-0014).
@@ -97,4 +99,4 @@ this repository).
    (ADR-0033).
 5. **5.1.0** — fixes from the 5.0 review (CR-0014).
 6. **5.2.0** — Redis grants one record at a time (ADR-0036), CI gates (ADR-0035), deprecations for 6.0 (ADR-0034).
-7. **Next** — 6.0.0: the deprecated types internal (ADR-0034).
+7. **6.0.0** — Redis writes as server-side scripts (ADR-0037), the deprecated types internal (ADR-0034).

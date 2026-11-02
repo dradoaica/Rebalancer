@@ -86,6 +86,8 @@ Other languages would need their own implementation of the protocol.
 - [Architecture overview](docs/architecture/rebalancer-overview.md) — component diagram
 - [Architectural decision records](docs/adrs/) — `docs/adrs/`
 - [User stories](docs/user-stories/) — `docs/user-stories/`
+- [Release notes 6.0.0](docs/release-notes/6.0.0.md) and [migration guide](docs/release-notes/migrating-to-6.0.md) —
+  Redis writes as server-side scripts (per-group ACL user: add `+eval +evalsha`), the types deprecated in 5.2 internal
 - [Release notes 5.2.0](docs/release-notes/5.2.0.md) — a Redis group settles more reliably over slow links,
   types deprecated for 6.0 (warning RBR0034), `ClientNotFoundException` public, tests and a scan before every release
 - [Release notes 5.1.0](docs/release-notes/5.1.0.md) — fixes from the 5.0 review: fencing tokens in SQL Server /
@@ -197,8 +199,9 @@ this for you.
 - **Redis:** since 4.0 a group lives in `RBR:Lease:{group}`, `RBR:Resources:{group}` and `RBR:Clients:{group}`; the
   first 4.0 node moves a 3.x group automatically. Provisioning, the per-group ACL user, and rollback:
   [migrating-to-4.0.md](docs/release-notes/migrating-to-4.0.md). From 3.x to 4.0, upgrade all nodes of a group at
-  once. Valkey 8.1 works
-  the same way, including the per-group ACL user (ADR-0031).
+  once. Since 6.0 the per-group ACL user also needs `+eval +evalsha`, as the writes are server-side scripts
+  ([migrating-to-6.0.md](docs/release-notes/migrating-to-6.0.md), ADR-0037). Valkey 8.1 works the same way, including
+  the per-group ACL user (ADR-0031).
 - **ZooKeeper:** pass credentials (or an explicit ACL); secure the znodes you create with the runbook in
   [`src/Rebalancer.ZooKeeper/README.md`](src/Rebalancer.ZooKeeper/README.md). A client stops its handlers as soon as
   it loses its connection and restarts them if its session survives, so stop handlers must finish within about a third
