@@ -87,7 +87,7 @@ the trace shows the conflicts directly.
 | Action                                                                                         | Owner     | Status |
 |------------------------------------------------------------------------------------------------|-----------|--------|
 | Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Done   |
-| Decide the fix: ADR-0036 (Proposed), one compare-and-set per client record                     | dradoaica | Open   |
+| Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                     | dradoaica | Done   |
 | Fix the cause, with a regression test that fails before the fix                                |           | Open   |
 
 ## Preventive measures

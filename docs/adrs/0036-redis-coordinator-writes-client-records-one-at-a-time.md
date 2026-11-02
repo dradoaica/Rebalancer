@@ -1,10 +1,10 @@
 ---
 id: ADR-0036
-status: Proposed
+status: Accepted
 date: 2026-11-02
 decides: "how the Redis coordinator writes several client records in one grant or stop (PRB-0009)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -44,7 +44,7 @@ without the lease (ADR-0026), and no node is granted a resource another node may
 
 ## Decision Outcome
 
-Proposed option: "A. One compare-and-set per record", because it removes the conflict that dominates PRB-0009 (an
+Chosen option: "A. One compare-and-set per record", because it removes the conflict that dominates PRB-0009 (an
 attempt now meets at most one node's keep-alive, not all of them) while keeping ADR-0017's compare-and-set, the stored
 format, and the ACL command set. Safety rests on three properties that already hold:
 
