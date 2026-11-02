@@ -63,39 +63,17 @@ internal class ClientService : IClientService, IFencedClientService
         return clients;
     }
 
-    public Task<Client> KeepAliveAsync(Guid clientId) =>
-        RedisHash.CompareAndSetAsync<Client, Client>(
-            cache,
-            clientsKey ?? throw new ClientNotFoundException(clientId),
-            RedisHash.Encode(clientId),
-            (client, now) =>
-            {
-                if (client == null)
-                {
-                    throw new ClientNotFoundException(clientId);
-                }
-
-                client.LastKeepAlive = now;
-                return (client, client);
-            }
-        );
+    // ADR-0037: changes the keep-alive only, in a script, so it never conflicts with the coordinator's writes
+    public async Task<Client> KeepAliveAsync(Guid clientId)
+    {
+        var key = clientsKey ?? throw new ClientNotFoundException(clientId);
+        var now = await RedisHash.GetServerTimeAsync(cache);
+        var record = await RedisScripts.KeepAliveAsync(cache, key, RedisHash.Encode(clientId), now);
+        return record.IsNull ? throw new ClientNotFoundException(clientId) : RedisHash.Decode<Client>(record);
+    }
 
     public Task SetClientStatusAsync(Guid clientId, ClientStatus clientStatus) =>
-        RedisHash.CompareAndSetAsync<Client, bool>(
-            cache,
-            ClientsKey,
-            RedisHash.Encode(clientId),
-            (client, _) =>
-            {
-                if (client == null)
-                {
-                    return (null, false);
-                }
-
-                client.ClientStatus = clientStatus;
-                return (client, true);
-            }
-        );
+        RedisScripts.SetStatusAsync(cache, ClientsKey, RedisHash.Encode(clientId), (int)clientStatus);
 
     public Task<ModifyClientResult> StartActivityAsync(
         int fencingToken,
@@ -128,45 +106,35 @@ internal class ClientService : IClientService, IFencedClientService
             legacyMigrationDoneForFencingToken = fencingToken;
         }
 
-        for (var attempt = 0; attempt < MaxCompareAndSetAttempts; attempt++)
+        if ((await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken)).IsNull)
         {
-            var lease = await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken);
-            if (lease.IsNull)
-            {
-                return 0;
-            }
-
-            var now = await RedisHash.GetServerTimeAsync(cache);
-            var expired = (await cache.HashGetAllAsync(groupKey)).Where(x =>
-                    {
-                        var client = RedisHash.Decode<Client>(x.Value);
-                        return client.ClientId != coordinatorClientId && now - client.LastKeepAlive > retention;
-                    }
-                )
-                .ToList();
-            if (!expired.Any())
-            {
-                return 0;
-            }
-
-            // all-or-nothing, and only while this coordinator still holds the same lease (fencing guard, ADR-0014)
-            var transaction = cache.CreateTransaction();
-            transaction.AddCondition(
-                Condition.HashEqual(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup), lease)
-            );
-            foreach (var entry in expired)
-            {
-                transaction.AddCondition(Condition.HashEqual(groupKey, entry.Name, entry.Value));
-                _ = transaction.HashDeleteAsync(groupKey, entry.Name);
-            }
-
-            if (await transaction.ExecuteAsync())
-            {
-                return expired.Count;
-            }
+            return 0;
         }
 
-        return 0; // best effort: the next heartbeat tries again
+        var now = await RedisHash.GetServerTimeAsync(cache);
+        var expired = (await cache.HashGetAllAsync(groupKey)).Where(x =>
+                {
+                    var client = RedisHash.Decode<Client>(x.Value);
+                    return client.ClientId != coordinatorClientId && now - client.LastKeepAlive > retention;
+                }
+            )
+            .ToArray();
+        if (!expired.Any())
+        {
+            return 0;
+        }
+
+        // only entries still unchanged (not kept alive meanwhile), and only while this coordinator holds the same lease
+        // (fencing guard, ADR-0014); a script, so other writes cannot make it fail (ADR-0037)
+        return await RedisScripts.DeleteUnchangedWhileHoldingLeaseAsync(
+            cache,
+            groupKey,
+            RedisHash.LeaseKey(resourceGroup),
+            RedisHash.Encode(resourceGroup),
+            coordinatorClientId,
+            fencingToken,
+            expired
+        );
     }
 
     public async Task<bool> HoldsLeaseAsync(string resourceGroup, Guid coordinatorClientId, int fencingToken) =>
@@ -213,24 +181,32 @@ internal class ClientService : IClientService, IFencedClientService
             }
         );
 
-    public Task ResetClientAsync(Guid clientId) =>
-        RedisHash.CompareAndSetAsync<Client, bool>(
+    // PRB-0005: as a new registration would write it, keeping the record's fencing token and keep-alive
+    public async Task ResetClientAsync(Guid clientId)
+    {
+        var field = RedisHash.Encode(clientId);
+        var current = await cache.HashGetAsync(ClientsKey, field);
+        if (current.IsNull)
+        {
+            return;
+        }
+
+        var client = RedisHash.Decode<Client>(current);
+        client.ClientStatus = ClientStatus.Waiting;
+        client.CoordinatorStatus = CoordinatorStatus.StopActivity;
+        client.AssignedResources = new List<string>();
+        await RedisScripts.WriteGuardedRecordAsync(
             cache,
             ClientsKey,
-            RedisHash.Encode(clientId),
-            (client, _) =>
-            {
-                if (client == null)
-                {
-                    return (null, false);
-                }
-
-                client.ClientStatus = ClientStatus.Waiting;
-                client.CoordinatorStatus = CoordinatorStatus.StopActivity;
-                client.AssignedResources = new List<string>();
-                return (client, true);
-            }
+            ClientsKey,
+            field,
+            null,
+            Guid.Empty,
+            int.MaxValue, // no fencing check: the node resets its own record
+            client,
+            RedisScripts.KeptFields.FencingToken
         );
+    }
 
     /// <summary>
     ///     Applies <paramref name="modify" /> to the clients one at a time, in the given order (ADR-0036; the coordinator
@@ -259,8 +235,9 @@ internal class ClientService : IClientService, IFencedClientService
         return ModifyClientResult.Ok;
     }
 
-    // one record, compare-and-set (ADR-0017): conditioned on this record and the lease only, so another node's
-    // keep-alive cannot make the write fail (PRB-0009)
+    // one record (ADR-0036), in a script (ADR-0037): written only if it exists and has not seen a newer token, and
+    // (given resourceGroup) while the lease names this coordinator and token; the node's keep-alive and status are kept,
+    // so neither they nor another node's write can make it fail
     private async Task<ModifyClientResult> ModifyClientAsync(
         string resourceGroup,
         Guid coordinatorClientId,
@@ -270,46 +247,32 @@ internal class ClientService : IClientService, IFencedClientService
     )
     {
         var field = RedisHash.Encode(clientId);
-        for (var attempt = 0; attempt < MaxCompareAndSetAttempts; attempt++)
+        var current = await cache.HashGetAsync(ClientsKey, field);
+        if (current.IsNull)
         {
-            var current = await cache.HashGetAsync(ClientsKey, field);
-            if (current.IsNull)
-            {
-                return ModifyClientResult.FencingTokenViolation;
-            }
-
-            var client = RedisHash.Decode<Client>(current);
-            if (client.FencingToken > fencingToken)
-            {
-                return ModifyClientResult.FencingTokenViolation;
-            }
-
-            var transaction = cache.CreateTransaction();
-            if (resourceGroup != null)
-            {
-                // ADR-0026: written only while the lease still names this coordinator and token
-                var lease = await GetLeaseIfHeldAsync(resourceGroup, coordinatorClientId, fencingToken);
-                if (lease.IsNull)
-                {
-                    return ModifyClientResult.FencingTokenViolation;
-                }
-
-                transaction.AddCondition(
-                    Condition.HashEqual(RedisHash.LeaseKey(resourceGroup), RedisHash.Encode(resourceGroup), lease)
-                );
-            }
-
-            transaction.AddCondition(Condition.HashEqual(ClientsKey, field, current));
-            modify(client);
-            client.FencingToken = fencingToken;
-            _ = transaction.HashSetAsync(ClientsKey, field, RedisHash.Encode(client));
-            if (await transaction.ExecuteAsync())
-            {
-                return ModifyClientResult.Ok;
-            }
+            return ModifyClientResult.FencingTokenViolation;
         }
 
-        throw new RebalancerException("Could not modify clients due to concurrent modifications");
+        var client = RedisHash.Decode<Client>(current);
+        if (client.FencingToken > fencingToken)
+        {
+            return ModifyClientResult.FencingTokenViolation;
+        }
+
+        modify(client);
+        client.FencingToken = fencingToken;
+        var written = await RedisScripts.WriteGuardedRecordAsync(
+            cache,
+            ClientsKey,
+            resourceGroup == null ? ClientsKey : RedisHash.LeaseKey(resourceGroup),
+            field,
+            resourceGroup == null ? null : (string)RedisHash.Encode(resourceGroup),
+            coordinatorClientId,
+            fencingToken,
+            client,
+            RedisScripts.KeptFields.ClientStatus
+        );
+        return written ? ModifyClientResult.Ok : ModifyClientResult.FencingTokenViolation;
     }
 
     // ADR-0015: once per coordinator tenure, move this group's entries from the 2.x hash into the group's hash, guarded by

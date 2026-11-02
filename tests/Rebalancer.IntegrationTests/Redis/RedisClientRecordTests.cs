@@ -213,10 +213,94 @@ public sealed class RedisClientRecordTests
         );
     }
 
+    // ADR-0037: the scripts never re-encode a record (Lua's cjson turns [] into {}); what they write is Newtonsoft's
+    // text with the other writers' fields filled in, so 5.x nodes and Newtonsoft read it, whatever the resource names
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task RecordsWrittenByTheScripts_StayNewtonsoftJson(string image)
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(image).Build();
+        await redis.StartAsync();
+        using var mux = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var db = mux.GetDatabase();
+        const string group = "orders";
+        var coordinator = Guid.NewGuid();
+        SeedLease(db, group, coordinator, 3);
+        var service = new ClientService(db);
+        IFencedClientService fenced = service;
+        var node = Guid.NewGuid();
+        await service.CreateClientAsync(group, node);
+        var key = RedisHash.GroupKey("Clients", group);
+        async Task<string> Raw() => (await db.HashGetAsync(key, RedisHash.Encode(node)))!;
+        List<string> names = ["quote\"d", "50%", "x]y[z", "back\\slash", "ünïcode", "",];
+
+        await service.SetClientStatusAsync(node, ClientStatus.Active);
+        Assert.Equal(
+            ModifyClientResult.Ok,
+            await fenced.StartActivityAsync(
+                group,
+                coordinator,
+                3,
+                [new ClientStartRequest { ClientId = node, AssignedResources = names, },]
+            )
+        );
+        var granted = await service.KeepAliveAsync(node);
+        Assert.Equal(names, granted.AssignedResources);
+        Assert.Equal(ClientStatus.Active, granted.ClientStatus); // kept by the coordinator's write
+        Assert.Equal(CoordinatorStatus.ResourcesGranted, granted.CoordinatorStatus);
+        Assert.Equal(3, granted.FencingToken);
+        Assert.Equal(RedisHash.Encode(RedisHash.Decode<Client>(await Raw())), (RedisValue)await Raw());
+
+        await fenced.ResetClientAsync(node);
+        var reset = await service.KeepAliveAsync(node);
+        Assert.Contains("\"AssignedResources\":[]", await Raw());
+        Assert.Empty(reset.AssignedResources);
+        Assert.Equal(ClientStatus.Waiting, reset.ClientStatus);
+        Assert.Equal(3, reset.FencingToken); // kept by the reset
+        Assert.True(reset.LastKeepAlive >= granted.LastKeepAlive);
+        Assert.Equal(RedisHash.Encode(RedisHash.Decode<Client>(await Raw())), (RedisValue)await Raw());
+    }
+
+    // TM-0003 revision 7 (ADR-0037): a script runs under the caller's ACL, so the per-group user cannot reach another
+    // group's keys through a script, neither as a declared key nor from inside the script
+    [SkippableTheory]
+    [MemberData(nameof(DockerSupport.RedisServers), MemberType = typeof(DockerSupport))]
+    public async Task AScriptOfThePerGroupUser_CannotReachAnotherGroupsKeys(string image)
+    {
+        Skip.IfNot(DockerSupport.IsDockerAvailable(), "Docker is not available.");
+        await using var redis = new RedisBuilder(image).Build();
+        await redis.StartAsync();
+        using var admin = await ConnectionMultiplexer.ConnectAsync(redis.GetConnectionString());
+        var adminDb = admin.GetDatabase();
+        var other = RedisHash.GroupKey("Clients", "invoices");
+        await adminDb.HashSetAsync(other, "x", "untouched");
+        await CreateMinimalGroupUserAsync(adminDb, "orders");
+        var options = ConfigurationOptions.Parse(redis.GetConnectionString());
+        options.User = "orders-user";
+        options.Password = "orders-pass";
+        options.AbortOnConnectFail = false;
+        using var limited = await ConnectionMultiplexer.ConnectAsync(options);
+        var db = limited.GetDatabase();
+        var own = RedisHash.GroupKey("Clients", "orders");
+
+        // refused on both servers, with different messages (Redis 7.0: "The user executing the script can't access
+        // ...", Valkey 8.1: "ACL failure in script: No permissions ...")
+        await Assert.ThrowsAsync<RedisServerException>(() =>
+            db.ScriptEvaluateAsync("return redis.call('HSET', KEYS[1], 'x', 'changed')", [other,])
+        );
+        await Assert.ThrowsAsync<RedisServerException>(() =>
+            db.ScriptEvaluateAsync($"return redis.call('HSET', '{other}', 'x', 'changed')", [own,])
+        );
+        Assert.Equal("untouched", (string?)await adminDb.HashGetAsync(other, "x"));
+        Assert.Equal(1, (int)await db.ScriptEvaluateAsync("return redis.call('HSET', KEYS[1], 'x', 'mine')", [own,]));
+    }
+
     // The documented minimal Redis ACL user for one resource group in 4.0, with no shared keys (ADR-0020; command set
     // first verified 2026-10-18 against redis:7.0 and StackExchange.Redis 3.4.5; the tests using it run on every server
     // in DockerSupport.RedisServers with the current client library): data and transaction commands, TIME for the
-    // server clock, and ECHO, which the client library's connection handshake requires. Its other handshake commands
+    // server clock, ECHO, which the client library's connection handshake requires, and since 6.0 EVAL and EVALSHA for
+    // the guarded writes (ADR-0037). Its other handshake commands
     // (CLIENT, CLUSTER, CONFIG GET, INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
     private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
         adminDb.ExecuteAsync(
@@ -233,7 +317,9 @@ public sealed class RedisClientRecordTests
             "+@write",
             "+@transaction",
             "+time",
-            "+echo"
+            "+echo",
+            "+eval", // 6.0: the guarded writes are scripts (ADR-0037, TM-0003 revision 7)
+            "+evalsha"
         );
 
     [Fact]
