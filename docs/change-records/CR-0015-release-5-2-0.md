@@ -1,9 +1,9 @@
 ---
 id: CR-0015
-status: Draft
+status: Approved
 date: 2026-11-02
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
 risk: "Medium"
 change-type: "Normal"
 requested-by: "dradoaica"
@@ -100,7 +100,7 @@ use. A minor marks the new public type and the new warnings.
   10 runs, and 5 of 6 in 3 more runs with a trace: 2 failures in 26, both on Redis 7.0, both liveness, no overlap.
   Before the change: 3 of 6 failed. **ADR-0036's confirmation (10 runs without a failure) is not met**; see the
   deviation below.
-- [ ] **Deviation, for the maintainer to accept:** ADR-0036 ships as a partial fix of PRB-0009. The trace over the
+- [x] **Deviation, accepted by dradoaica with this record (in session 2026-11-02):** ADR-0036 ships as a partial fix of PRB-0009. The trace over the
   3 runs (151 failed attempts, none reaching the 10th): most failed because that node's keep-alive rewrote the record
   meanwhile, and 7 with neither the record nor the lease changed. StackExchange.Redis implements the conditions
   with `WATCH`, which covers the whole key: any write to the group's clients hash or lease hash aborts the
@@ -112,8 +112,8 @@ use. A minor marks the new public type and the new warnings.
   including all four network-fault tests.
 - [x] Dependency scan with the new script (`scripts/check-vulnerable-packages.sh`), as CI runs it: no vulnerable
   package (2026-11-02, nuget.org).
-- [ ] ZooKeeper integration tests: proposed **N/A**: no ZooKeeper code changed.
-- [ ] Rollback rehearsal: proposed **N/A**: no stored data or protocol change; see Impact (Operations).
+- [x] ZooKeeper integration tests: **N/A**, accepted by dradoaica (in session 2026-11-02): no ZooKeeper code changed.
+- [x] Rollback rehearsal: **N/A**, accepted by dradoaica (in session 2026-11-02): no stored data or protocol change; see Impact (Operations).
 - [x] ADR-0036's missing condition (the coordinator's own record first): recorded as a dated note on ADR-0036, an
   exception to its immutability made at dradoaica's request (in session 2026-11-02). `govern_check.py --base main`
   reports it as GOV-10 on ADR-0036; that finding is this exception and expected.
@@ -145,8 +145,8 @@ Release notes `docs/release-notes/5.2.0.md`.
 
 | Role                   | Name | Date |
 |------------------------|------|------|
-| Maintainer (code)      |      |      |
-| Release / CAB (or org) |      |      |
+| Maintainer (code)      | dradoaica | 2026-11-02 (approved in session, before the release) |
+| Release / CAB (or org) | dradoaica | 2026-11-02 (approved in session, before the release) |
 
 ## Post-implementation
 
