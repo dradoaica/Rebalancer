@@ -23,7 +23,7 @@ Coordination state lives in these Redis keys:
   it, once per lease tenure; afterwards it holds only groups not yet upgraded.
 - `List:RBR:Resources` (list, shared by all groups): resources.
 
-Values are Newtonsoft JSON. Lease and client updates are compare-and-set transactions evaluated on Redis server time (ADR-0017, formerly ADR 0006). The library has no access control of its own: it relies on the Redis connection (password or ACL user, TLS). Anyone who can write these keys controls the assignments of the groups they cover.
+Values are Newtonsoft JSON. Lease and client updates are compare-and-set transactions evaluated on Redis server time (ADR-0017, formerly ADR 0006); since 6.0 they are server-side scripts (revision 7). The library has no access control of its own: it relies on the Redis connection (password or ACL user, TLS). Anyone who can write these keys controls the assignments of the groups they cover.
 
 **Revision 2 (3.0.0, CR-0003):**
 
@@ -88,6 +88,13 @@ the body, and records 5.0.
   scripts that run long and block the whole Redis instance (scripts run one at a time). See Denial of Service.
 - Threats T1, T2 (tampering) and elevation of privilege are unchanged in kind: a script reaches the same keys the
   user could already write.
+- **As implemented (CR-0016, 2026-11-02), correcting the first bullet:** the client status and the reset are scripts
+  too. The lease writes still retry, but only when the lease field itself changed, as before; the two one-off
+  migrations, of 2.x client records (ADR-0015) and of 3.x shared keys (ADR-0020), keep their transactions on shared
+  keys, which a per-group user cannot reach anyway, so `+@transaction` stays. The
+  client library sends `EVAL` once and `EVALSHA` afterwards, and tries `SCRIPT LOAD`, which the per-group user is
+  denied; that is not needed (`EVAL` caches the script on the server) and shows in `ACL LOG` like the handshake
+  commands.
 
 ## System context and boundaries
 
@@ -123,15 +130,17 @@ the body, and records 5.0.
 
 1. Node → RESP → Redis – one `ConnectionMultiplexer` per provider, closed on dispose (ADR-0016, formerly ADR 0006).
 2. Node → `HGET` / `TIME` / transaction with a hash-equality condition + `HSET` on `RBR:Lease:{group}` – acquire, renew
-   or relinquish the lease.
+   or relinquish the lease. Since 6.0 the condition and `HSET` are one script comparing the lease field (revision 7).
 3. Node → `HSET` / compare-and-set on `RBR:Clients:{group}` – register, keep-alive, status changes; `HDEL` of its own
-   entry on a clean stop (since 3.0).
+   entry on a clean stop (since 3.0). Since 6.0 keep-alive, status and reset are scripts that change only their fields.
 4. Coordinator → one transaction on `Clients` with a condition per client – stop or grant resources, guarded by
-   fencing tokens.
+   fencing tokens. Since 5.2 one write per client in order (ADR-0036); since 6.0 each is a script checking the lease
+   holder and token and the record's token (revision 7).
 5. Node → `HVALS` on `RBR:Clients:{group}`, `LRANGE` on `RBR:Resources:{group}` – read live clients and resources (every
    heartbeat).
 6. Coordinator → `HGETALL` + transaction with `HDEL` on `RBR:Clients:{group}` (since 3.0) – expire entries older than
-   the retention by Redis `TIME`, conditioned on its unchanged lease record (ADR-0014).
+   the retention by Redis `TIME`, conditioned on its unchanged lease record (ADR-0014). Since 6.0 a script deletes the
+   entries still unchanged while the lease names this coordinator and token.
 7. Coordinator → `HGETALL` on `Dictionary:RBR:Clients` + transaction moving its group's entries (since 3.0, once per
    lease tenure, conditioned on its lease; skipped if not permitted) (ADR-0015).
 8. Operator / tools → write `ResourceGroups`, `Resources` – provisioning.

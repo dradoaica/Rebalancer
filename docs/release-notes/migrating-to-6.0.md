@@ -1,7 +1,11 @@
 # Migrating from 5.x to 6.0
 
-6.0 has two breaking changes. Most hosts need only the first step for Redis; SQL Server, PostgreSQL and ZooKeeper
-hosts need no change unless their code uses one of the types listed below.
+6.0 has two breaking changes: Redis and Valkey hosts whose nodes use a per-group ACL user add two commands to it
+before upgrading, and code that used one of eight types deprecated in 5.2 keeps its own copy. Nothing else changes; a
+SQL Server, PostgreSQL or ZooKeeper host is affected only by the second, and only if its code used one of the types.
+
+Upgrade from 5.2. A host on 5.0 or 5.1 never saw the 5.2 deprecation warning: check its code for the types below, and
+upgrade its Redis groups to 5.2 first, or all nodes of a group at once (mixed groups are rehearsed for 5.2 and 6.0).
 
 Decisions: [ADR-0034](../adrs/0034-public-api-of-the-lease-based-backends-in-6-0.md),
 [ADR-0037](../adrs/0037-redis-guarded-writes-as-server-side-scripts.md). Threat model:
@@ -29,13 +33,16 @@ links ([PRB-0009](../problem-records/PRB-0009-redis-group-does-not-converge-over
   ```
 
   Scripts run under the user's ACL: a script cannot reach keys the user may not access (verified on Redis 7.0 and
-  Valkey 8.1). The two commands let anyone with the user's password run arbitrary Lua over the group's keys, including
-  a long script that blocks the whole Redis instance while it runs (TM-0003, D5); keep the credentials as secret as
-  before, and prefer a Redis instance dedicated to Rebalancer.
+  Valkey 8.1). `ACL LOG` shows `script|load` denied, next to the handshake commands it already showed: the client
+  library tries it, and does not need it.
+
+  `EVAL` and `EVALSHA` let anyone with the user's password run arbitrary Lua over the group's keys, including a long
+  script that blocks the whole Redis instance while it runs (TM-0003, D5); keep the credentials as secret as before,
+  and prefer a Redis instance dedicated to Rebalancer.
 - **A Redis service that does not allow scripts:** stay on 5.2 until it does.
 
 The stored keys, layout and JSON format do not change, and 5.2 and 6.0 nodes can run in one group, so a group can be
-upgraded one node at a time once the ACL allows the two commands. A 5.2 node needs nothing new.
+upgraded one node at a time once the ACL allows the two commands. A 5.2 node does not use them.
 
 ## Types that are no longer public
 

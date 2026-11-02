@@ -300,7 +300,7 @@ public sealed class RedisClientRecordTests
     // first verified 2026-10-18 against redis:7.0 and StackExchange.Redis 3.4.5; the tests using it run on every server
     // in DockerSupport.RedisServers with the current client library): data and transaction commands, TIME for the
     // server clock, ECHO, which the client library's connection handshake requires, and since 6.0 EVAL and EVALSHA for
-    // the guarded writes (ADR-0037). Its other handshake commands
+    // the guarded writes (ADR-0037; the library's SCRIPT LOAD is denied and not needed). Its other handshake commands
     // (CLIENT, CLUSTER, CONFIG GET, INFO, SELECT, SUBSCRIBE) are denied but tolerated by the library.
     private static Task CreateMinimalGroupUserAsync(IDatabase adminDb, string group) =>
         adminDb.ExecuteAsync(

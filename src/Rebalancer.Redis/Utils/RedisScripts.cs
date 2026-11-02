@@ -8,9 +8,11 @@ namespace Rebalancer.Redis.Utils;
 /// <summary>
 ///     ADR-0037: the conditional writes as server-side scripts. A script checks its condition and writes in one atomic
 ///     step, so a write to another field or key cannot abort it (unlike <c>WATCH</c>, which covers a whole key,
-///     PRB-0009). The scripts never re-encode JSON (Lua's cjson turns an empty list into <c>{}</c>, which Newtonsoft
-///     cannot read): they decode to check values and write text Newtonsoft produced, filling in the fields other
-///     writers own as plain text.
+///     PRB-0009). The scripts never re-encode a record (Lua's cjson turns an empty list into <c>{}</c>, which
+///     Newtonsoft cannot read): they decode it to check values and write text Newtonsoft produced, filling in the
+///     fields other writers own as plain text. StackExchange.Redis sends <c>EVAL</c> the first time and
+///     <c>EVALSHA</c> afterwards; its <c>SCRIPT LOAD</c> is denied to the per-group ACL user and not needed, as
+///     <c>EVAL</c> already caches the script on the server.
 /// </summary>
 internal static class RedisScripts
 {

@@ -80,7 +80,9 @@ election and barriers ([ADR-0003](../adrs/0003-zookeeper-barriers-leader-electio
   `{group}` is percent-encoded ([ADR-0015](../adrs/0015-store-redis-clients-per-resource-group.md)). The first 4.0 node
   of a group moves it out of the 3.x shared keys `Dictionary:RBR:ResourceGroups` and `List:RBR:Resources`
   ([migration guide](../release-notes/migrating-to-4.0.md)). Leases use the Redis server clock and compare-and-set
-  updates ([ADR-0017](../adrs/0017-redis-lease-timing-and-atomic-updates.md)).
+  updates ([ADR-0017](../adrs/0017-redis-lease-timing-and-atomic-updates.md)); since 6.0 the conditional writes are
+  server-side scripts ([ADR-0037](../adrs/0037-redis-guarded-writes-as-server-side-scripts.md)), and the per-group ACL
+  user needs `+eval +evalsha`.
 - **SQL Server:** schema in [`db/sqlserver/`](../../db/sqlserver/); the role `rebalancer_node` in
   `db/sqlserver/RebalancerLeastPrivilege.sql` grants exactly what a node needs.
 - **PostgreSQL:** schema and role in [`db/postgresql/`](../../db/postgresql/). A lease operation locks the group row

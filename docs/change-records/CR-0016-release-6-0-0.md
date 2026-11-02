@@ -34,13 +34,22 @@ types). No stored data, key or format change. Release notes: `docs/release-notes
 
 - **ADR-0037 (Tier 1, accepted):** new `src/Rebalancer.Redis/Utils/RedisScripts.cs`; `RedisHash.CompareAndSetAsync`
   (the leases) compares and sets one field in a script; `ClientService`: keep-alive, status, reset, the coordinator's
-  guarded per-record writes (ADR-0036, own record first) and the expiry deletion are scripts. The 2.x legacy migration
-  keeps its transaction (the shared legacy key, once per tenure). The scripts never re-encode JSON: Lua's `cjson`
+  guarded per-record writes (ADR-0036, own record first) and the expiry deletion are scripts. The two one-off
+  migrations keep their transactions: the 2.x client move (ADR-0015, once per tenure) and the 3.x per-group key move
+  (ADR-0020, `PerGroupKeyMigration`), both on shared keys a per-group user cannot reach; `+@transaction` therefore
+  stays in the ACL. The scripts never re-encode a record: Lua's `cjson`
   turns `[]` into `{}` (seen on Redis 7.0 and Valkey 8.1, neither has `decode_array_with_array_mt`); they write
   Newtonsoft's text with the other writers' fields (keep-alive, status or token) filled in as text.
   - Lease guard (ADR-0026) unchanged in meaning: the lease names the coordinator and its token. A coordinator's write
     no longer fails because its own renewal or another node's keep-alive changed a field.
   - ACL: `+eval +evalsha` added to the per-group user; verified sufficient on both servers (not all of `@scripting`).
+    StackExchange.Redis sends `EVAL` once, then `EVALSHA`, and tries `SCRIPT LOAD`, which the user is denied and the
+    writes do not need (seen with `MONITOR` and `ACL LOG` on Redis 7.0, 2026-11-02).
+  - **Deviations from ADR-0037's implementation outline** ("to be confirmed in review"): the scripts are sent with
+    `IDatabase.ScriptEvaluateAsync(string)` rather than `LuaScript` (same commands on the wire, see above); a write
+    is two or three round trips, not one (a read or `TIME` before the script, so that the decisions stay in .NET);
+    the scripts decode JSON with `cjson` but never encode a record (cjson's `[]` → `{}`); and the lease writes keep
+    a retry loop for a change of the lease field itself.
   - Tests: `RedisClientRecordTests.AScriptOfThePerGroupUser_CannotReachAnotherGroupsKeys` (declared and undeclared
     keys refused on both servers; TM-0003 revision 7's open point),
     `RecordsWrittenByTheScripts_StayNewtonsoftJson` (byte-identical to Newtonsoft's encoding, with awkward resource
@@ -50,8 +59,8 @@ types). No stored data, key or format change. Release notes: `docs/release-notes
   `[Obsolete]` and the `RBR0034` suppressions removed; `PublicApiContractTests`.
 - **TM-0003 revision 7** (accepted by dradoaica, 2026-11-02): scripting in the ACL user, D2 corrected, D5 (long
   scripts block the instance).
-- Versions 6.0.0; docs: release notes, migration guide, README, SECURITY, baseline, overview, matrix, PRB-0009,
-  TM-0003 (the verified command set).
+- Versions 6.0.0; docs: release notes, migration guide, README, SECURITY, baseline, overview, `docs/tlaplus/README.md`,
+  matrix, PRB-0009, TM-0003 (the verified command set, the data flows, corrections as implemented).
 
 **Out of scope:**
 

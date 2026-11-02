@@ -11,6 +11,7 @@ namespace Rebalancer.Redis.Clients;
 
 internal class ClientService : IClientService, IFencedClientService
 {
+    // the 2.x migration's transaction only; the other writes are scripts that other writes cannot abort (ADR-0037)
     private const int MaxCompareAndSetAttempts = 10;
 
     // 2.x kept every group's clients in one hash; 3.0 uses one hash per group and moves old entries over (ADR-0015)
@@ -210,10 +211,9 @@ internal class ClientService : IClientService, IFencedClientService
 
     /// <summary>
     ///     Applies <paramref name="modify" /> to the clients one at a time, in the given order (ADR-0036; the coordinator
-    ///     puts its own record first): each record is written only if it
-    ///     exists and has not seen a newer fencing token (and, given <paramref name="resourceGroup" />, the lease still
-    ///     names <paramref name="coordinatorClientId" /> with that token). The first record that fails stops the loop;
-    ///     the records written before it stay written.
+    ///     puts its own record first): each record is written only if it exists and has not seen a newer fencing token
+    ///     (and, given <paramref name="resourceGroup" />, the lease still names <paramref name="coordinatorClientId" />
+    ///     with that token). The first record that fails stops the loop; the records written before it stay written.
     /// </summary>
     private async Task<ModifyClientResult> ModifyClientsAsync(
         string resourceGroup,

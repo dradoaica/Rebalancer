@@ -94,7 +94,9 @@ In short:
   `idle_in_transaction_session_timeout`, half the lease expiry, set per transaction), so a stalled node cannot block
   the others for longer (TM-0004 D2).
 - **Redis:** Rebalancer has no access control of its own. Use a dedicated ACL user limited to the Rebalancer keys and
-  `ssl=true` with certificate validation; without a password, anyone who reaches the port controls assignment.
+  `ssl=true` with certificate validation; without a password, anyone who reaches the port controls assignment. Since
+  6.0 that user runs scripts (`+eval +evalsha`), which can block the whole instance while they run (TM-0003, D5):
+  prefer an instance dedicated to Rebalancer.
 - **ZooKeeper:** configure ACLs (`authScheme` / `authData`) and encrypt client connections when using the digest scheme,
   whose credentials otherwise travel in clear text. Rebalancer warns when operator-created znodes are left open.
 - Metrics and traces carry the backend, group name and coordinator epoch; health checks report a state and a short

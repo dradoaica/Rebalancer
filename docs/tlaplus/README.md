@@ -52,7 +52,7 @@ Abstractions:
 - A coordinator heartbeat reads the clients and writes `StopActivity` in one step; the barrier check and
   `StartActivity` are one step. A rebalancing keeps the fencing token it started with, as `ClientEvent` does.
 - `StopActivity` follows SQL Server (records with an older token are updated even when the call reports a violation);
-  Redis writes all or none, which is one of the allowed behaviours.
+  Redis writes one record at a time since 5.2 (ADR-0036), which is one of the allowed behaviours.
 - Each client id in `N` starts at most once: a restarted process registers a new id, and a cleanly stopped one is never
   reused (ADR-0014). `StoreError` keeps the id, as the implementation does.
 - The allocation is any even split; the code's split is one of them. The 3.x key migration is not modelled.
@@ -74,8 +74,9 @@ Abstractions:
 - [ADR-0036](../adrs/0036-redis-coordinator-writes-client-records-one-at-a-time.md) (5.2.0): Redis writes a grant's
   records one at a time, so a grant that fails leaves any subset of the fenced records written (`GrantedRecordsOn`),
   always including the coordinator's own record, which the code writes first; with the lease lost before the first
-  write, none. A grant can fail with every check passed (attempts exhausted, a lost reply); that counts as one of
-  `MaxFailures`. SQL Server and PostgreSQL write all or none, one of these behaviours.
+  write, none. A grant can fail with every check passed (in 5.2 attempts exhausted; since 6.0, where each write is a
+  script that other writes cannot abort, ADR-0037, a lost reply or connection); that counts as one of `MaxFailures`.
+  SQL Server and PostgreSQL write all or none, one of these behaviours.
 
 | Config                            | Checks                                                                        | Result                                                    |
 |-----------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------|
