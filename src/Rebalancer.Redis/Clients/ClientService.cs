@@ -211,9 +211,9 @@ internal class ClientService : IClientService, IFencedClientService
 
     /// <summary>
     ///     Applies <paramref name="modify" /> to the clients one at a time, in the given order (ADR-0036; the coordinator
-    ///     puts its own record first): each record is written only if it exists and has not seen a newer fencing token
-    ///     (and, given <paramref name="resourceGroup" />, the lease still names <paramref name="coordinatorClientId" />
-    ///     with that token). The first record that fails stops the loop; the records written before it stay written.
+    ///     puts its own record first): each record is written only if it exists and has not seen a newer fencing token (and,
+    ///     given <paramref name="resourceGroup" />, the lease still names <paramref name="coordinatorClientId" /> with that
+    ///     token). The first record that fails stops the loop; the records written before it stay written.
     /// </summary>
     private async Task<ModifyClientResult> ModifyClientsAsync(
         string resourceGroup,

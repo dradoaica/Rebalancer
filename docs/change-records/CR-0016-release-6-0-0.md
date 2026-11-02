@@ -35,8 +35,7 @@ types). No stored data, key or format change. Release notes: `docs/release-notes
 - **ADR-0037 (Tier 1, accepted):** new `src/Rebalancer.Redis/Utils/RedisScripts.cs`; `RedisHash.CompareAndSetAsync`
   (the leases) compares and sets one field in a script; `ClientService`: keep-alive, status, reset, the coordinator's
   guarded per-record writes (ADR-0036, own record first) and the expiry deletion are scripts. The two one-off
-  migrations keep their transactions: the 2.x client move (ADR-0015, once per tenure) and the 3.x per-group key move
-  (ADR-0020, `PerGroupKeyMigration`), both on shared keys a per-group user cannot reach; `+@transaction` therefore
+  migrations keep their transactions: the 2.x client move (ADR-0015, once per tenure) and the 3.x per-group key move (ADR-0020, `PerGroupKeyMigration`), both on shared keys a per-group user cannot reach; `+@transaction` therefore
   stays in the ACL. The scripts never re-encode a record: Lua's `cjson`
   turns `[]` into `{}` (seen on Redis 7.0 and Valkey 8.1, neither has `decode_array_with_array_mt`); they write
   Newtonsoft's text with the other writers' fields (keep-alive, status or token) filled in as text.
@@ -72,12 +71,12 @@ are removed, and Redis hosts with a per-group ACL user must change their ACL bef
 
 ## Impact assessment
 
-| Area                  | Impact                                                                                                                                                         |
-|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Users / customers     | Redis with a per-group ACL user: add `+eval +evalsha` before upgrading. Code that used one of the eight types keeps its own copy. Everything else unchanged.   |
-| Services / components | Redis: each conditional write is one script call; the coordinator's writes and the keep-alives no longer retry against each other.                            |
-| Data / schema         | None: same keys, layout and JSON.                                                                                                                              |
-| Security              | TM-0003 revision 7: the nodes' credentials can run Lua over their group's keys (D5, accepted as Medium on shared instances, Low on a dedicated instance).      |
+| Area                  | Impact                                                                                                                                                       |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Users / customers     | Redis with a per-group ACL user: add `+eval +evalsha` before upgrading. Code that used one of the eight types keeps its own copy. Everything else unchanged. |
+| Services / components | Redis: each conditional write is one script call; the coordinator's writes and the keep-alives no longer retry against each other.                           |
+| Data / schema         | None: same keys, layout and JSON.                                                                                                                            |
+| Security              | TM-0003 revision 7: the nodes' credentials can run Lua over their group's keys (D5, accepted as Medium on shared instances, Low on a dedicated instance).    |
 | Operations            | The ACL step before upgrading; afterwards nodes can be upgraded one at a time (mixed-group rehearsal below). Redis services that forbid scripts stay on 5.2. |
 
 ## Preconditions
@@ -129,8 +128,8 @@ Release notes `docs/release-notes/6.0.0.md` and the migration guide `docs/releas
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date                                                 |
+|------------------------|-----------|------------------------------------------------------|
 | Maintainer (code)      | dradoaica | 2026-11-02 (approved in session, before the release) |
 | Release / CAB (or org) | dradoaica | 2026-11-02 (approved in session, before the release) |
 

@@ -17,8 +17,7 @@ superseded-by: ""
 
 ## Context and Problem Statement
 
-The Redis coordinator grants and stops activity with one compare-and-set over every target client record and the lease
-(`ModifyClientsAsync` in `src/Rebalancer.Redis/Clients/ClientService.cs`; ADR-0017's compare-and-set, ADR-0026's lease
+The Redis coordinator grants and stops activity with one compare-and-set over every target client record and the lease (`ModifyClientsAsync` in `src/Rebalancer.Redis/Clients/ClientService.cs`; ADR-0017's compare-and-set, ADR-0026's lease
 guard): one `MULTI/EXEC`, conditioned on each record and the lease being unchanged since it read them, retried up to
 10 times. Every node's keep-alive rewrites its own record once per heartbeat, and the coordinator's renewal loop
 rewrites the lease several times per heartbeat. When a write attempt lasts about as long as a heartbeat (a slow link),
@@ -50,15 +49,13 @@ format, and the ACL command set. Safety rests on three properties that already h
 
 1. **Each write is still guarded.** Every per-record transaction carries ADR-0026's lease condition; a record is
    written only while the lease names this coordinator and token.
-2. **A partial stop grants nothing.** The coordinator grants only after every node confirmed its stop
-   (`Coordinator`'s stop barrier); a stop applied to some records makes it fail or step down before any grant.
+2. **A partial stop grants nothing.** The coordinator grants only after every node confirmed its stop (`Coordinator`'s stop barrier); a stop applied to some records makes it fail or step down before any grant.
    `RebalancerStore.tla` already allows a stop to reach any subset of records (`StoppedRecords`).
 3. **A partial grant never overlaps.** Grants of one rebalance assign disjoint resources, so a grant applied to some
    records starts no resource twice; the remaining resources are unassigned until the next rebalance, which stops
    every node first.
 
-The strongest argument against A: the grant loses its all-or-nothing property, which `RebalancerStore.tla` models
-(`GrantedRecords`, "all records or none") and the safety proof rests on. A partial grant is a state the model has not
+The strongest argument against A: the grant loses its all-or-nothing property, which `RebalancerStore.tla` models (`GrantedRecords`, "all records or none") and the safety proof rests on. A partial grant is a state the model has not
 checked. Given that, A is accepted only with the model changed to grant any subset and rechecked (Confirmation).
 
 Implementation outline (to be confirmed in review):

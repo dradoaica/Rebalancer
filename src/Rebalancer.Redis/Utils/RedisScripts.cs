@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 using System;
@@ -6,13 +7,13 @@ using System.Threading.Tasks;
 namespace Rebalancer.Redis.Utils;
 
 /// <summary>
-///     ADR-0037: the conditional writes as server-side scripts. A script checks its condition and writes in one atomic
-///     step, so a write to another field or key cannot abort it (unlike <c>WATCH</c>, which covers a whole key,
-///     PRB-0009). The scripts never re-encode a record (Lua's cjson turns an empty list into <c>{}</c>, which
-///     Newtonsoft cannot read): they decode it to check values and write text Newtonsoft produced, filling in the
-///     fields other writers own as plain text. StackExchange.Redis sends <c>EVAL</c> the first time and
-///     <c>EVALSHA</c> afterwards; its <c>SCRIPT LOAD</c> is denied to the per-group ACL user and not needed, as
-///     <c>EVAL</c> already caches the script on the server.
+///     ADR-0037: the conditional writes as server-side scripts. A script checks its condition and writes in one
+///     atomic step, so a write to another field or key cannot abort it (unlike <c>WATCH</c>, which covers a whole key,
+///     PRB-0009). The scripts never re-encode a record (Lua's cjson turns an empty list into <c>{}</c>, which Newtonsoft
+///     cannot read): they decode it to check values and write text Newtonsoft produced, filling in the fields other
+///     writers own as plain text. StackExchange.Redis sends <c>EVAL</c> the first time and <c>EVALSHA</c> afterwards; its
+///     <c>SCRIPT LOAD</c> is denied to the per-group ACL user and not needed, as <c>EVAL</c> already caches the script on
+///     the server.
 /// </summary>
 internal static class RedisScripts
 {
@@ -47,7 +48,8 @@ local function holds_lease(lease_key, group_field, coordinator, token)
 end";
 
     // KEYS[1] clients hash; ARGV[1] field, ARGV[2] the new LastKeepAlive as JSON text. Returns the record, or nil
-    private const string KeepAliveScript = Helpers + @"
+    private const string KeepAliveScript = Helpers +
+                                           @"
 local record = redis.call('HGET', KEYS[1], ARGV[1])
 if not record then return false end
 local old = cjson.decode(record)['LastKeepAlive']
@@ -57,7 +59,8 @@ redis.call('HSET', KEYS[1], ARGV[1], updated)
 return updated";
 
     // KEYS[1] clients hash; ARGV[1] field, ARGV[2] the new ClientStatus. Returns 1, or 0 if the record is missing
-    private const string SetStatusScript = Helpers + @"
+    private const string SetStatusScript = Helpers +
+                                           @"
 local record = redis.call('HGET', KEYS[1], ARGV[1])
 if not record then return 0 end
 local old = cjson.decode(record)['ClientStatus']
@@ -66,27 +69,11 @@ if not updated then return redis.error_reply('RBR: unexpected client record form
 redis.call('HSET', KEYS[1], ARGV[1], updated)
 return 1";
 
-    // KEYS[1] clients hash, KEYS[2] lease hash (not read if ARGV[2] is empty); ARGV[1] field, ARGV[2] lease field,
-    // ARGV[3] coordinator id, ARGV[4] fencing token, ARGV[5] the new record, its placeholders replaced by the stored
-    // values. Returns 1 written, 0 fenced out or record missing
-    private static readonly string GuardedRecordScript = Helpers + @"
-local token = tonumber(ARGV[4])
-if ARGV[2] ~= '' and not holds_lease(KEYS[2], ARGV[2], ARGV[3], token) then return 0 end
-local record = redis.call('HGET', KEYS[1], ARGV[1])
-if not record then return 0 end
-local stored = cjson.decode(record)
-if stored['FencingToken'] > token then return 0 end
-local updated = ARGV[5]
-updated = replace(updated, '""LastKeepAlive"":""" + KeepAlivePlaceholder + @"""', '""LastKeepAlive"":' .. cjson.encode(stored['LastKeepAlive'])) or updated
-updated = replace(updated, '""ClientStatus"":" + StatusPlaceholder + @"', '""ClientStatus"":' .. tostring(stored['ClientStatus'])) or updated
-updated = replace(updated, '""FencingToken"":" + TokenPlaceholder + @"', '""FencingToken"":' .. tostring(stored['FencingToken'])) or updated
-redis.call('HSET', KEYS[1], ARGV[1], updated)
-return 1";
-
     // KEYS[1] clients hash, KEYS[2] lease hash; ARGV[1] group field, ARGV[2] coordinator id, ARGV[3] fencing token,
     // then field / expected value pairs. Deletes the entries still holding their value while the lease is held;
     // returns the number deleted
-    private const string DeleteExpiredScript = Helpers + @"
+    private const string DeleteExpiredScript = Helpers +
+                                               @"
 if not holds_lease(KEYS[2], ARGV[1], ARGV[2], tonumber(ARGV[3])) then return 0 end
 local deleted = 0
 for i = 4, #ARGV, 2 do
@@ -95,6 +82,30 @@ for i = 4, #ARGV, 2 do
   end
 end
 return deleted";
+
+    // KEYS[1] clients hash, KEYS[2] lease hash (not read if ARGV[2] is empty); ARGV[1] field, ARGV[2] lease field,
+    // ARGV[3] coordinator id, ARGV[4] fencing token, ARGV[5] the new record, its placeholders replaced by the stored
+    // values. Returns 1 written, 0 fenced out or record missing
+    private static readonly string GuardedRecordScript = Helpers +
+                                                         @"
+local token = tonumber(ARGV[4])
+if ARGV[2] ~= '' and not holds_lease(KEYS[2], ARGV[2], ARGV[3], token) then return 0 end
+local record = redis.call('HGET', KEYS[1], ARGV[1])
+if not record then return 0 end
+local stored = cjson.decode(record)
+if stored['FencingToken'] > token then return 0 end
+local updated = ARGV[5]
+updated = replace(updated, '""LastKeepAlive"":""" +
+                                                         KeepAlivePlaceholder +
+                                                         @"""', '""LastKeepAlive"":' .. cjson.encode(stored['LastKeepAlive'])) or updated
+updated = replace(updated, '""ClientStatus"":" +
+                                                         StatusPlaceholder +
+                                                         @"', '""ClientStatus"":' .. tostring(stored['ClientStatus'])) or updated
+updated = replace(updated, '""FencingToken"":" +
+                                                         TokenPlaceholder +
+                                                         @"', '""FencingToken"":' .. tostring(stored['FencingToken'])) or updated
+redis.call('HSET', KEYS[1], ARGV[1], updated)
+return 1";
 
     /// <summary>Writes <paramref name="newValue" /> if the field still holds <paramref name="expected" /> (null: missing).</summary>
     public static async Task<bool> CompareAndSetFieldAsync(
@@ -108,16 +119,13 @@ return deleted";
             CompareAndSetFieldScript,
             [key,],
             [field, expected.IsNull ? "1" : "0", expected.IsNull ? RedisValue.EmptyString : expected, newValue,]
-        ) == 1;
+        ) ==
+        1;
 
     /// <summary>Stamps the record's keep-alive; returns the updated record, or null if it does not exist.</summary>
     public static async Task<RedisValue> KeepAliveAsync(IDatabase db, RedisKey clients, RedisValue field, DateTime now)
     {
-        var result = await db.ScriptEvaluateAsync(
-            KeepAliveScript,
-            [clients,],
-            [field, RedisHash.Encode(now),]
-        );
+        var result = await db.ScriptEvaluateAsync(KeepAliveScript, [clients,], [field, RedisHash.Encode(now),]);
         return result.IsNull ? RedisValue.Null : (RedisValue)result;
     }
 
@@ -128,8 +136,8 @@ return deleted";
     /// <summary>
     ///     Writes <paramref name="newRecord" /> over the stored record if it exists, has not seen a newer token than
     ///     <paramref name="fencingToken" />, and (given <paramref name="groupField" />) the lease still names
-    ///     <paramref name="coordinatorId" /> with that token. The stored keep-alive and the fields
-    ///     <paramref name="keep" /> names are kept; the others come from <paramref name="newRecord" />.
+    ///     <paramref name="coordinatorId" /> with that token. The stored keep-alive and the fields <paramref name="keep" />
+    ///     names are kept; the others come from <paramref name="newRecord" />.
     /// </summary>
     public static async Task<bool> WriteGuardedRecordAsync(
         IDatabase db,
@@ -156,13 +164,14 @@ return deleted";
         }
 
         return (int)await db.ScriptEvaluateAsync(
-            GuardedRecordScript,
-            [clients, lease,],
-            [
-                field, groupField ?? string.Empty, coordinatorId.ToString(), fencingToken,
-                template.ToString(Newtonsoft.Json.Formatting.None),
-            ]
-        ) == 1;
+                   GuardedRecordScript,
+                   [clients, lease,],
+                   [
+                       field, groupField ?? string.Empty, coordinatorId.ToString(), fencingToken,
+                       template.ToString(Formatting.None),
+                   ]
+               ) ==
+               1;
     }
 
     /// <summary>Deletes the entries that still hold the given values, while the lease is held; returns how many.</summary>
@@ -176,14 +185,14 @@ return deleted";
         HashEntry[] entries
     )
     {
-        var values = new RedisValue[3 + entries.Length * 2];
+        var values = new RedisValue[3 + (entries.Length * 2)];
         values[0] = groupField;
         values[1] = coordinatorId.ToString();
         values[2] = fencingToken;
         for (var i = 0; i < entries.Length; i++)
         {
-            values[3 + i * 2] = entries[i].Name;
-            values[4 + i * 2] = entries[i].Value;
+            values[3 + (i * 2)] = entries[i].Name;
+            values[4 + (i * 2)] = entries[i].Value;
         }
 
         return (int)await db.ScriptEvaluateAsync(DeleteExpiredScript, [clients, lease,], values);

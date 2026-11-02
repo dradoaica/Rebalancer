@@ -83,8 +83,8 @@ internal static class RedisHash
     /// <summary>
     ///     Optimistic compare-and-set of one hash field. <paramref name="decide" /> gets the current value (null when
     ///     missing) and the server time, and returns the value to write (null for no write) plus the result. If another writer
-    ///     changed the field in the meantime, nothing is written and the decision is re-evaluated. The write is a script
-    ///     that compares this field only (ADR-0037), so writes to other fields or keys never make it fail.
+    ///     changed the field in the meantime, nothing is written and the decision is re-evaluated. The write is a script that
+    ///     compares this field only (ADR-0037), so writes to other fields or keys never make it fail.
     /// </summary>
     public static async Task<TResult> CompareAndSetAsync<T, TResult>(
         IDatabase db,

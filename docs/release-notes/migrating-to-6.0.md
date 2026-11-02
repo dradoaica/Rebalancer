@@ -49,16 +49,16 @@ upgraded one node at a time once the ACL allows the two commands. A 5.2 node doe
 These types were deprecated in 5.2 (warning **RBR0034**) and are internal in 6.0. No public signature used them; the
 providers, `RebalancerClient` and the service interfaces are unchanged.
 
-| Type                                                       | Package                        |
-|------------------------------------------------------------|--------------------------------|
-| `Rebalancer.LeaseCoordination.Roles.ClientEvent`           | `Rebalancer.LeaseCoordination` |
-| `Rebalancer.LeaseCoordination.Roles.CoordinatorToken`      | `Rebalancer.LeaseCoordination` |
-| `Rebalancer.LeaseCoordination.Roles.EventType`             | `Rebalancer.LeaseCoordination` |
-| `Rebalancer.LeaseCoordination.Store.AssignmentStatus`      | `Rebalancer.LeaseCoordination` |
-| `Rebalancer.Redis.ResourceGroup`                           | `Rebalancer.Redis`             |
-| `Rebalancer.Redis.Resources.Resource`                      | `Rebalancer.Redis`             |
-| `Rebalancer.Redis.Utils.Constants`                         | `Rebalancer.Redis`             |
-| `Rebalancer.SqlServer.Connections.ConnectionHelper`        | `Rebalancer.SqlServer`         |
+| Type                                                  | Package                        |
+|-------------------------------------------------------|--------------------------------|
+| `Rebalancer.LeaseCoordination.Roles.ClientEvent`      | `Rebalancer.LeaseCoordination` |
+| `Rebalancer.LeaseCoordination.Roles.CoordinatorToken` | `Rebalancer.LeaseCoordination` |
+| `Rebalancer.LeaseCoordination.Roles.EventType`        | `Rebalancer.LeaseCoordination` |
+| `Rebalancer.LeaseCoordination.Store.AssignmentStatus` | `Rebalancer.LeaseCoordination` |
+| `Rebalancer.Redis.ResourceGroup`                      | `Rebalancer.Redis`             |
+| `Rebalancer.Redis.Resources.Resource`                 | `Rebalancer.Redis`             |
+| `Rebalancer.Redis.Utils.Constants`                    | `Rebalancer.Redis`             |
+| `Rebalancer.SqlServer.Connections.ConnectionHelper`   | `Rebalancer.SqlServer`         |
 
 A host that compiles against 5.2 without warning RBR0034 compiles against 6.0 unchanged. Code that used one of these
 types keeps its own copy (they are small data classes, an enum, a constant and a connection helper).

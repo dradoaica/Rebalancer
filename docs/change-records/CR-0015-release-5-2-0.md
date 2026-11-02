@@ -48,15 +48,13 @@ own change record, as the maintainer decided (2026-11-02).
   - TLA+: `docs/tlaplus/LeaderGlobalBarrier`: `GrantedRecordsOn`; a failed grant writes any subset of the fenced
     records that contains the coordinator's own record; a failure with every check passed counts against
     `MaxFailures`. Results in `docs/tlaplus/README.md`.
-  - Test: `RedisClientRecordTests.AGrantThatFailsOnOneRecord_KeepsTheRecordsWrittenBeforeIt` on Redis 7.0 and Valkey
-    (failed before the change on both). ADR-0036 asks for a unit test; the unit-test project has no Redis fake or
+  - Test: `RedisClientRecordTests.AGrantThatFailsOnOneRecord_KeepsTheRecordsWrittenBeforeIt` on Redis 7.0 and Valkey (failed before the change on both). ADR-0036 asks for a unit test; the unit-test project has no Redis fake or
     mocking library, and adding one is a dependency change, so it runs against the real servers.
 - **ADR-0035 (Tier 1, accepted):** `.github/workflows/release.yml` runs `dotnet test tests/Rebalancer.UnitTests` and
   the dependency scan before `Pack`; new `.github/workflows/tests.yml` (pull requests and pushes to `main`): build,
   unit tests, scan, integration tests without ZooKeeper (`-- xUnit.MaxParallelThreads=3`). New
   `scripts/check-vulnerable-packages.sh`: fails on a High or Critical finding, direct or transitive, and lists the
-  others; its filter was tested on synthetic reports (a High fails, Moderate and Low pass). Same actions as before
-  (`actions/checkout@v6`, `actions/setup-dotnet@v5`); no new third-party action.
+  others; its filter was tested on synthetic reports (a High fails, Moderate and Low pass). Same actions as before (`actions/checkout@v6`, `actions/setup-dotnet@v5`); no new third-party action.
 - **ADR-0034, 5.x step (Tier 1, accepted):** `[Obsolete(..., DiagnosticId = "RBR0034")]`, a warning naming 6.0, on
   `Rebalancer.LeaseCoordination.Roles.ClientEvent`, `.Roles.CoordinatorToken`, `.Roles.EventType`,
   `.Store.AssignmentStatus`, `Rebalancer.Redis.ResourceGroup`, `.Resources.Resource`, `.Utils.Constants`,
@@ -143,8 +141,8 @@ Release notes `docs/release-notes/5.2.0.md`.
 
 ## Approvals
 
-| Role                   | Name | Date |
-|------------------------|------|------|
+| Role                   | Name      | Date                                                 |
+|------------------------|-----------|------------------------------------------------------|
 | Maintainer (code)      | dradoaica | 2026-11-02 (approved in session, before the release) |
 | Release / CAB (or org) | dradoaica | 2026-11-02 (approved in session, before the release) |
 
@@ -158,8 +156,7 @@ Release notes `docs/release-notes/5.2.0.md`.
   `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`, `Rebalancer.Redis`, `Rebalancer.ZooKeeper`,
   `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`.
 - **Deviations:**
-  - The second validation check (the "Tests" workflow succeeds on the same push) is not recorded: the first run
-    (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334) passed "Build", "Unit Tests" and
+  - The second validation check (the "Tests" workflow succeeds on the same push) is not recorded: the first run (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334) passed "Build", "Unit Tests" and
     "Dependency Scan" and was still in "Integration Tests (without ZooKeeper)" when this was written; dradoaica
     decided not to wait for it, the same suites having passed locally (113/113, Preconditions). The open
     precondition on the runner's memory for `MaxParallelThreads=3` is therefore still unconfirmed.
@@ -169,8 +166,7 @@ Release notes `docs/release-notes/5.2.0.md`.
     out of memory (ADR-0035).
   - PRB-0009's full fix: ADR-0037 (Accepted), with a TM-0003 revision first, in 6.0.0.
   - 6.0.0 (CR-0016): ADR-0034's 6.0 step (the eight types internal) and a migration guide entry.
-- **Follow-up done (appended 2026-11-02):** the first "Tests" run on the release push succeeded, 18:57:02–19:25:18 UTC
-  (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334): every step, and the integration tests without
+- **Follow-up done (appended 2026-11-02):** the first "Tests" run on the release push succeeded, 18:57:02–19:25:18 UTC (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334): every step, and the integration tests without
   ZooKeeper 113/113 in 26.4 min with `MaxParallelThreads=3`. The hosted runner's memory suffices for that
   parallelism (ADR-0035's open point); `tests.yml` stays as it is.
 

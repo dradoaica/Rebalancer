@@ -22,8 +22,7 @@ under `Condition.HashEqual`, retried up to 10 times. StackExchange.Redis impleme
 `WATCH` covers a whole key. A group's client records share one hash and its lease is one hash (ADR-0020), so a write
 to any field aborts every transaction in flight on that key: each node's keep-alive aborts the others' keep-alives and
 the coordinator's writes, and the coordinator's lease renewals abort its own client writes. Over a slow link nearly
-every attempt meets such a write, a loop runs out of attempts, the node restarts, and the group may not settle
-(PRB-0009). ADR-0036 (5.2.0) made the coordinator's writes per record and cut the failures of the reproducing test
+every attempt meets such a write, a loop runs out of attempts, the node restarts, and the group may not settle (PRB-0009). ADR-0036 (5.2.0) made the coordinator's writes per record and cut the failures of the reproducing test
 from 3 in 6 to 2 in 26, but did not remove them: in a traced failure no client write ran out of attempts, which
 points at the keep-alive and lease loops.
 

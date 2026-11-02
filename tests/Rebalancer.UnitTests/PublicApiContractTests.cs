@@ -8,8 +8,8 @@ namespace Rebalancer.UnitTests;
 
 /// <summary>
 ///     Contract of 6.0 (ADR-0034): the types that no public signature used, deprecated in 5.2 (warning RBR0034), are
-///     internal; <see cref="ClientNotFoundException" /> stays public, so a custom <see cref="IClientService" /> can
-///     report a missing record and the client registers again.
+///     internal; <see cref="ClientNotFoundException" /> stays public, so a custom <see cref="IClientService" /> can report
+///     a missing record and the client registers again.
 /// </summary>
 public sealed class PublicApiContractTests
 {
@@ -49,8 +49,7 @@ public sealed class PublicApiContractTests
         var deprecated = new[]
             {
                 typeof(IClientService).Assembly, typeof(RedisProvider).Assembly, typeof(SqlServerProvider).Assembly,
-            }
-            .SelectMany(x => x.GetExportedTypes())
+            }.SelectMany(x => x.GetExportedTypes())
             .Where(x => x.GetCustomAttribute<ObsoleteAttribute>() != null);
         Assert.Empty(deprecated);
     }

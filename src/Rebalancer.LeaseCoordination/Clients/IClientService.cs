@@ -28,8 +28,8 @@ public interface IClientService
     ///     and the fencing token of that grant.
     /// </summary>
     /// <exception cref="ClientNotFoundException">
-    ///     The record does not exist (e.g. it expired, ADR-0014); the coordinator or follower registers the client again
-    ///     with <see cref="CreateClientAsync" />.
+    ///     The record does not exist (e.g. it expired, ADR-0014); the coordinator or
+    ///     follower registers the client again with <see cref="CreateClientAsync" />.
     /// </exception>
     Task<Client> KeepAliveAsync(Guid clientId);
 

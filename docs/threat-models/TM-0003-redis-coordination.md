@@ -195,8 +195,7 @@ the body, and records 5.0.
   call reports an error.
 - Mitigation (s): server-side contention is limited to one lease field per group; the retry limit turns livelock into
   a visible error. Revision 7: in 5.x, `WATCH` covers the whole clients hash and lease hash, so over a link whose
-  round trip is a sizeable fraction of the heartbeat the retries run out repeatedly and a group may not settle
-  (PRB-0009; ADR-0036 in 5.2.0 reduced it). In 6.0 the writes are scripts, which other writes cannot abort (ADR-0037).
+  round trip is a sizeable fraction of the heartbeat the retries run out repeatedly and a group may not settle (PRB-0009; ADR-0036 in 5.2.0 reduced it). In 6.0 the writes are scripts, which other writes cannot abort (ADR-0037).
 - Risk: **Medium** for 5.x over slow links (revision 7; was rated Low); **Low** in 6.0.
 - Threat D3: `FLUSHDB`, `DEL` or eviction (`maxmemory` policy) removes coordination state.
 - Mitigation (s): ACL user without `@dangerous` / `@keyspace` delete commands; a `noeviction` policy (or no eviction of

@@ -95,13 +95,13 @@ the second traced failure no client write ran out of attempts, so one of those l
 
 ## Corrective actions
 
-| Action                                                                                         | Owner     | Status |
-|------------------------------------------------------------------------------------------------|-----------|--------|
-| Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Done   |
-| Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                     | dradoaica | Done   |
-| Partial fix: ADR-0036 in 5.2.0 (CR-0015); failures with the seed 3/6 before, 2/26 after        | dradoaica | Done   |
-| Full fix: ADR-0037 in 6.0.0 (CR-0016): writes that do not watch the hash                       | dradoaica | Done   |
-| Regression test: the seed alone 10/10 on both servers: 20/20 (CR-0016)                         | dradoaica | Done   |
+| Action                                                                                     | Owner     | Status |
+|--------------------------------------------------------------------------------------------|-----------|--------|
+| Reproduce with seed `1196549739` and find the root cause (backend, client library or test) | dradoaica | Done   |
+| Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                 | dradoaica | Done   |
+| Partial fix: ADR-0036 in 5.2.0 (CR-0015); failures with the seed 3/6 before, 2/26 after    | dradoaica | Done   |
+| Full fix: ADR-0037 in 6.0.0 (CR-0016): writes that do not watch the hash                   | dradoaica | Done   |
+| Regression test: the seed alone 10/10 on both servers: 20/20 (CR-0016)                     | dradoaica | Done   |
 
 ## Preventive measures
 

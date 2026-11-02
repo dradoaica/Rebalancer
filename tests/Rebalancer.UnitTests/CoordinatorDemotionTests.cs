@@ -86,8 +86,13 @@ public sealed class CoordinatorDemotionTests
         await clients.CreateClientAsync(Group, follower);
         await clients.CreateClientAsync(Group, self);
 
-        await new Coordinator("redis", new NullRebalancerLogger(), new RedisResources(), clients, new ResourceGroupStore())
-            .ExecuteCoordinatorRoleAsync(self, RedisEvent(1), RecordingActions().Actions, CancellationToken.None);
+        await new Coordinator(
+            "redis",
+            new NullRebalancerLogger(),
+            new RedisResources(),
+            clients,
+            new ResourceGroupStore()
+        ).ExecuteCoordinatorRoleAsync(self, RedisEvent(1), RecordingActions().Actions, CancellationToken.None);
 
         Assert.Equal([self, follower,], clients.LastGrant.Select(x => x.ClientId));
     }

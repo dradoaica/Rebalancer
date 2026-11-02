@@ -232,7 +232,12 @@ public sealed class RedisClientRecordTests
         var node = Guid.NewGuid();
         await service.CreateClientAsync(group, node);
         var key = RedisHash.GroupKey("Clients", group);
-        async Task<string> Raw() => (await db.HashGetAsync(key, RedisHash.Encode(node)))!;
+
+        async Task<string> Raw()
+        {
+            return (await db.HashGetAsync(key, RedisHash.Encode(node)))!;
+        }
+
         List<string> names = ["quote\"d", "50%", "x]y[z", "back\\slash", "ünïcode", "",];
 
         await service.SetClientStatusAsync(node, ClientStatus.Active);
@@ -242,7 +247,13 @@ public sealed class RedisClientRecordTests
                 group,
                 coordinator,
                 3,
-                [new ClientStartRequest { ClientId = node, AssignedResources = names, },]
+                [
+                    new ClientStartRequest
+                    {
+                        ClientId = node,
+                        AssignedResources = names,
+                    },
+                ]
             )
         );
         var granted = await service.KeepAliveAsync(node);
@@ -286,11 +297,15 @@ public sealed class RedisClientRecordTests
 
         // refused on both servers, with different messages (Redis 7.0: "The user executing the script can't access
         // ...", Valkey 8.1: "ACL failure in script: No permissions ...")
-        await Assert.ThrowsAsync<RedisServerException>(() =>
-            db.ScriptEvaluateAsync("return redis.call('HSET', KEYS[1], 'x', 'changed')", [other,])
+        await Assert.ThrowsAsync<RedisServerException>(() => db.ScriptEvaluateAsync(
+                "return redis.call('HSET', KEYS[1], 'x', 'changed')",
+                [other,]
+            )
         );
-        await Assert.ThrowsAsync<RedisServerException>(() =>
-            db.ScriptEvaluateAsync($"return redis.call('HSET', '{other}', 'x', 'changed')", [own,])
+        await Assert.ThrowsAsync<RedisServerException>(() => db.ScriptEvaluateAsync(
+                $"return redis.call('HSET', '{other}', 'x', 'changed')",
+                [own,]
+            )
         );
         Assert.Equal("untouched", (string?)await adminDb.HashGetAsync(other, "x"));
         Assert.Equal(1, (int)await db.ScriptEvaluateAsync("return redis.call('HSET', KEYS[1], 'x', 'mine')", [own,]));
@@ -404,7 +419,10 @@ public sealed class RedisClientRecordTests
         var service = new ClientService(db);
         IFencedClientService fenced = service;
         Guid first = Guid.NewGuid(), fencedOut = Guid.NewGuid(), last = Guid.NewGuid();
-        foreach (var id in new[] { first, fencedOut, last, })
+        foreach (var id in new[]
+                 {
+                     first, fencedOut, last,
+                 })
         {
             await service.CreateClientAsync(group, id);
         }
@@ -422,9 +440,21 @@ public sealed class RedisClientRecordTests
                 coordinator,
                 3,
                 [
-                    new ClientStartRequest { ClientId = first, AssignedResources = ["r1",], },
-                    new ClientStartRequest { ClientId = fencedOut, AssignedResources = ["r2",], },
-                    new ClientStartRequest { ClientId = last, AssignedResources = ["r3",], },
+                    new ClientStartRequest
+                    {
+                        ClientId = first,
+                        AssignedResources = ["r1",],
+                    },
+                    new ClientStartRequest
+                    {
+                        ClientId = fencedOut,
+                        AssignedResources = ["r2",],
+                    },
+                    new ClientStartRequest
+                    {
+                        ClientId = last,
+                        AssignedResources = ["r3",],
+                    },
                 ]
             )
         );
