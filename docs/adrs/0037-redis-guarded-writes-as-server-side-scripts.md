@@ -1,10 +1,10 @@
 ---
 id: ADR-0037
-status: Proposed
+status: Accepted
 date: 2026-11-02
 decides: "how the Redis backend makes its conditional writes without watching whole hashes (PRB-0009, 6.0)"
 owner: "dradoaica"
-approved-by: [ ]            # set by a human only
+approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
 decision-makers: [ "dradoaica" ]
 consulted: [ ]
 informed: [ ]
@@ -47,7 +47,7 @@ not make them fail, without weakening the lease guard (ADR-0026) or the fencing 
 
 ## Decision Outcome
 
-Proposed option: "A. Server-side scripts", because it removes the conflict at its cause: a script is atomic on the
+Chosen option: "A. Server-side scripts", because it removes the conflict at its cause: a script is atomic on the
 server, so it needs no `WATCH` and cannot be aborted by a write to another field, and its condition can look at the
 fields that matter (the lease holder and token, a record's token) instead of whole values. It keeps the stored
 layout and the keys, so 5.x and 6.0 nodes can share a group: a script's write changes the key as before, so a 5.x

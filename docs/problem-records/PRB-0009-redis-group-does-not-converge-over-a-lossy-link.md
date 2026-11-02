@@ -99,7 +99,7 @@ the second traced failure no client write ran out of attempts, so one of those l
 | Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Done   |
 | Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                     | dradoaica | Done   |
 | Partial fix: ADR-0036 in 5.2.0 (CR-0015); failures with the seed 3/6 before, 2/26 after        | dradoaica | Done   |
-| Full fix: ADR-0037 (Proposed), writes that do not watch the whole hash; 6.0                    |           | Open   |
+| Full fix: ADR-0037 (Accepted), writes that do not watch the whole hash; 6.0                    |           | Open   |
 | Regression test: the seed alone 10/10 on both servers (ADR-0036 Confirmation)                  |           | Open   |
 
 ## Preventive measures
