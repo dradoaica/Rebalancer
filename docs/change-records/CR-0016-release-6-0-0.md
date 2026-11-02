@@ -86,9 +86,20 @@ are removed, and Redis hosts with a per-group ACL user must change their ACL bef
 - [x] Build: 0 warnings (2026-11-02).
 - [x] Unit tests: 121/121 (2026-11-02).
 - [x] Redis suite (all but the network-fault test), Redis 7.0 and Valkey: 59/59 (2026-11-02).
-- [ ] `RedisNetworkFaultTests`, seed `1196549739`, 10 runs alone on both servers without a failure (ADR-0037
-  Confirmation; 5.2.0: 2 failures in 26): (pending).
-- [ ] Mixed group, 5.2.0 and 6.0.0 Redis nodes, assigns and stops correctly (ADR-0037 Confirmation): (pending).
+- [x] `RedisNetworkFaultTests`, seed `1196549739`, 10 runs alone on both servers without a failure (ADR-0037
+  Confirmation; 5.2.0: 2 failures in 26): **20/20** (2026-11-02), each 1 m 31 s – 1 m 45 s (5.2.0: 2–4 min).
+- [x] Mixed group, 5.2.0 and 6.0.0 Redis nodes, assigns and stops correctly (ADR-0037 Confirmation): done
+  2026-11-02 with a throwaway harness outside the repository, built once against `ecb4270` (5.2.0) and once against
+  this branch (6.0.0), each node a separate process; `redis:7.0`, both versions as the documented 6.0 per-group ACL
+  user, one group per scenario seeded in the per-group layout, resources `r1`–`r4`, lease expiry 5 s, heartbeat
+  1 s. No two nodes held a resource at once in any scenario:
+  - **together:** 6.0 took `r1,r2`, 5.2 `r3,r4`; both stopped cleanly reporting `Stopped`.
+  - **5.2 joins a running 6.0 node:** 6.0 held all four, the group rebalanced to two each, 6.0 took all four again
+    when 5.2 stopped.
+  - **5.2 killed (`SIGKILL`):** 6.0 took all four 10 s later. **6.0 killed:** 5.2 took all four 10 s later (as in
+    CR-0013's rehearsal, 10.1–10.3 s).
+  - `ACL LOG` denials: the handshake commands as before, `script|load` (see Scope), and reads of the 2.x key
+    `Dictionary:RBR:Clients` (the optional 2.x migration, skipped when not permitted, ADR-0015).
 - [ ] Integration tests, all but ZooKeeper: (pending).
 - [ ] Dependency scan: (pending).
 - [x] TLC: **N/A**, accepted by dradoaica (in session 2026-11-02): the model already treats each record write as atomic and fenced (ADR-0036); scripts keep

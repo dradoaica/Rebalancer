@@ -40,6 +40,7 @@ resource at once.
 | 2026-11-02 | CR-0014 final run, network-fault tests alone after the others: failed on Valkey (seed `1196549739`), passed on Redis 7.0 |
 | 2026-11-02 | Replays of seed `1196549739` with diagnostics: 3 of 6 failed (both servers), so the cause is timing, not the churn       |
 | 2026-11-02 | Root cause identified with a trace of every failed coordinator write (75 failed attempts, see Evidence)                  |
+| 2026-11-02 | 6.0.0 (ADR-0037, scripted writes): the seed alone 20/20 on both servers, 1.5 to 1.75 min a run (CR-0016)                 |
 
 ## Evidence
 
@@ -99,8 +100,8 @@ the second traced failure no client write ran out of attempts, so one of those l
 | Reproduce with seed `1196549739` and find the root cause (backend, client library or test)     | dradoaica | Done   |
 | Decide the fix: ADR-0036 (Accepted), one compare-and-set per client record                     | dradoaica | Done   |
 | Partial fix: ADR-0036 in 5.2.0 (CR-0015); failures with the seed 3/6 before, 2/26 after        | dradoaica | Done   |
-| Full fix: ADR-0037 (Accepted), writes that do not watch the whole hash; 6.0                    |           | Open   |
-| Regression test: the seed alone 10/10 on both servers (ADR-0036 Confirmation)                  |           | Open   |
+| Full fix: ADR-0037 in 6.0.0 (CR-0016): writes that do not watch the hash                       | dradoaica | Done   |
+| Regression test: the seed alone 10/10 on both servers: 20/20 (CR-0016)                         | dradoaica | Done   |
 
 ## Preventive measures
 
