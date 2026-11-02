@@ -1,6 +1,6 @@
 ---
 id: CR-0015
-status: Approved
+status: Implemented
 date: 2026-11-02
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
@@ -150,8 +150,25 @@ Release notes `docs/release-notes/5.2.0.md`.
 
 ## Post-implementation
 
-- **Actual outcome:** {after the release}
-- **Follow-ups:** {after the release}
+- **Actual outcome (2026-11-02 UTC):** dradoaica merged `agent/release-5.2.0` into `main` by fast-forward to
+  `ecb4270` (no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 18:57:02–18:59:05
+  UTC (https://github.com/dradoaica/Rebalancer/actions/runs/41505353354), through the new ADR-0035 gate: "Unit
+  Tests" 121/121, "Dependency Scan" "No vulnerable packages.", then "Pack NuGet Packages" and "Push to GitHub
+  Packages". Its log shows all eight 5.2.0 packages pushed: `Rebalancer.Core`, `Rebalancer.LeaseCoordination`,
+  `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`, `Rebalancer.Redis`, `Rebalancer.ZooKeeper`,
+  `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`.
+- **Deviations:**
+  - The second validation check (the "Tests" workflow succeeds on the same push) is not recorded: the first run
+    (https://github.com/dradoaica/Rebalancer/actions/runs/41505353334) passed "Build", "Unit Tests" and
+    "Dependency Scan" and was still in "Integration Tests (without ZooKeeper)" when this was written; dradoaica
+    decided not to wait for it, the same suites having passed locally (113/113, Preconditions). The open
+    precondition on the runner's memory for `MaxParallelThreads=3` is therefore still unconfirmed.
+  - ADR-0036 shipped as a partial fix of PRB-0009 (accepted deviation, Preconditions).
+- **Follow-ups:**
+  - Record the outcome of the first "Tests" run, and adjust `MaxParallelThreads` in `tests.yml` if the runner ran
+    out of memory (ADR-0035).
+  - PRB-0009's full fix: ADR-0037 (Accepted), with a TM-0003 revision first, in 6.0.0.
+  - 6.0.0 (CR-0016): ADR-0034's 6.0 step (the eight types internal) and a migration guide entry.
 
 ## Sources
 
