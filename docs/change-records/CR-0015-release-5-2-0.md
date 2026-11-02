@@ -108,8 +108,10 @@ use. A minor marks the new public type and the new warnings.
   second traced failure ran no client write out of attempts, so one of those is the likely cause (unverified). A
   full fix needs writes that do not depend on the whole hash staying unchanged: ADR-0037 (Proposed, for 6.0).
   The maintainer decided on 2026-11-02 to ship ADR-0036 as a partial fix ("Ship ADR-0036 as a partial fix").
-- [ ] Integration tests, all but ZooKeeper: (pending).
-- [ ] Dependency scan with the new script: (pending on the final branch).
+- [x] Integration tests, all but ZooKeeper, on the final branch (`1cf02c3`): **113/113** (2026-11-02, 24.5 min),
+  including all four network-fault tests.
+- [x] Dependency scan with the new script (`scripts/check-vulnerable-packages.sh`), as CI runs it: no vulnerable
+  package (2026-11-02, nuget.org).
 - [ ] ZooKeeper integration tests: proposed **N/A**: no ZooKeeper code changed.
 - [ ] Rollback rehearsal: proposed **N/A**: no stored data or protocol change; see Impact (Operations).
 - [x] ADR-0036's missing condition (the coordinator's own record first): recorded as a dated note on ADR-0036, an
