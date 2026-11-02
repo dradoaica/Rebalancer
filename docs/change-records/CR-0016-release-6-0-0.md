@@ -1,6 +1,6 @@
 ---
 id: CR-0016
-status: Approved
+status: Implemented
 date: 2026-11-02
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]            # set by a human only (dradoaica, in session 2026-11-02)
@@ -153,8 +153,28 @@ the approval covers them passing. A failure among them is reported to dradoaica 
 
 ## Post-implementation
 
-- **Actual outcome:** {after the release}
-- **Follow-ups:** {after the release}
+- **Actual outcome (2026-11-02 UTC):** dradoaica merged `agent/release-6.0.0` into `main` by fast-forward to `a02798e`
+  (no CI-skip marker) and pushed it. The "Release Packages" run on that push succeeded, 21:09:51–21:11:50 UTC
+  (https://github.com/dradoaica/Rebalancer/actions/runs/41525806703): "Unit Tests" 121/121, "Dependency Scan" "No
+  vulnerable packages.", then all eight 6.0.0 packages pushed: `Rebalancer.Core`, `Rebalancer.LeaseCoordination`,
+  `Rebalancer.SqlServer`, `Rebalancer.PostgreSql`, `Rebalancer.Redis`, `Rebalancer.ZooKeeper`,
+  `Rebalancer.Extensions.DependencyInjection`, `Rebalancer.Extensions.Diagnostics.HealthChecks`.
+- **Earlier versions removed from the feed (2026-11-02, at dradoaica's request):** once the API listed 6.0.0 for every
+  package, all 110 earlier versions were deleted from GitHub Packages (`DELETE /users/dradoaica/packages/nuget/{package}/versions/{id}`,
+  each logged): 19 each of `Rebalancer.Core`, `.Redis`, `.SqlServer`, `.ZooKeeper` and
+  `.Extensions.DependencyInjection` (2.0.0–5.2.0), 9 of `.Extensions.Diagnostics.HealthChecks` (4.1.0–5.2.0), 3 each of
+  `.LeaseCoordination` and `.PostgreSql` (5.0.0–5.2.0). Every package now lists 6.0.0 only. The API does not report
+  download counts; dradoaica stated they were 0. GitHub's documentation describes restoring a deleted version within
+  30 days.
+- **Deviations:**
+  - The second validation check ("Tests" on the same push) was not waited for, at dradoaica's request; the same suites
+    passed locally on the final tree (Preconditions).
+  - The rollback plan ("Redeploy 5.2.0") now needs a host's own copy of the 5.2.0 packages, or the deleted versions
+    restored within 30 days. The migration guide and the release notes say so (corrected after the release).
+- **Follow-ups:**
+  - Record the outcome of the "Tests" run on `a02798e`.
+  - PRB-0009 closure review (the fix and its regression test are done; dradoaica).
+  - NuGet descriptions for the six packages without one (predates 6.0; next release).
 
 ## Sources
 

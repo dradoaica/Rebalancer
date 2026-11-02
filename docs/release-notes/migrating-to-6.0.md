@@ -4,8 +4,10 @@
 before upgrading, and code that used one of eight types deprecated in 5.2 keeps its own copy. Nothing else changes; a
 SQL Server, PostgreSQL or ZooKeeper host is affected only by the second, and only if its code used one of the types.
 
-Upgrade from 5.2. A host on 5.0 or 5.1 never saw the 5.2 deprecation warning: check its code for the types below, and
-upgrade its Redis groups to 5.2 first, or all nodes of a group at once (mixed groups are rehearsed for 5.2 and 6.0).
+Only 6.0.0 is published: the earlier versions were removed from the package feed when 6.0.0 was released. A Redis
+group running 5.2 can be upgraded one node at a time (mixed 5.2 / 6.0 groups are rehearsed). A host on 5.0 or 5.1
+never saw the 5.2 deprecation warning: check its code for the types below, and upgrade all nodes of each Redis group at
+once.
 
 Decisions: [ADR-0034](../adrs/0034-public-api-of-the-lease-based-backends-in-6-0.md),
 [ADR-0037](../adrs/0037-redis-guarded-writes-as-server-side-scripts.md). Threat model:
@@ -39,7 +41,8 @@ links ([PRB-0009](../problem-records/PRB-0009-redis-group-does-not-converge-over
   `EVAL` and `EVALSHA` let anyone with the user's password run arbitrary Lua over the group's keys, including a long
   script that blocks the whole Redis instance while it runs (TM-0003, D5); keep the credentials as secret as before,
   and prefer a Redis instance dedicated to Rebalancer.
-- **A Redis service that does not allow scripts:** stay on 5.2 until it does.
+- **A Redis service that does not allow scripts:** cannot run 6.0. Keep the version it runs now, from your own copy of
+  the packages: earlier versions are no longer on the feed.
 
 The stored keys, layout and JSON format do not change, and 5.2 and 6.0 nodes can run in one group, so a group can be
 upgraded one node at a time once the ACL allows the two commands. A 5.2 node does not use them.
@@ -65,4 +68,5 @@ types keeps its own copy (they are small data classes, an enum, a constant and a
 
 ## Rolling back
 
-Redeploy 5.2: no data to undo. The ACL commands added above can stay; 5.2 does not use them.
+Redeploy the version you ran before, from your own copy of its packages (earlier versions are no longer on the feed):
+no data to undo. The ACL commands added above can stay; 5.2 does not use them.
