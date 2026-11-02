@@ -1,11 +1,11 @@
 ---
 id: TM-0003
 status: Accepted
-date: 2026-11-01
+date: 2026-11-02
 scope: "Rebalancer.Redis provider and the Redis keys it uses"
 owner: "dradoaica"
 approved-by: [ "dradoaica" ]
-depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-0006", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007", "ADR-0020", "ADR-0029", "ADR-0031", "CR-0004", "CR-0006", "CR-0013" ]
+depends-on: [ "ADR-0002", "ADR-0008", "ADR-0014", "ADR-0015", "ADR-0016", "ADR-0017", "US-0006", "CR-0001", "CR-0003", "ADR-0022", "ADR-0023", "CR-0007", "ADR-0020", "ADR-0029", "ADR-0031", "CR-0004", "CR-0006", "CR-0013", "ADR-0036", "ADR-0037", "PRB-0009" ]
 supersedes: [ ]
 superseded-by: ""
 ---
@@ -67,6 +67,24 @@ the body, and records 5.0.
   (ADR-0029, superseding ADR-0002); they are in scope here for Redis. Threats and controls are unchanged by the move.
 - **Valkey (ADR-0031):** every Redis integration test, including the minimal per-group ACL user, passes on Valkey
   8.1.11; this model applies to Valkey unchanged.
+
+**Revision 7 (6.0.0, CR-0016; accepted by dradoaica, 2026-11-02):** guarded writes become server-side Lua scripts (ADR-0037).
+
+- **What changes:** keep-alives, lease acquire / renew / relinquish, the coordinator's guarded client writes and the
+  expiry deletion run as scripts (`EVALSHA`, falling back to `EVAL` when the server has not cached the script). Each
+  checks its condition (lease holder and fencing token, a record's token and existence) and writes in one atomic
+  step on the server. No `WATCH`, no retries. Keys, layout and JSON format are unchanged.
+- **Per-group ACL user:** needs scripting commands in addition to revision 4's set, in practice `+@scripting` (the
+  minimal set is established by the ACL tests during implementation). Redis 7 checks each command a script runs
+  against the caller's ACL, so a script can only touch the keys the user may access (unverified for Valkey 8.1 – the
+  tests must show it). Operators add the commands before upgrading a group to 6.0.
+- **D2 corrected:** PRB-0009 showed that in 5.x contention is not Low over slow links: `WATCH` covers whole hashes, so
+  every node's keep-alive aborts the others' writes, and retries run out (rated Medium below for 5.x). In 6.0 scripts
+  are not aborted by other writes (Low).
+- **New D5:** scripting lets anyone holding a node's credentials run arbitrary Lua over that group's keys, including
+  scripts that run long and block the whole Redis instance (scripts run one at a time). See Denial of Service.
+- Threats T1, T2 (tampering) and elevation of privilege are unchanged in kind: a script reaches the same keys the
+  user could already write.
 
 ## System context and boundaries
 
@@ -164,8 +182,10 @@ the body, and records 5.0.
 - Threat D2: high contention on the shared hashes makes compare-and-set retries run out (10 attempts), and the lease
   call reports an error.
 - Mitigation (s): server-side contention is limited to one lease field per group; the retry limit turns livelock into
-  a visible error.
-- Risk: **Low**.
+  a visible error. Revision 7: in 5.x, `WATCH` covers the whole clients hash and lease hash, so over a link whose
+  round trip is a sizeable fraction of the heartbeat the retries run out repeatedly and a group may not settle
+  (PRB-0009; ADR-0036 in 5.2.0 reduced it). In 6.0 the writes are scripts, which other writes cannot abort (ADR-0037).
+- Risk: **Medium** for 5.x over slow links (revision 7; was rated Low); **Low** in 6.0.
 - Threat D3: `FLUSHDB`, `DEL` or eviction (`maxmemory` policy) removes coordination state.
 - Mitigation (s): ACL user without `@dangerous` / `@keyspace` delete commands; a `noeviction` policy (or no eviction of
   these keys) on the database used.
@@ -175,6 +195,15 @@ the body, and records 5.0.
 - Mitigation (s): ACL user per group (or per trust domain); safety holds, because a node whose entry disappears stops
   before it registers again.
 - Risk: **Low** with per-group ACL users; **Medium** with a shared user.
+- Threat D5 (revision 7, 6.0): a holder of a node's credentials runs a script that loops or does heavy work. Redis
+  runs scripts one at a time, so the instance stops serving every client, of every group and application, until the
+  script ends or is killed; after `busy-reply-threshold` (default 5 s) other clients get `BUSY` errors.
+- Mitigation (s): per-group credentials kept secret as before; an operator can end a read-only script with
+  `SCRIPT KILL` (a script that already wrote can only be stopped with `SHUTDOWN NOSAVE`); a dedicated Redis instance
+  for Rebalancer limits the blast radius to Rebalancer groups. Granting only `EVALSHA` and loading the scripts with an
+  admin user would prevent arbitrary scripts, at the cost of reloading them after every server restart; not chosen as
+  the default (to reconsider if the risk is not accepted).
+- Risk: **Medium** on an instance shared with other applications; **Low** on a dedicated instance.
 
 ### Elevation of Privilege
 
@@ -187,14 +216,16 @@ the body, and records 5.0.
 
 ## Controls mapping
 
-| Threat / Risk                     | Control (design or runtime)                                                                                                                                                                                                                                                                                                                                                                                                                        | Evidence / Reference                                                                                                                                                                |
-|-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Spoofing / tampering              | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Lease:{group} ~RBR:Resources:{group} ~RBR:Clients:{group}` (4.0; revision 6). Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
-| Credential and traffic disclosure | Secret store; `ssl=true`; no connection strings in logs                                                                                                                                                                                                                                                                                                                                                                                            | US-0006 Security & compliance                                                                                                                                                       |
-| Unsafe deserialization            | Newtonsoft default settings (no `TypeNameHandling`)                                                                                                                                                                                                                                                                                                                                                                                                | `src/Rebalancer.Redis/Utils/RedisHash.cs`                                                                                                                                           |
-| Clients hash growth (D1)          | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                                                                                                                                                                                                                                                                                                                                                     | ADR-0014, ADR-0015; `RedisClientRecordTests`                                                                                                                                        |
-| State loss                        | `noeviction` (or equivalent) on the database used                                                                                                                                                                                                                                                                                                                                                                                                  | Deployment responsibility                                                                                                                                                           |
-| Mixed-version clocks              | All-nodes-at-once upgrade of Redis groups                                                                                                                                                                                                                                                                                                                                                                                                          | CR-0001 (Implementation plan, step 3)                                                                                                                                               |
+| Threat / Risk                          | Control (design or runtime)                                                                                                                                                                                                                                                                                                                                                                                                                        | Evidence / Reference                                                                                                                                                                |
+|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Spoofing / tampering                   | Dedicated ACL user per group (or trust domain) with key patterns `~RBR:Lease:{group} ~RBR:Resources:{group} ~RBR:Clients:{group}` (4.0; revision 6). Minimal command set, verified 2026-10-18 (redis:7.0, StackExchange.Redis 3.4.5): `+@read +@write +@transaction +time +echo` with `resetchannels`; `ECHO` is required by the connection handshake, the library's other handshake commands are denied but tolerated (they appear in `ACL LOG`). | `tests/Rebalancer.IntegrationTests/Redis/RedisClientRecordTests.cs` (`ARebalancerClient_WorksEndToEnd_WithTheMinimalPerGroupUser`, `ExpiryWorks_ForARedisAclUserLimitedToItsGroup`) |
+| Spoofing / tampering (6.0, revision 7) | As above, plus the scripting commands ADR-0037 needs (in practice `+@scripting`; minimal set and its verification on Redis 7.0 and Valkey 8.1 in CR-0016). Scripts run under the caller's ACL, so the key patterns still apply (to show in the tests, also for Valkey).                                                                                                                                                                            | `RedisClientRecordTests` (the per-group user tests, with the 6.0 command set)                                                                                                       |
+| Credential and traffic disclosure      | Secret store; `ssl=true`; no connection strings in logs                                                                                                                                                                                                                                                                                                                                                                                            | US-0006 Security & compliance                                                                                                                                                       |
+| Unsafe deserialization                 | Newtonsoft default settings (no `TypeNameHandling`)                                                                                                                                                                                                                                                                                                                                                                                                | `src/Rebalancer.Redis/Utils/RedisHash.cs`                                                                                                                                           |
+| Clients hash growth (D1)               | Per-group hash; expiry under the fencing token; own-entry delete on clean stop                                                                                                                                                                                                                                                                                                                                                                     | ADR-0014, ADR-0015; `RedisClientRecordTests`                                                                                                                                        |
+| State loss                             | `noeviction` (or equivalent) on the database used                                                                                                                                                                                                                                                                                                                                                                                                  | Deployment responsibility                                                                                                                                                           |
+| Long-running scripts (D5)              | Per-group credentials; `busy-reply-threshold`; `SCRIPT KILL`; a dedicated instance for Rebalancer                                                                                                                                                                                                                                                                                                                                                  | Deployment responsibility; migration guide 6.0                                                                                                                                      |
+| Mixed-version clocks                   | All-nodes-at-once upgrade of Redis groups                                                                                                                                                                                                                                                                                                                                                                                                          | CR-0001 (Implementation plan, step 3)                                                                                                                                               |
 
 ## Residual risk and acceptance
 
@@ -206,6 +237,9 @@ the body, and records 5.0.
   - **The resources list is still read in full** on every heartbeat (`LRANGE`); it grows with the resources of all
     groups, not with restarts. Revision 4: resolved in 4.0 (one list per group).
   - **No audit trail.**
+  - **Scripting widens what a node's credentials allow** (revision 7, 6.0): arbitrary Lua over the group's keys, and
+    instance-wide blocking by a long script (D5). Accepted by dradoaica as Medium on shared instances, Low on a
+    dedicated instance (2026-11-02).
 - Follow-ups of revision 1, both decided and implemented in 3.0.0: expiry of client entries (ADR-0014); one client hash
   per group with a migration (ADR-0015). Per-group keys for leases and resources: ADR-0020 (Accepted; implemented in 4.0.0, CR-0006).
 - Decision: revision 1 accepted by dradoaica (maintainer, service owner and security / architecture reviewer) on
@@ -238,6 +272,8 @@ the body, and records 5.0.
 | Security / architecture (revision 5) | dradoaica | 2026-10-19 |
 | Service owner (revision 6)           | dradoaica | 2026-11-01 |
 | Security / architecture (revision 6) | dradoaica | 2026-11-01 |
+| Service owner (revision 7)           | dradoaica | 2026-11-02 |
+| Security / architecture (revision 7) | dradoaica | 2026-11-02 |
 
 ## Sources
 
@@ -248,7 +284,10 @@ the body, and records 5.0.
   `docs/adrs/0008-replace-redis-datatypes-with-direct-newtonsoft-json.md`,
   `docs/adrs/0020-per-group-redis-leases-and-resources.md`,
   `docs/adrs/0029-shared-coordination-project-for-sqlserver-and-redis.md` (revision 6),
-  `docs/adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md` (revision 6)
+  `docs/adrs/0031-valkey-as-a-supported-server-for-the-redis-backend.md` (revision 6),
+  `docs/adrs/0036-redis-coordinator-writes-client-records-one-at-a-time.md`,
+  `docs/adrs/0037-redis-guarded-writes-as-server-side-scripts.md` (revision 7)
+- Problem records: `docs/problem-records/PRB-0009-redis-group-does-not-converge-over-a-lossy-link.md` (revision 7: D2)
 - Related user stories: `docs/user-stories/US-0006-coordinate-via-redis-backend.md`
 - Change records: `docs/change-records/CR-0001-coordination-safety-and-provider-ownership.md`,
   `docs/change-records/CR-0003-release-3-0-0.md`, `docs/change-records/CR-0004-release-3-1-0.md`,
