@@ -175,7 +175,9 @@ public sealed class RedisPerGroupKeysTests
                 "+@write",
                 "+@transaction",
                 "+time",
-                "+echo"
+                "+echo",
+                "+eval", // the documented 6.0 user (ADR-0037), so the start fails only for the unmoved group
+                "+evalsha"
             );
 
         using var provider = new RedisProvider(
