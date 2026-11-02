@@ -101,7 +101,7 @@ are removed, and Redis hosts with a per-group ACL user must change their ACL bef
   - `ACL LOG` denials: the handshake commands as before, `script|load` (see Scope), and reads of the 2.x key
     `Dictionary:RBR:Clients` (the optional 2.x migration, skipped when not permitted, ADR-0015).
 - [ ] Integration tests, all but ZooKeeper: (pending).
-- [ ] Dependency scan: (pending).
+- [x] Dependency scan (`scripts/check-vulnerable-packages.sh`): no vulnerable package (2026-11-02, nuget.org).
 - [x] TLC: **N/A**, accepted by dradoaica (in session 2026-11-02): the model already treats each record write as atomic and fenced (ADR-0036); scripts keep
   that, so the modelled behaviour does not change.
 - [x] ZooKeeper integration tests: **N/A**, accepted by dradoaica (in session 2026-11-02): no ZooKeeper code changed.

@@ -98,8 +98,8 @@ the body, and records 5.0.
 
 ## System context and boundaries
 
-- **In scope:** `RedisProvider`, `LeaseService`, `ClientService`, `ResourceService`, `RedisHash`,
-  `PerGroupKeyMigration`; the shared coordination in `Rebalancer.LeaseCoordination` as used by Redis (revision 6); the
+- **In scope:** `RedisProvider`, `LeaseService`, `ClientService`, `ResourceService`, `RedisHash`, `RedisScripts` (the
+  Lua scripts, revision 7), `PerGroupKeyMigration`; the shared coordination in `Rebalancer.LeaseCoordination` as used by Redis (revision 6); the
   per-group keys `RBR:Lease:{group}`, `RBR:Resources:{group}`, `RBR:Clients:{group}`; the `TIME` command used for
   server time.
 - **Out of scope:** Redis server hardening (persistence, replication, `rename-command`, protected mode); Redis Cluster
