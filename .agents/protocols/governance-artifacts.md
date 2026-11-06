@@ -15,6 +15,8 @@ work, follow this decision tree:
     - Yes → **Draft an SDP** in `docs/sdps/`.
 - **Is this recurring pain, incidents, or "unknown root cause" quality/security issues?**
     - Yes → **Draft a problem record** in `docs/problem-records/`.
+- **Is this the first Tier 1–2 work on an existing codebase, with no system map?**
+    - Yes → **Map it first** with `.agents/commands/cmd-map-existing-code.md`.
 - **Is it small, reversible, and purely editorial (typos, formatting) with no semantic change?**
     - Yes → Proceed, but still cite the files you changed.
 
@@ -36,5 +38,6 @@ Agents **author drafts**; humans **review and approve** when a gate requires it.
 | `full-stack-developer.md`, `mobile-developer.md`                            | Implementation **against** approved artifacts; may draft supporting stories or ADR input—not unilateral architecture |
 | `qa-automation-engineer.md`                                                 | Test plans, quality criteria, automation proposals traceable to stories/specs                                        |
 | `orchestrator.md`                                                           | Task decomposition plans, subagent dispatch specs (`.agents/commands/cmd-dispatch-subagent.md`), integrated MRs/PRs  |
+| `independent-reviewer.md`                                                   | Review findings only (`.agents/protocols/pre-mr-gate.md` → Independent review); no artifacts                         |
 
 If a persona file is empty, still follow this table and `.agents/AGENTS.md` until the persona is filled in.

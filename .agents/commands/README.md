@@ -24,6 +24,8 @@ Commands are **repeatable, strictly scoped task specs** that an agent can execut
 
 - **`cmd-dispatch-subagent`** (`.agents/commands/cmd-dispatch-subagent.md`): hand one deliverable to one subagent with
   persona, model class, acceptance criteria, dependencies, worktree, and constraints.
+- **`cmd-map-existing-code`** (`.agents/commands/cmd-map-existing-code.md`): record what an existing codebase actually
+  is, with evidence and the commit it describes, before specs and decisions build on it.
 
 ## Template
 

@@ -313,8 +313,8 @@ human. Maintenance is not the last phase – it feeds back into Planning. The SS
 ### Pre-MR gate (before opening a merge request)
 
 An agent may open an MR/PR only after every applicable check in `.agents/protocols/pre-mr-gate.md` passes (tests,
-regression, static analysis, baseline drift, tier, governance check). The agent that produced the change **must not**
-approve or merge it (`.agents/rules/00-no-self-approval.md`).
+regression, static analysis, baseline drift, tier, governance check, independent review). The agent that produced the
+change **must not** approve or merge it (`.agents/rules/00-no-self-approval.md`).
 
 ---
 

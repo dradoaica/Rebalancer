@@ -35,7 +35,8 @@ The orchestrating agent (the agent coordinating other agents, which may be the h
 - Maintain a **task decomposition plan** visible to the human before execution begins.
 - Get human approval of the plan before dispatching subagents.
 - Dispatch every subagent with `.agents/commands/cmd-dispatch-subagent.md`, and assign its model per **Model
-  assignment** below.
+  assignment** below. The read-only independent reviewer is part of the pre-MR gate: it needs no plan approval or
+  dispatch spec, only its brief (`.agents/protocols/pre-mr-gate.md` → Independent review).
 - Keep the **review-load limit** (`.agents/AGENTS.md` → Co-Governance Protocol) across all its subagents: their drafts
   and MRs count against the same human reviewer.
 - Mark a handoff `Validated` only after its acceptance criteria and `scripts/govern_check.py` pass.

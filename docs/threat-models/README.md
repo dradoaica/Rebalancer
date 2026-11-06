@@ -42,8 +42,8 @@ Copy the front matter from `threat-model-template.md` and keep every key.
 
 - A threat model should reference and be referenced by relevant SDPs under `docs/sdps/`.
 - ADRs that materially affect the attack surface should either:
-  - be cited in this model’s `Sources`, and/or
-  - trigger an update to this model (status change or a new version) if risks/mitigations change.
+    - be cited in this model’s `Sources`, and/or
+    - trigger an update to this model (status change or a new version) if risks/mitigations change.
 - Change Records should reference the accepted threat model when the change affects risk posture.
 
 ## Contents checklist (must-haves)
