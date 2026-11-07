@@ -56,10 +56,10 @@ works; otherwise Claude Code, Cline, Kiro, and Grok Build fall back to the manua
 
 ### Provenance of imported skills
 
-| Skill(s)                     | Source                                                                | Version                                  | License                                                    | Imported   |
-|------------------------------|-----------------------------------------------------------------------|------------------------------------------|------------------------------------------------------------|------------|
-| `ponytail`, `ponytail-*` (6) | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | 09c434ab73ca43761c5d8b0c5d341926c2fba710 | MIT                                                        | 2026-10-17 |
-| `ub-mode`                    | [unclebob/ub-mode](https://github.com/unclebob/ub-mode)               | 57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f | None yet; expected 0BSD like unclebob/crapper (unverified) | 2026-10-29 |
+| Skill(s)                     | Source                                                                | Version                                  | License | Imported   |
+|------------------------------|-----------------------------------------------------------------------|------------------------------------------|---------|------------|
+| `ponytail`, `ponytail-*` (6) | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | 09c434ab73ca43761c5d8b0c5d341926c2fba710 | MIT     | 2026-10-17 |
+| `ub-mode`                    | [unclebob/ub-mode](https://github.com/unclebob/ub-mode)               | 3da62bf3fcfd2034de41f30d920d2739e566171f | MIT     | 2026-10-29 |
 
 ## Skill file requirements
 

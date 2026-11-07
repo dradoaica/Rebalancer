@@ -4,6 +4,7 @@ description: >
   Follow the reduced principles when writing or changing code. Every change
   follows First Make it Work, then Then Make it Right, then Follow Practice.
   Use when the user runs /ub-mode or asks for the reduced principles.
+license: MIT
 ---
 
 # Skill: ub-mode (Make it Work, Make it Right, Follow Practice)
@@ -255,7 +256,7 @@ Every time you are asked to make a change follow, in order:
 
 ## Sources
 
-- Upstream: [unclebob/ub-mode](https://github.com/unclebob/ub-mode) @ `57a8bdd28e45ed41900ace0bafa2ff76dd9ed70f`
+- Upstream: [unclebob/ub-mode](https://github.com/unclebob/ub-mode) @ `3da62bf3fcfd2034de41f30d920d2739e566171f`
   (companion tools: `unclebob/crapper`, `unclebob/dryer`, `unclebob/mutator`)
 - Repository Governance: `.agents/AGENTS.md`
 - Protocols: `.agents/protocols/maintainability.md`, `.agents/protocols/multi-agent-orchestration.md`,
