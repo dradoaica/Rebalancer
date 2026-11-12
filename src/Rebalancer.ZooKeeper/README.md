@@ -1,4 +1,4 @@
-# rebalancer-net-zookeeper
+# Rebalancer ZooKeeper
 
 ZooKeeper backend for .NET Rebalancer.
 
